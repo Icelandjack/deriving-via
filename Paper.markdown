@@ -42,7 +42,7 @@ used as
 
 (yuck)
 
-Our solution is to codify that pattern; to give this "basic building block" a name by attaching its behaviour `newtype` "adapters" (name taken from [The Essence of the Iterator Pattern](https://www.cs.ox.ac.uk/jeremy.gibbons/publications/iterator.pdf)):
+Our solution is to codify that pattern; to give this "basic building block" a name by attaching its behaviour `newtype` "adapters" (name taken from [The Essence of the Iterator Pattern](https://www.cs.ox.ac.uk/jeremy.gibbons/publications/iterator.pdf)), note that we never use constructor `App_` directly:
 
 ```haskell
 newtype App f a = App_ (f a)
