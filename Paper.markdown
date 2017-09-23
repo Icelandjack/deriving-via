@@ -11,6 +11,8 @@ in code.
 > `Applicative`s, `Traversable`s, and `Monoid`s give us the *basic building blocks* for a lot of routine programming. Every `Applicative` can be used to lift monoids, as follows
 
 ```haskell
+liftA0 = pure
+
 instance (Applicative f, Monoid m) => Monoid (f m) where
   mempty = liftA0 mempty
   (<>)   = liftA2 (<>)
@@ -23,12 +25,12 @@ Many similar liftings exist and can be "derived" with CPP
 -- ApplicativeNumeric-inc.hs
 
 instance (Num applicative_arg) => Num (APPLICATIVE applicative_arg) where
-  negate      = liftA negate
-  (+)         = liftA2 (+)
-  (*)         = liftA2 (*)
-  fromInteger = liftA0 . fromInteger
-  abs         = liftA abs
-  signum      = liftA signum
+  negate        = liftA  negate
+  (+)           = liftA2 (+)
+  (*)           = liftA2 (*)
+  fromInteger i = liftA0 (fromInteger i)
+  abs           = liftA  abs
+  signum        = liftA  signum
 ```
 
 used as
