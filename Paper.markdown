@@ -21,7 +21,7 @@ instance (Applicative f, Monoid m) => Monoid (f m) where
 Many similar liftings exist and can be "derived" with CPP
 ([Conal](https://hackage.haskell.org/package/applicative-numbers))
 
-```
+```haskell
 -- ApplicativeNumeric-inc.hs
 
 instance (Num applicative_arg) => Num (APPLICATIVE applicative_arg) where
