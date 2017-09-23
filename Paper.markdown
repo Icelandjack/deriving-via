@@ -42,8 +42,7 @@ used as
 
 (yuck)
 
-Our solution is to attach that "basic building block" as Haskell code,
-namely by attaching the behavior to a =newtype= "adaptor":
+Our solution is to codify that pattern; to give this "basic building block" a name by attaching its behaviour `newtype` "adaptor":
 
 ```haskell
 newtype App f a = App (f a)
