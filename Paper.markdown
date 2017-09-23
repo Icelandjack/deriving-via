@@ -57,3 +57,21 @@ instance (Applicative f, Num a) => Num (App f a) where
   abs         = fmap abs
   signum      = fmap signum
 ```
+
+I definitely want to include stuff like
+
+```haskell
+newtype SameKleisli m a = SameKleisli (Join (Kleisli m) a)
+  deriving newtype
+    Monoid
+
+instance Category m => Semigroup (Join m a) where
+  Join a <> Join b = Join (a . b)
+
+instance Category m => Monoid (Join m a) where
+  mempty = Join id
+
+  Join a `mappend` Join b = Join (a . b)
+```
+
+inspired by https://stackoverflow.com/questions/32935812/why-isnt-kleisli-an-instance-of-monoid and https://gist.github.com/Icelandjack/83e77449d2857f24a7c94fede6d7311b
