@@ -45,11 +45,11 @@ used as
 Our solution is to codify that pattern; to give this "basic building block" a name by attaching its behaviour `newtype` "adaptor":
 
 ```haskell
-newtype App f a = App (f a)
+newtype App f a = App_ (f a)
   deriving newtype
     (Functor, Applicative)
 
-instance (Applicative f, Num a) => Num (App_ f a) where
+instance (Applicative f, Num a) => Num (App f a) where
   negate      = fmap negate
   (+)         = liftA2 (+)
   (*)         = liftA2 (*)
