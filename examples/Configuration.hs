@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
@@ -16,7 +17,7 @@ import GHC.Generics (Generic(..))
 data State1 = State1
   { color1      :: Maybe Double
   , brightness1 :: Maybe Double
-  } deriving (Generic)
+  } deriving stock (Generic)
 
 instance ToJSON State1 where
   toJSON = genericToJSON defaultOptions { omitNothingFields = True }
@@ -37,7 +38,7 @@ instance (Generic a, GToJSON Zero (Rep a), SingI onf)
 data State2 = State2
   { color2      :: Maybe Double
   , brightness2 :: Maybe Double
-  } deriving (Generic)
+  } deriving stock (Generic)
     -- deriving ToJSON via (AesonOptions True State2)
 
 instance ToJSON State2 where
