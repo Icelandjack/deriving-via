@@ -46,6 +46,50 @@ For instance, if `deriving Eq`, then `n_eta` = 0, since `Eq :: * -> Constraint`.
 4. Moreover, the eta-reduced types must all be _distinct_. Once again, this can only happen with data family instances. We must reject something of the form `data instance S a a = ... deriving Functor`, for exaple, since `instance Functor (S a)` would match the type `S a b`, not `S a a` like we want.
 5. No types in `C c_1 ... c_(z-1)` or `V v_1 ... v_k` can mention any of the eta-reduced types. For example, `newtype T a s = ... deriving (MonadState s)` must be rejected, as `instance MonadState s (T a)` would match the type `T a s1`, where `s1` is distinct from `s`, which is not what we want.
 
+### A design question
+
+An interesting consequence of the fact that the kind of `V v_1 ... v_k` must unify with the `k` in `C c_1 ... c_(z-1) :: k -> Constraint` means that the following will not be accepted:
+
+```haskell
+newtype MyMaybe a = MyMaybe (Maybe a)
+  deriving (Show, Functor)
+    via (WrappedApplicative Maybe a)
+```
+
+This is because the kind of `WrappedApplicative Maybe a` is `*`, but we have that `Functor :: (* -> *) -> Constraint`, and `*` does not unify with `* -> *`. Rather, `Show` and `Functor` must be derived with two separate (but very similar) `via` types:
+
+```haskell
+newtype MyMaybe a = MyMaybe (Maybe a)
+  deriving Show
+    via (WrappedApplicative Maybe a)
+  deriving Functor
+    via (WrappedApplicative Maybe)
+```
+
+This might seem tedious, but there's a good reason it has to be this way: `StandaloneDeriving`. After all, what should go in place of `???` in the following standalone-derived instance?
+
+```haskell
+deriving via (???) instance Functor MyMaybe
+```
+
+It certainly can't be `WrappedApplicative Maybe a`, because no variable named `a` is in scope! The only sensible choice here is `WrappedApplicative Maybe`, so for the sake of consistency, we adopt the same design consideration for `deriving` clauses.
+
+### More `StandaloneDeriving` oddities
+
+A little-known feature of type class instances is that they support explicit `forall` syntax:
+
+```haskell
+deriving instance forall a. Show a => Show (Foo a)
+```
+
+How does this mesh with standalone-derived instances using `via`? Not very neatly, as it happens:
+
+```haskell
+deriving via (Identity a) instance forall a. Show a => Show (Foo a)
+```
+
+Yuck—`a` is used before it's bound by a `forall`! I'm not sure how to make this better, though.
+
 ## Code generation
 
 Provided that all of the validity checks above are met, GHC will generate the following instance:
