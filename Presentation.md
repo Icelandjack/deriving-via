@@ -18,9 +18,10 @@ We think of
 
 # Rant about `newtype`s
 
-- `newtype USD = USD Int` 
-
 - `coerce :: Coercible a b => a -> b` safely coerces between same in memory
+    - Is a NO-OP
+
+- `newtype USD = USD Int` 
 
 - `coerce :: Int -> USD`
 
