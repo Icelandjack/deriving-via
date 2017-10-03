@@ -4,6 +4,16 @@
 
 # Content
 
+- READ SIMON'S https://www.cis.upenn.edu/~sweirich/icfp-plmw15/slides/peyton-jones.pdf
+
+# How we think
+
+- “It’s good to think of types 
+- as not just the representation of data
+- but the equipment of data with structure.”
+-
+- — Conor McBride
+
 # Rant about `newtype`s
 
 - `newtype`s let us 
@@ -20,11 +30,6 @@
 
 # How we think 
 
-- “It’s good to think of types 
-- as not just the representation of data
-- but the equipment of data with structure.”
--
-- — Conor McBride
 
 - Types each have their own flavour, their own personality
 
