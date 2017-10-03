@@ -8,19 +8,25 @@
 
 # How we think
 
-- “It’s good to think of types 
-- as not just the representation of data
+- “It’s good to think of **types**
+- as not just the **representation** of data
 - but the equipment of data with structure.”
 -
 - — Conor McBride
 
+We think of 
+
 # Rant about `newtype`s
 
-- `newtype`s let us 
+- `newtype USD = USD Int` 
 
-- *TODO* Discuss `coerce`
+- `coerce :: Coercible a b => a -> b` safely coerces between same in memory
 
-- *TODO* Re-read Richard's paper
+- `coerce :: Int -> USD`
+
+- `coerce :: [[[(Int, USD)]]] -> [[[(USD, Int)]]]`
+
+- **TODO** Re-read Richard's paper
 
 - ### Thinking of the same "representation" through different lenses
 
