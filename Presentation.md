@@ -18,8 +18,8 @@ We think of
 
 # Rant about `newtype`s
 
-- `coerce :: Coercible a b => a -> b` safely coerces between same in memory
-    - Is a NO-OP
+- `coerce :: Coercible a b => a -> b` **safely** coerces between same in memory
+    - Is a **NOOP**
 
 - `newtype USD = USD Int` 
 
