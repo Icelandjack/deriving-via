@@ -8,11 +8,11 @@
 
 # How we think
 
-- “It’s good to think of **types**
-- as not just the **representation** of data
-- but the equipment of **data with structure**.”
--
-- — Conor McBride
+- > “It’s good to think of **types**
+- > as not just the **representation** of data
+- > but the equipment of **data with structure**.”
+- >
+- > — Conor McBride
 
 We think of 
 
