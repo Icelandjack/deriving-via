@@ -20,6 +20,7 @@ We think of
 
 - `coerce :: Coercible a b => a -> b` **safely** coerces between same in memory
     - Is a **NOOP**
+    - Nests
 
 - `newtype USD = USD Int` 
 
@@ -46,6 +47,16 @@ We think of
 
 
 - Reducing boilerplate / capturing a pattern / 
+
+# The Main Idea
+
+- The same representation can carry different **structure**
+
+- `coerce` lets us freely transfer **structure** between types with the same representation
+
+- Zero cost
+
+- Safely
 
 # Mention JSON deriving shortly
 
