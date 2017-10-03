@@ -14,7 +14,7 @@
 - >
 - > — Conor McBride
 
-We think of 
+We think of
 
 # Rant about `newtype`s
 
@@ -29,13 +29,13 @@ We think of
 
 - **TODO** Re-read Richard's paper
 
+# How we think 
+
 - ### Thinking of the same "representation" through different lenses
 
     #### Reducing boilerplate
 
 - ##### Capturing a pattern
-
-# How we think 
 
 
 - Types each have their own flavour, their own personality
