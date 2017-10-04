@@ -58,6 +58,12 @@ We think of
 
 - Safely
 
+- When defining a `newtype`: We have full control
+
+    - We can replace associated type families with our own, passed as arguments by `newtype` or computed
+    
+    - 
+
 # Mention JSON deriving shortly
 
 # Associated type family
