@@ -2,71 +2,402 @@
 % Baldur Blöndal
 % September, 2017
 
-# Content
+# I'll tell you what I care about....
 
-- READ SIMON'S https://www.cis.upenn.edu/~sweirich/icfp-plmw15/slides/peyton-jones.pdf
+- ... avoiding **boilerplate**
 
-# How we think
+- ... capturing **patterns**
 
-- > “It’s good to think of **types**
-- > as not just the **representation** of data
-- > but the equipment of **data with structure**.”
-- >
-- > — Conor McBride
+    - as a library
 
-We think of
+        - that I can reuse 
 
-# Rant about `newtype`s
+- ... **free code** and class instances 
 
-- `coerce :: Coercible a b => a -> b` **safely** coerces between same in memory
-    - Is a **NOOP**
-    - Nests
+- ... separating data representation from properties
 
-- `newtype USD = USD Int` 
+- ... laws without doing proof
 
-- `coerce :: Int -> USD`
-
-- `coerce :: [[[(Int, USD)]]] -> [[[(USD, Int)]]]`
-
-- **TODO** Re-read Richard's paper
-
-# How we think 
-
-- ### Thinking of the same "representation" through different lenses
-
-    #### Reducing boilerplate
-
-- ##### Capturing a pattern
-
-
-- Types each have their own flavour, their own personality
-
-- Adorning them with newtypes lets you tailor their personalities like in Sims
-
-    - "add a bit of this"
-
-
-- Reducing boilerplate / capturing a pattern / 
-
-# The Main Idea
-
-- The same representation can carry different **structure**
-
-- `coerce` lets us freely transfer **structure** between types with the same representation
-
-- Zero cost
-
-- Safely
-
-- When defining a `newtype`: We have full control
-
-    - We can replace associated type families with our own, passed as arguments by `newtype` or computed
+- ... being able to **quickly experiment**
     
-    - 
+# Boilerplate & Patterns & Laws
+
+A nice example of boilerplate:
+
+```
+instance Monoid a => Monoid ((->) a) where
+  mempty  = pure   mempty
+  mappend = liftA2 mappend
+```
+
+# Boilerplate & Patterns & Laws
+
+A nice example of boilerplate:
+
+```
+instance Monoid a => Monoid (IO a) where
+  mempty  = pure   mempty
+  mappend = liftA2 mappend
+```
+
+# Boilerplate & Patterns & Laws
+
+A nice example of boilerplate:
+
+```
+instance (Monoid a, Monoid b) => Monoid (a, b) where
+  mempty  = pure   mempty
+  mappend = liftA2 mappend
+```
+
+# Boilerplate & Patterns & Laws
+
+A nice example of boilerplate:
+
+```
+instance (Applicative f, Monoid a) => Monoid (f a) where
+  mempty  = pure   mempty
+  mappend = liftA2 mappend
+```
+
+Works for any `Applicative`.. 
+
+> `Applicative`s, `Traversable`s and `Monoid`s give us the basic
+> building blocks for a lot of **routine programming**. Every
+> `Applicative` *f* can be used to lift monoids, ...
+>
+> — Conor McBride
+
+# What do Haskellers do ..
+#### .. when they want different behavior? 
+
+```
+newtype App f a = App (f a)
+
+
+
+```
+
+We attach the “**routine programming**” pattern to `App`
+
+```
+instance (Applicative f, Monoid a) => Monoid (App f a) where
+  mempty                    = App (pure   mempty)
+  mappend (App fa) (App fb) = App (liftA2 mappend fa fb)
+```
+
+# What do Haskellers do ..
+#### .. when they want different behavior? 
+
+```
+newtype App f a = App (f a)
+  deriving newtype
+    (Functor, Applicative)
+```
+
+We attach the “**routine programming**” pattern to `App`
+
+```
+instance (Applicative f, Monoid a) => Monoid (App f a) where
+  mempty                    = pure mempty
+  mappend                   = liftA2 mappend
+```
+
+- What is the in-memory representation of `App Maybe [a]`?
+
+# `Coercible`
+
+We can coerce between newtypes and the values they wrap,
+
+```
+instance Monoid a => Monoid (IO a) where
+  mempty :: IO a
+  mempty = coerce 
+    (mempty  :: App IO a)
+
+  mappend :: IO a -> IO a -> IO a
+  mappend = coerce 
+    (mappend :: App IO a -> App IO a -> App IO a)
+```
+
+# `{-# Language DerivingVia #-}`
+
+This is where `DerivingVia` comes in
+
+```
+data IO a = ... 
+  deriving Monoid 
+    via (App IO a)
+```
+
+# `{-# Language DerivingVia #-}`
+
+This is where `DerivingVia` comes in
+
+```
+data IO a = ... 
+  deriving (Semigroup, Monoid)
+    via (App IO a)
+```
+
+# `{-# Language DerivingVia #-}`
+
+This is where `DerivingVia` comes in
+
+```
+data IO a = ... 
+  deriving (Semigroup, Monoid, Num, Floating, Fractional)
+    via (App IO a)
+```
+
+* But it doesn't stop there..
+
+# Default Deriving / Vocabulary (**QuickCheck**)
+
+**Problem**: There are many valid `Arbitrary` you can derive
+
+```
+arbitrarySizedIntegral        :: Integral a              => Gen a
+arbitrarySizedFractional      :: Fractional a            => Gen a
+arbitraryBoundedRandom        :: (Bounded a, Random a)   => Gen a
+arbitraryBoundedEnum          :: (Bounded a, Enum a)     => Gen a
+```
+
+* We can codify each of them as an instance 
+
+    ```
+    newtype BoundedRandom a = BR a
+    
+    instance (Bounded a, Random a) => Arbitrary (BoundedRandom a) where
+      arbitrary = BR <$> arbitraryBoundedRandom
+    ```
+
+* `DerivingVia` lets you pick at deriving site
+
+    ```
+    data Foo = ... deriving (Arbitrary)
+      via (BoundedRandom Foo)
+
+    instance Bounded Foo where ..
+    instance Random  Foo where ..
+    ```
+
+# More **QuickCheck**
+
+```
+
+
+
+
+```
+
+**QuickCheck** has many modifiers
+
+```
+newtype Nums a = Nums [a]
+  deriving newtype
+    Arbitrary
+
+> sample (arbitrary @(Nums Int))
+[]
+[0,-2]
+[]
+[0,-2,-3]
+[5,4,-5,5]
+[9,0]
+[-5,1,-5,2,11]
+```
+# More **QuickCheck**
+
+```
+newtype NonEmptyList a = NonEmpty [a] -- Only generates non-empty lists
+
+
+
+```
+
+**QuickCheck** has many modifiers
+
+```
+newtype Nums a = Nums [a]
+  deriving 
+    Arbitrary via (NonEmptyList a)
+
+> sample (arbitrary @(Nums Int))
+[2,1]
+[1]
+[-3,2]
+[-6,3,-4,6]
+[-1,6,7,4,-3]
+[2,10,9,-7,8,-9,-7,4,4]
+[12,5,5,9,10]
+```
+
+# More **QuickCheck**
+
+```
+newtype NonEmptyList a = NonEmpty [a] -- Only generates non-empty lists
+newtype Positive     a = Positive a   -- x > 0
+
+
+```
+
+**QuickCheck** has many modifiers
+
+```
+newtype Nums a = Nums [a]
+  deriving 
+    Arbitrary via (NonEmptyList (Positive a))
+
+> sample (arbitrary @(Nums Int))
+[2]
+[1,2]
+[3,4]
+[2,5]
+[1]
+[8,2,4,3,4,5,1,7]
+[10,6,2,11,10,3,2,11,12]
+```
+
+# More **QuickCheck**
+
+```
+newtype NonEmptyList a = NonEmpty [a] -- Only generates non-empty lists
+newtype Positive     a = Positive a   -- x > 0
+newtype Large        a = Large    a   -- large numbers
+```
+
+**QuickCheck** has many modifiers
+
+```
+newtype Nums a = Nums [a]
+  deriving 
+    Arbitrary via (NonEmptyList (Positive (Large a)))
+
+> sample (arbitrary @(Nums Int))
+[2]
+[2,1]
+[2,7,8,4]
+[11,13]
+[8,40,17,57,16,51,88,58]
+[249,27]
+[511,642]
+```
+
+# Way of Thinking 
+
+> “It’s good to think of **types**
+> as not just the **representation** of data
+> but the equipment of **data with structure**.”
+>
+> — Conor McBride
+
+- One representation, multiple structures
+
+    ```
+    instance (Applicative f, Monoid a) => Monoid (f a) where
+      mempty  = pure   mempty
+      mappend = liftA2 mappend
+
+    instance Alternative f => Monoid (f a) where
+      mempty  = zero
+      mappend = (<|>)
+    ```
+
+- Get reified as instances
+
+    ```
+    instance (Applicative f, Monoid a) => Monoid (App f a)
+    instance (Alternative f)           => Monoid (Alt f a)
+    ```
 
 # Mention JSON deriving shortly
 
+* **Problem**: Only *one* default method.
+
+* **Problem**: What if the default method changes?
+
+* **Problem**: What if you want to derive with options?
+
+    ```haskell
+    data State = State
+      { scbColor      :: Maybe Double 
+      , scbBrightness :: Maybe Double
+      } 
+      deriving ToJSON 
+        via (AesonOptions OmitNothingField (StripPrefix "scb") State)
+    ```
+
+# The Main Idea
+
+- All of this is 
+
+    - *no-op*
+
+    - *zero-cost* operation
+
+    - *safe*
+
+- Transfer behaviour (*structure*) between types of same *representation*
+
+- Works with associated type families
+
+    - Can swap it out for isomorphic type
+
+# Uses
+
+- Reduces boilerplate 
+
+- Avoids default methods
+
+    - Not tied to a class declaration 
+
+    - Arbitrarily many
+
+- Captures patterns 
+
+- Any isomorphism (`Generic`, `Representable`) lets us carry over structure 
+
+    - From representation
+
+    - From anything sharing a representation
+
+- Prefer `Monoidal` formulation of `Applicative`? Sorted m8.
+
+# The End
+
+* Thank You
+
+# Isomorphic Structures
+
+- So far: only used instances of coercible structures
+
+- ## `GHC.Generics`
+
+- ## `Iso1`
+
+
+- No actually
+
 # Associated type family
+
+```haskell
+class Functor f => Representable f where
+  type Rep f :: Type
+
+  index    :: f a -> (Rep f -> a)
+  tabulate :: f a <- (Rep f -> a)
+```
+
+gives us `Applicative`, `Monad`, `Distributive`, `MonadReader (Rep f)`, `FunctorWithIndex`, `FoldableWithIndex`, `TraversableWithIndex` ....
+
+- And sometimes `Comonad`
+
+    ```
+    instance (Representable f, Monoid (Rep f)) => Comonad (Co f)
+    ```
+
+# 
 
 - First derive `Representable Pair` for `Pair = Either () ()`.
 
@@ -75,18 +406,6 @@ We think of
 - This is `Bool` but we can call it `newtype PairRep = PRep (Either () ())`
 
 - > "Okay but we cannot coerce from `PairRep` to `Bool`, checkmate
-
-- No actually
-
-# Isomorphic Structures
-
-- So far: only used instances of coercible structures
-
-- 
-
-- ## `GHC.Generics`
-
-- ## `Iso1`
 
 <!--- pandoc -f markdown -t slidy -i -s --self-contained -o mypresentation.html Presentation.md --->
 
