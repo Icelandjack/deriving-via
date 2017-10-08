@@ -63,10 +63,15 @@ sameRep1 =
   >>>
   expand1
 
+type a <~>  b = (SameRep  a b, Generic  a, Generic  b)
+type f <~~> g = (SameRep1 f g, Generic1 f, Generic1 g)
+
+type f ~> g = forall xx. f xx -> g xx
+
 ----------------------------------------------------------------------
 -- Convenience functions
 ----------------------------------------------------------------------
-back :: forall a b. (SameRep a b, Generic a, Generic b) => a -> b
+back :: forall a b. a <~> b => a -> b
 back = id
   >>> from
   >>> coerce'
@@ -76,7 +81,7 @@ back = id
     coerce' :: forall x. Rep a x -> Rep b x
     coerce' = coerce \\ sameRep @a @b @x
 
-forth :: forall a b. (SameRep a b, Generic a, Generic b) => b -> a
+forth :: forall b a. a <~> b => b -> a
 forth = id
   >>> from
   >>> coerce'
@@ -86,7 +91,7 @@ forth = id
     coerce' :: forall x. Rep b x -> Rep a x
     coerce' = coerce \\ swap @(Rep a x) @(Rep b x) \\ sameRep @a @b @x 
 
-back1 :: forall f g x. (SameRep1 f g, Generic1 f, Generic1 g) => f x -> g x
+back1 :: forall f g x. f <~~> g => f ~> g 
 back1 = id
   >>> from1
   >>> coerce'
@@ -96,7 +101,7 @@ back1 = id
     coerce' :: forall x. Rep1 f x -> Rep1 g x
     coerce' = coerce \\ sameRep1 @f @g @x
 
-forth1 :: forall f g x. (SameRep1 f g, Generic1 f, Generic1 g) => g x -> f x
+forth1 :: forall f g x. f <~~> g => g x -> f x
 forth1 = id
   >>> from1
   >>> coerce'
@@ -144,27 +149,27 @@ newtype instance (a `GenericallyAs` other)   = GenericallyAs  { genericallyAs  :
 -- GenericallyAs :: (Type -> Type) -> (Type -> Type) -> (Type -> Type)
 newtype instance (f `GenericallyAs` other) a = GenericallyAs1 { genericallyAs1 :: f a }
 
-pattern Hel :: (SameRep a other, Generic a, Generic other) => other -> GenericallyAs a other
+pattern Hel :: a<~>other => other -> GenericallyAs a other
 pattern Hel a <- (GenericallyAs (back -> a))
   where Hel a  = (GenericallyAs (forth a))
 
-pattern Hel1 :: (SameRep1 f other, Generic1 f, Generic1 other) => other a -> GenericallyAs f other a
+pattern Hel1 :: f<~~>other => other a -> GenericallyAs f other a
 pattern Hel1 a <- (GenericallyAs1 (back1 -> a))
   where Hel1 a  = (GenericallyAs1 (forth1 a))
 
-instance (SameRep a other, Generic a, Generic other, Semigroup other) => Semigroup (a `GenericallyAs` other) where
+instance (a<~>other, Semigroup other) => Semigroup (a `GenericallyAs` other) where
   Hel a <> Hel b = Hel (a S.<> b)
 
-instance (SameRep a other, Generic a, Generic other, Monoid other) => Monoid (a `GenericallyAs` other) where
+instance (a<~>other, Monoid other) => Monoid (a `GenericallyAs` other) where
   mempty = Hel mempty
 
   Hel a `mappend` Hel b = Hel (a S.<> b)
 
-instance (SameRep a other, Generic a, Generic other, Show other) => Show (a `GenericallyAs` other) where
+instance (a<~>other, Show other) => Show (a `GenericallyAs` other) where
   show :: (a `GenericallyAs` other) -> String
   show (Hel a) = show a
 
-instance (SameRep a other, Generic a, Generic other, Num other) => Num (a `GenericallyAs` other) where
+instance (a<~>other, Num other) => Num (a `GenericallyAs` other) where
   (+) :: a `GenericallyAs` other -> a `GenericallyAs` other -> a `GenericallyAs` other
   Hel a + Hel b = Hel (a + b)
 
@@ -200,7 +205,7 @@ instance (SameRep a other, Generic a, Generic other, Num other) => Num (a `Gener
 --     Rep1 F A'
 --   ={ to1 }
 --     F A'
-instance (SameRep1 f other, Generic1 f, Generic1 other, Functor other) => Functor (f `GenericallyAs` other) where
+instance (f<~~>other, Functor other) => Functor (f `GenericallyAs` other) where
   fmap :: forall a a'. (a -> a') -> ((f `GenericallyAs` other) a -> (f `GenericallyAs` other) a')
   fmap f (Hel1 xs) = Hel1 (fmap f xs)
 
@@ -252,4 +257,3 @@ data Pair a = a :# a
 
   deriving Functor
     via (Pair `GenericallyAs` V2)
-
