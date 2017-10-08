@@ -94,8 +94,6 @@ data Product f g h a = Product { fs :: f (g (f a)), sn :: h (f (g a)) }
 -- Deriving via type with shared Rep
 ----------------------------------------------------------------------
 
--- We define a type (F :: Type -> Type) 
-
 data family GenericallyAs :: k -> k -> k
 
 newtype instance (a `GenericallyAs` other)   = GenericallyAs  { generically    :: a   }
@@ -108,9 +106,8 @@ instance (SameRep a other, Generic a, Generic other, Show other) => Show (a `Gen
     show @other . to . coerce' . from . generically where
 
       coerce' :: forall x. Rep a x -> Rep other x
-      coerce' = 
-        case sameRep :: SameRep a other :- Coercible (Rep a x) (Rep other x) of
-          Sub Dict -> coerce
+      coerce' = coerce
+        \\ sameRep @a @other @x
 
 -- So it naively bounces around a lot
 --
