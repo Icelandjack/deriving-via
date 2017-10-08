@@ -113,7 +113,7 @@ instance (SameRep a other, Generic a, Generic other, Show other) => Show (a `Gen
 --   ={ coerce }
 --     Rep1 Other A
 --   ={ to1 }
---     Other A'
+--     Other A
 --   ={ fmap f }
 --     Other A'
 --   ={ from1 }
