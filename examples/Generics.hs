@@ -232,7 +232,7 @@ instance Num a => Num (V2 a) where
 -- 'Generic1' establishes an isomorphism between 'Pair a' and 'V2 a'
 -- allowing us to steal 
 
--- This uses 'Functor' and 'Monoid' (taken from 'V2')
+-- This uses 'Functor' and 'Show' (taken from 'V2')
 -- 
 -- >>> (+ 5) <$> 10:#20
 -- V2 15 25
