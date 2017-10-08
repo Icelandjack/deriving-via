@@ -1,4 +1,4 @@
-{-# Language DerivingStrategies, RankNTypes, FlexibleContexts, UndecidableInstances, KindSignatures, PolyKinds, TypeFamilies, TypeOperators, ScopedTypeVariables, GADTs, MultiParamTypeClasses, ConstraintKinds, EmptyCase, InstanceSigs, FlexibleInstances #-}
+{-# Language DerivingStrategies, RankNTypes, FlexibleContexts, UndecidableInstances, KindSignatures, PolyKinds, TypeFamilies, TypeOperators, ScopedTypeVariables, GADTs, MultiParamTypeClasses, ConstraintKinds, EmptyCase, InstanceSigs, FlexibleInstances, TypeApplications, DeriveGeneric #-}
 
 import GHC.Generics
 import Data.Kind
@@ -9,21 +9,17 @@ import Data.Type.Coercion
 
 -- import Data.Constraint
 data Dict c where Dict :: c => Dict c
+newtype a :- b = Sub (a => Dict b)
+(\\) :: a => (b => r) -> (a :- b) -> r
+r \\ Sub Dict = r
+instance Category (:-) where
+  id = Sub Dict 
+  f . g = Sub $ Dict \\ f \\ g
 
 -- import Data.Constraint.Forall
 class Forall (p :: k -> Constraint) 
 inst :: Forall p :- p a
 inst = undefined 
-
-newtype a :- b = Sub (a => Dict b)
-
-(\\) :: a => (b => r) -> (a :- b) -> r
-r \\ Sub Dict = r
-
-instance Category (:-) where
-  id = Sub Dict 
-
-  f . g = Sub $ Dict \\ f \\ g
 
 ----------------------------------------------------------------------
 -- With {-# Language QuantifiedConstraints #-}
@@ -67,12 +63,6 @@ sameRep1_swap =
   sameRep1
   >>>
   swap
-
-data A
-data B 
-
-foo :: Coercion A B
-foo = undefined 
 
 ----------------------------------------------------------------------
 -- Deriving via Rep1
@@ -122,6 +112,23 @@ instance (SameRep a other, Generic a, Generic other, Show other) => Show (a `Gen
         case sameRep :: SameRep a other :- Coercible (Rep a x) (Rep other x) of
           Sub Dict -> coerce
 
+-- So it naively bounces around a lot
+--
+--     F A
+--   ={ from1 }
+--     Rep1 F A
+--   ={ coerce }
+--     Rep1 Other A
+--   ={ to1 }
+--     Other A'
+--   ={ fmap f }
+--     Other A'
+--   ={ from1 }
+--     Rep1 Other A'
+--   ={ coerce }
+--     Rep1 F A'
+--   ={ to1 }
+--     F A'
 instance (SameRep1 f other, Generic1 f, Generic1 other, Functor other) => Functor (f `GenericallyAs` other) where
   fmap :: forall a a'. (a -> a') -> ((f `GenericallyAs` other) a -> (f `GenericallyAs` other) a')
   fmap f (GenericallyAs1 xs) = GenericallyAs1 $ let
@@ -143,7 +150,7 @@ instance (SameRep1 f other, Generic1 f, Generic1 other, Functor other) => Functo
     j = from1 i
 
     k :: Rep1 f a'
-    k = undefined -- coerce j 
-      -- \\ sameRep1' @f @other @a'
+    k = coerce j 
+      \\ sameRep1_swap @f @other @a'
 
-    in to1 k
+    in to1 k :: f a'
