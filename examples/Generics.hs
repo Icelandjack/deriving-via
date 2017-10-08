@@ -58,12 +58,6 @@ sameRep1 =
   >>>
   expand1
 
-sameRep1_swap :: forall f g x. SameRep1 f g :- (Rep1 g x `Coercible` Rep1 f x)
-sameRep1_swap = 
-  sameRep1
-  >>>
-  swap
-
 ----------------------------------------------------------------------
 -- Deriving via Rep1
 ----------------------------------------------------------------------
@@ -94,16 +88,18 @@ data Product f g h a = Product { fs :: f (g (f a)), sn :: h (f (g a)) }
 -- Deriving via type with shared Rep
 ----------------------------------------------------------------------
 
+-- We define a type (F :: Type -> Type) 
+
 data family GenericallyAs :: k -> k -> k
 
-newtype instance (a `GenericallyAs` other)   = GenericallyAs  { generically    :: a   }
+newtype instance (a `GenericallyAs` other)   = GenericallyAs  { genericallyAs  :: a   }
 newtype instance (f `GenericallyAs` other) a = GenericallyAs1 { genericallyAs1 :: f a }
 
 instance (SameRep a other, Generic a, Generic other, Show other) => Show (a `GenericallyAs` other) where
 
   show :: (a `GenericallyAs` other) -> String
   show = 
-    show @other . to . coerce' . from . generically where
+    show @other . to . coerce' . from . genericallyAs where
 
       coerce' :: forall x. Rep a x -> Rep other x
       coerce' = coerce
@@ -128,26 +124,24 @@ instance (SameRep a other, Generic a, Generic other, Show other) => Show (a `Gen
 --     F A'
 instance (SameRep1 f other, Generic1 f, Generic1 other, Functor other) => Functor (f `GenericallyAs` other) where
   fmap :: forall a a'. (a -> a') -> ((f `GenericallyAs` other) a -> (f `GenericallyAs` other) a')
-  fmap f (GenericallyAs1 xs) = GenericallyAs1 $ let
-    
-    x :: Rep1 f a
-    x = from1 xs
-
-    y :: Rep1 other a
-    y = coerce x 
+  fmap f = 
+    genericallyAs1
+    >>>
+    from1
+    >>>
+    coerce 
       \\ sameRep1 @f @other @a
-
-    z :: other a
-    z = to1 y
-
-    i :: other a'
-    i = fmap f z
-
-    j :: Rep1 other a'
-    j = from1 i
-
-    k :: Rep1 f a'
-    k = coerce j 
-      \\ sameRep1_swap @f @other @a'
-
-    in to1 k :: f a'
+    >>>
+    to1
+    >>>
+    fmap f
+    >>>
+    from1 @_ @other
+    >>>
+    coerce 
+      \\ swap @(Rep1 f a') @(Rep1 other a') 
+      \\ sameRep1 @f @other @a'
+    >>>
+    to1
+    >>>
+    GenericallyAs1
