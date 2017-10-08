@@ -1,4 +1,4 @@
-{-# Language DerivingStrategies, RankNTypes, FlexibleContexts, UndecidableInstances, KindSignatures, PolyKinds, TypeFamilies, TypeOperators, ScopedTypeVariables, GADTs, MultiParamTypeClasses, ConstraintKinds, EmptyCase, InstanceSigs, FlexibleInstances, TypeApplications, DeriveGeneric #-}
+{-# Language DerivingStrategies, RankNTypes, FlexibleContexts, UndecidableInstances, KindSignatures, PolyKinds, PatternSynonyms, TypeFamilies, TypeOperators, ScopedTypeVariables, GADTs, MultiParamTypeClasses, ViewPatterns, ConstraintKinds, EmptyCase, InstanceSigs, FlexibleInstances, TypeApplications, DeriveGeneric, AllowAmbiguousTypes, DeriveFunctor #-}
 
 import GHC.Generics
 import Data.Kind
@@ -6,20 +6,25 @@ import Data.Coerce
 import Control.Category (Category, (>>>))
 import qualified Control.Category as C
 import Data.Type.Coercion
+import qualified Data.Semigroup as S
+import Control.Applicative
 
--- import Data.Constraint
-data Dict c where Dict :: c => Dict c
-newtype a :- b = Sub (a => Dict b)
-(\\) :: a => (b => r) -> (a :- b) -> r
-r \\ Sub Dict = r
-instance Category (:-) where
-  id = Sub Dict 
-  f . g = Sub $ Dict \\ f \\ g
+import Constraint
+import Forall
 
--- import Data.Constraint.Forall
-class Forall (p :: k -> Constraint) 
-inst :: Forall p :- p a
-inst = undefined 
+-- -- import Data.Constraint
+-- data Dict c where Dict :: c => Dict c
+-- newtype a :- b = Sub (a => Dict b)
+-- (\\) :: a => (b => r) -> (a :- b) -> r
+-- r \\ Sub Dict = r
+-- instance Category (:-) where
+--   id = Sub Dict 
+--   f . g = Sub $ Dict \\ f \\ g
+
+-- -- import Data.Constraint.Forall
+-- class Forall (p :: k -> Constraint) 
+-- inst :: Forall p :- p a
+-- inst = undefined 
 
 ----------------------------------------------------------------------
 -- With {-# Language QuantifiedConstraints #-}
@@ -59,6 +64,49 @@ sameRep1 =
   expand1
 
 ----------------------------------------------------------------------
+-- Convenience functions
+----------------------------------------------------------------------
+back :: forall a b. (SameRep a b, Generic a, Generic b) => a -> b
+back = id
+  >>> from
+  >>> coerce'
+  >>> to
+
+  where
+    coerce' :: forall x. Rep a x -> Rep b x
+    coerce' = coerce \\ sameRep @a @b @x
+
+forth :: forall a b. (SameRep a b, Generic a, Generic b) => b -> a
+forth = id
+  >>> from
+  >>> coerce'
+  >>> to
+
+  where
+    coerce' :: forall x. Rep b x -> Rep a x
+    coerce' = coerce \\ swap @(Rep a x) @(Rep b x) \\ sameRep @a @b @x 
+
+back1 :: forall f g x. (SameRep1 f g, Generic1 f, Generic1 g) => f x -> g x
+back1 = id
+  >>> from1
+  >>> coerce'
+  >>> to1
+
+  where
+    coerce' :: forall x. Rep1 f x -> Rep1 g x
+    coerce' = coerce \\ sameRep1 @f @g @x
+
+forth1 :: forall f g x. (SameRep1 f g, Generic1 f, Generic1 g) => g x -> f x
+forth1 = id
+  >>> from1
+  >>> coerce'
+  >>> to1
+
+  where
+    coerce' :: Rep1 g x -> Rep1 f x 
+    coerce' = coerce \\ swap @(Rep1 f x) @(Rep1 g x) \\ sameRep1 @f @g @x 
+
+----------------------------------------------------------------------
 -- Deriving via Rep1
 ----------------------------------------------------------------------
 
@@ -88,22 +136,52 @@ data Product f g h a = Product { fs :: f (g (f a)), sn :: h (f (g a)) }
 -- Deriving via type with shared Rep
 ----------------------------------------------------------------------
 
--- We define a type (F :: Type -> Type) 
-
 data family GenericallyAs :: k -> k -> k
 
+-- GenericallyAs :: Type -> Type -> Type
 newtype instance (a `GenericallyAs` other)   = GenericallyAs  { genericallyAs  :: a   }
+
+-- GenericallyAs :: (Type -> Type) -> (Type -> Type) -> (Type -> Type)
 newtype instance (f `GenericallyAs` other) a = GenericallyAs1 { genericallyAs1 :: f a }
 
+pattern Hel :: (SameRep a other, Generic a, Generic other) => other -> GenericallyAs a other
+pattern Hel a <- (GenericallyAs (back -> a))
+  where Hel a  = (GenericallyAs (forth a))
+
+pattern Hel1 :: (SameRep1 f other, Generic1 f, Generic1 other) => other a -> GenericallyAs f other a
+pattern Hel1 a <- (GenericallyAs1 (back1 -> a))
+  where Hel1 a  = (GenericallyAs1 (forth1 a))
+
+instance (SameRep a other, Generic a, Generic other, Semigroup other) => Semigroup (a `GenericallyAs` other) where
+  Hel a <> Hel b = Hel (a S.<> b)
+
+instance (SameRep a other, Generic a, Generic other, Monoid other) => Monoid (a `GenericallyAs` other) where
+  mempty = Hel mempty
+
+  Hel a `mappend` Hel b = Hel (a S.<> b)
+
 instance (SameRep a other, Generic a, Generic other, Show other) => Show (a `GenericallyAs` other) where
-
   show :: (a `GenericallyAs` other) -> String
-  show = 
-    show @other . to . coerce' . from . genericallyAs where
+  show (Hel a) = show a
 
-      coerce' :: forall x. Rep a x -> Rep other x
-      coerce' = coerce
-        \\ sameRep @a @other @x
+instance (SameRep a other, Generic a, Generic other, Num other) => Num (a `GenericallyAs` other) where
+  (+) :: a `GenericallyAs` other -> a `GenericallyAs` other -> a `GenericallyAs` other
+  Hel a + Hel b = Hel (a + b)
+
+  (*) :: a `GenericallyAs` other -> a `GenericallyAs` other -> a `GenericallyAs` other
+  Hel a * Hel b = Hel (a * b)
+
+  (-) :: a `GenericallyAs` other -> a `GenericallyAs` other -> a `GenericallyAs` other
+  Hel a - Hel b = Hel (a - b)
+
+  abs :: a `GenericallyAs` other -> a `GenericallyAs` other
+  abs (Hel a) = Hel (abs a)
+
+  signum :: a `GenericallyAs` other -> a `GenericallyAs` other
+  signum (Hel a) = Hel (signum a)
+
+  fromInteger :: Integer -> a `GenericallyAs` other
+  fromInteger int = Hel (fromInteger int)
 
 -- So it naively bounces around a lot
 --
@@ -124,24 +202,54 @@ instance (SameRep a other, Generic a, Generic other, Show other) => Show (a `Gen
 --     F A'
 instance (SameRep1 f other, Generic1 f, Generic1 other, Functor other) => Functor (f `GenericallyAs` other) where
   fmap :: forall a a'. (a -> a') -> ((f `GenericallyAs` other) a -> (f `GenericallyAs` other) a')
-  fmap f = 
-    genericallyAs1
-    >>>
-    from1
-    >>>
-    coerce 
-      \\ sameRep1 @f @other @a
-    >>>
-    to1
-    >>>
-    fmap f
-    >>>
-    from1 @_ @other
-    >>>
-    coerce 
-      \\ swap @(Rep1 f a') @(Rep1 other a') 
-      \\ sameRep1 @f @other @a'
-    >>>
-    to1
-    >>>
-    GenericallyAs1
+  fmap f (Hel1 xs) = Hel1 (fmap f xs)
+
+-- From /linear/
+data V2 a = V2 !a !a
+  deriving stock (Generic, Generic1)
+  deriving stock (Show, Functor)
+
+  deriving (Applicative)
+    via (Generically1 V2)
+
+instance Num a => Num (V2 a) where
+  (+) = liftA2 (+)
+  (-) = liftA2 (-)
+  (*) = liftA2 (*)
+  negate = fmap negate
+  abs = fmap abs
+  signum = fmap signum
+  fromInteger = pure . fromInteger
+
+----------------------------------------------------------------------
+-- Here we have an existing 'V2' data type from some library
+-- 
+-- 'Generic1' establishes an isomorphism between 'Pair a' and 'V2 a'
+-- allowing us to steal 
+
+-- This uses 'Functor' and 'Monoid' (taken from 'V2')
+-- 
+-- >>> (+ 5) <$> 10:#20
+-- V2 15 25
+
+-- This uses 'Semigroup', 'Monoid' from (a, a)
+--
+-- >>> ("hi" :# "world") <> ("!" :# "?!?")
+-- V2 "hi!" "world?!?"
+
+-- And this uses 'Num' from (a, a)
+-- 
+-- >>> ((10 :# 20) + (1111 :# 2222))
+-- V2 1121 2242
+data Pair a = a :# a
+  deriving stock (Generic, Generic1)
+
+  deriving (Semigroup, Monoid)
+    via (Pair a `GenericallyAs` (a, a))
+
+  deriving (Num, Show)
+    via (Pair a `GenericallyAs` V2 a)
+
+  deriving Functor
+    via (Pair `GenericallyAs` V2)
+
