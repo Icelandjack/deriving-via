@@ -99,7 +99,7 @@ Baldur Blöndal / <code>@Iceland_jack</code>
 <pre><code>instance (Applicative f, Monoid a) =&gt; Monoid (f a) where
   mempty  = pure   mempty
   mappend = liftA2 mappend</code></pre>
-<p>same behaviour for all types!</p>
+<p>same behaviour for every instance!</p>
 <div class="incremental">
 <blockquote>
 <p><code>Applicative</code>s, <code>Traversable</code>s and <code>Monoid</code>s give us the basic building blocks for a lot of <strong>routine programming</strong>. Every <code>Applicative</code> <em>f</em> can be used to lift monoids, ...</p>
@@ -112,30 +112,30 @@ Baldur Blöndal / <code>@Iceland_jack</code>
 <pre><code>instance (Applicative f, Num a) =&gt; Num (f a) where
   (+)         = liftA2 (+)
   (*)         = liftA2 (*)
-  negate      = fmap negate
-  abs         = fmap abs
-  signum      = fmap signum
+  negate      = liftA  negate
+  abs         = liftA  abs
+  signum      = liftA  signum
   fromInteger = pure . fromInteger
 
 instance (Applicative f, Fractional a) =&gt; Fractional (f a) where
-  recip        = fmap recip
+  recip        = liftA recip
   fromRational = pure . fromRational
 
 instance (Applicative f, Floating a) =&gt; Floating (f a) where
-  pi    = pure pi
-  sqrt  = fmap sqrt
-  exp   = fmap exp
-  log   = fmap log
-  sin   = fmap sin
-  cos   = fmap cos
-  asin  = fmap asin
-  atan  = fmap atan
-  acos  = fmap acos
-  sinh  = fmap sinh
-  cosh  = fmap cosh
-  asinh = fmap asinh
-  atanh = fmap atanh
-  acosh = fmap acosh</code></pre>
+  pi    = pure  pi
+  sqrt  = liftA sqrt
+  exp   = liftA exp
+  log   = liftA log
+  sin   = liftA sin
+  cos   = liftA cos
+  asin  = liftA asin
+  atan  = liftA atan
+  acos  = liftA acos
+  sinh  = liftA sinh
+  cosh  = liftA cosh
+  asinh = liftA asinh
+  atanh = liftA atanh
+  acosh = liftA acosh</code></pre>
 </div>
 <div id="how-do-we-capture-this" class="slide section level1">
 <h1>How do we capture this?</h1>

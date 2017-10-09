@@ -58,7 +58,7 @@ instance (Applicative f, Monoid a) => Monoid (f a) where
   mappend = liftA2 mappend
 ```
 
-same behaviour for all types!
+same behaviour for every instance!
 
 . . .
 
@@ -74,30 +74,30 @@ same behaviour for all types!
 instance (Applicative f, Num a) => Num (f a) where
   (+)         = liftA2 (+)
   (*)         = liftA2 (*)
-  negate      = fmap negate
-  abs         = fmap abs
-  signum      = fmap signum
+  negate      = liftA  negate
+  abs         = liftA  abs
+  signum      = liftA  signum
   fromInteger = pure . fromInteger
 
 instance (Applicative f, Fractional a) => Fractional (f a) where
-  recip        = fmap recip
+  recip        = liftA recip
   fromRational = pure . fromRational
 
 instance (Applicative f, Floating a) => Floating (f a) where
-  pi    = pure pi
-  sqrt  = fmap sqrt
-  exp   = fmap exp
-  log   = fmap log
-  sin   = fmap sin
-  cos   = fmap cos
-  asin  = fmap asin
-  atan  = fmap atan
-  acos  = fmap acos
-  sinh  = fmap sinh
-  cosh  = fmap cosh
-  asinh = fmap asinh
-  atanh = fmap atanh
-  acosh = fmap acosh
+  pi    = pure  pi
+  sqrt  = liftA sqrt
+  exp   = liftA exp
+  log   = liftA log
+  sin   = liftA sin
+  cos   = liftA cos
+  asin  = liftA asin
+  atan  = liftA atan
+  acos  = liftA acos
+  sinh  = liftA sinh
+  cosh  = liftA cosh
+  asinh = liftA asinh
+  atanh = liftA atanh
+  acosh = liftA acosh
 ```
 
 # How do we capture this? 
