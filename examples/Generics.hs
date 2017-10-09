@@ -242,7 +242,7 @@ instance Num a => Num (V2 a) where
 -- >>> ("hi" :# "world") <> ("!" :# "?!?")
 -- V2 "hi!" "world?!?"
 
--- And this uses 'Num' from (a, a)
+-- And this uses 'Num' from (V2 a)
 -- 
 -- >>> ((10 :# 20) + (1111 :# 2222))
 -- V2 1121 2242
