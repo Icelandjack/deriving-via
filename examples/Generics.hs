@@ -257,3 +257,9 @@ data Pair a = a :# a
 
   deriving Functor
     via (Pair `GenericallyAs` V2)
+
+data Foo a = F a a a a a
+  deriving (Generic)
+  deriving (Semigroup, Monoid)
+    via (Foo a `GenericallyAs` (a, a, a, a, a))
+
