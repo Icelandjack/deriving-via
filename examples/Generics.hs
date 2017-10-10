@@ -8,6 +8,7 @@ import qualified Control.Category as C
 import Data.Type.Coercion
 import qualified Data.Semigroup as S
 import Control.Applicative
+import qualified Data.Functor.Product as P
 
 import Constraint
 import Forall
@@ -209,6 +210,24 @@ instance (f<~~>other, Functor other) => Functor (f `GenericallyAs` other) where
   fmap :: forall a a'. (a -> a') -> ((f `GenericallyAs` other) a -> (f `GenericallyAs` other) a')
   fmap f (Hel1 xs) = Hel1 (fmap f xs)
 
+instance (f<~~>other, Applicative other) => Applicative (f `GenericallyAs` other) where
+  pure :: a -> (f `GenericallyAs` other) a
+  pure a = Hel1 (pure a)
+
+  (<*>) :: (f `GenericallyAs` other) (a -> b) -> (f `GenericallyAs` other) a -> (f `GenericallyAs` other) b
+  Hel1 f <*> Hel1 x = Hel1 (f <*> x)
+
+instance (f<~~>other, Monad other) => Monad (f `GenericallyAs` other) where
+  (>>=) :: (f `GenericallyAs` other) a -> (a -> (f `GenericallyAs` other) b) -> (f `GenericallyAs` other) b
+  Hel1 f >>= k = Hel1 (f >>= \a -> case k a of Hel1 b -> b)
+
+instance (f<~~>other, Alternative other) => Alternative (f `GenericallyAs` other) where
+  empty :: (f `GenericallyAs` other) a
+  empty = Hel1 empty
+
+  (<|>) :: (f `GenericallyAs` other) a -> (f `GenericallyAs` other) a -> (f `GenericallyAs` other) a
+  Hel1 a <|> Hel1 b = Hel1 (a <|> b)
+
 -- From /linear/
 data V2 a = V2 !a !a
   deriving stock (Generic, Generic1)
@@ -258,8 +277,14 @@ data Pair a = a :# a
   deriving Functor
     via (Pair `GenericallyAs` V2)
 
-data Foo a = F a a a a a
-  deriving (Generic)
-  deriving (Semigroup, Monoid)
-    via (Foo a `GenericallyAs` (a, a, a, a, a))
+-- data Foo a = F a a a a a
+--   deriving (Generic)
+--   deriving (Semigroup, Monoid)
+--     via (Foo a `GenericallyAs` (a, a, a, a, a))
 
+data Foo a = F { foobs :: [a], foobOfHonour :: Maybe a }
+  deriving (Show, Generic1)
+  deriving
+    (Functor, Applicative, Alternative)
+    via
+      (Foo `GenericallyAs` P.Product ZipList Maybe)

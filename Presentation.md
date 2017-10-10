@@ -2,27 +2,27 @@
 % Baldur Blöndal / `@Iceland_jack`
 % October, 2017
 
-# I care about....
+# What I care about....
 
-- ... avoiding **boilerplate**
+# What I ~~care about~~ enjoy....
 
-    - free code
+- ... capturing **patterns** as a library 
 
-- ... capturing **patterns**
+    - ~~lore~~
 
-    - as a library (not as lore)
+- ... free code
 
-- ... big from small
+    - ~~boilerplate~~
 
-- ... properties, not representation in memory
+- ... **properties**, not representation in memory
 
 - ... being able to explore **quickly**
-    
+
 # Boilerplate & Patterns & Laws
 
 Some yummy boilerplate:
 
-```
+```haskell
 instance Monoid b => Monoid (a -> b) where
   mempty  = pure   mempty
   mappend = liftA2 mappend
@@ -32,7 +32,17 @@ instance Monoid b => Monoid (a -> b) where
 
 Some yummy boilerplate:
 
+```haskell
+instance Monoid b => Monoid ((a ->) b) where
+  mempty  = pure   mempty
+  mappend = liftA2 mappend
 ```
+
+# Boilerplate & Patterns & Laws
+
+Some yummy boilerplate:
+
+```haskell
 instance Monoid a => Monoid (IO a) where
   mempty  = pure   mempty
   mappend = liftA2 mappend
@@ -42,7 +52,7 @@ instance Monoid a => Monoid (IO a) where
 
 Some yummy boilerplate:
 
-```
+```haskell
 instance (Monoid a, Monoid b) => Monoid (a, b) where
   mempty  = pure   mempty
   mappend = liftA2 mappend
@@ -52,13 +62,21 @@ instance (Monoid a, Monoid b) => Monoid (a, b) where
 
 Some yummy boilerplate:
 
-```
-instance (Applicative f, Monoid a) => Monoid (f a) where
+```haskell
+instance (Monoid a, Monoid b) => Monoid ((a ,) b) where
   mempty  = pure   mempty
   mappend = liftA2 mappend
 ```
 
-same behaviour for every instance!
+# Boilerplate & Patterns & Laws
+
+Some yummy boilerplate:
+
+```haskell
+instance (Applicative f, Monoid a) => Monoid (f a) where
+  mempty  = pure   mempty
+  mappend = liftA2 mappend
+```
 
 . . .
 
@@ -68,9 +86,15 @@ same behaviour for every instance!
 >
 > — Conor McBride
 
+. . . 
+
+This gives same behaviour for all instances! (we definitely don't
+always want that)
+
+
 # “It's not so ba—.. oh.”
 
-```
+```haskell
 instance (Applicative f, Num a) => Num (f a) where
   (+)         = liftA2 (+)
   (*)         = liftA2 (*)
@@ -105,10 +129,13 @@ instance (Applicative f, Floating a) => Floating (f a) where
 `CPP`?
 
 # What do Haskellers do ..
-#### .. when they want different behavior? 
+#### .. when they want to separate behaviour from representation? 
 
-```
+We introduce a newtype, attach behaviour to it
+
+```haskell
 newtype App f a = App (f a)
+
 
 
 
@@ -116,16 +143,18 @@ newtype App f a = App (f a)
 
 We attach the “**routine programming**” pattern to `App`
 
-```
+```haskell
 instance (Applicative f, Monoid a) => Monoid (App f a) where
   mempty                    = App (pure   mempty)
   mappend (App fa) (App fb) = App (liftA2 mappend fa fb)
 ```
 
 # What do Haskellers do ..
-#### .. when they want different behavior? 
+#### .. when they want to separate behaviour from representation? 
 
-```
+We introduce a newtype, attach behaviour to it
+
+```haskell
 newtype App f a = App (f a)
   deriving newtype
     (Functor, Applicative)
@@ -133,19 +162,23 @@ newtype App f a = App (f a)
 
 We attach the “**routine programming**” pattern to `App`
 
-```
+```haskell
 instance (Applicative f, Monoid a) => Monoid (App f a) where
   mempty                    = pure mempty
   mappend                   = liftA2 mappend
 ```
 
-- What is the in-memory representation of `App Maybe [a]`?
+- What is the in-memory representation of `App (Either A) B`?
 
 # `Coercible`
 
 We can coerce between newtypes and the values they wrap,
 
+```haskell
+coerce :: Coercible a b => a -> b
 ```
+
+```haskell
 instance Monoid a => Monoid (IO a) where
   mempty :: IO a
   mempty = coerce 
@@ -156,43 +189,71 @@ instance Monoid a => Monoid (IO a) where
     (mappend :: App IO a -> App IO a -> App IO a)
 ```
 
+. . .
+
+```haskell
+newtype App f a = App (f a)
+
+coerce :: App IO a 
+       -> IO a
+
+coerce :: (App IO a -> App IO a -> App IO a)
+       -> (IO     a -> IO     a -> IO     a)
+```
+
 # `{-# Language DerivingVia #-}`
 
 This is where `DerivingVia` comes in
 
-```
-data IO a = ... 
+```haskell
+data Foo a = ... 
   deriving Monoid 
-    via (App IO a)
+    via (App Foo a)
 ```
 
 # `{-# Language DerivingVia #-}`
 
 This is where `DerivingVia` comes in
 
-```
-data IO a = ... 
+```haskell
+data Foo a = ... 
   deriving (Semigroup, Monoid)
-    via (App IO a)
+    via (App Foo a)
 ```
 
 # `{-# Language DerivingVia #-}`
 
 This is where `DerivingVia` comes in
 
-```
-data IO a = ... 
+```haskell
+data Foo a = ... 
   deriving (Semigroup, Monoid, Num, Floating, Fractional)
-    via (App IO a)
+    via (App Foo a)
 ```
 
-* But it doesn't stop there..
+* Translates into
+
+    ```haskell
+    instance Semigroup a => Semigroup (Foo a) where
+      (<>) = coerce ((<>) @(Foo a))
+    
+    instance Monoid a => Monoid (Foo a) where
+      mempty = coerce (mempty @(Foo a))
+    
+    instance Num a => Num (Foo a) where
+      (+) = coerce ((+) @(Foo a))
+      -- ...
+    
+    instance Floating a => Floating (Foo a) where
+      pi = coerce (pi @(Foo a))
+      -- ...
+    ```
 
 # Default Deriving / Vocabulary (**QuickCheck**)
 
 **Problem**: There are many valid `Arbitrary` you can derive
 
-```
+```haskell
 arbitrarySizedIntegral        :: Integral a              => Gen a
 arbitrarySizedFractional      :: Fractional a            => Gen a
 arbitraryBoundedRandom        :: (Bounded a, Random a)   => Gen a
@@ -201,7 +262,7 @@ arbitraryBoundedEnum          :: (Bounded a, Enum a)     => Gen a
 
 * We can codify each of them as an instance 
 
-    ```
+    ```haskell
     newtype BoundedRandom a = BR a
     
     instance (Bounded a, Random a) => Arbitrary (BoundedRandom a) where
@@ -210,7 +271,7 @@ arbitraryBoundedEnum          :: (Bounded a, Enum a)     => Gen a
 
 * `DerivingVia` lets you pick at deriving site
 
-    ```
+    ```haskell
     data Foo = ... deriving (Arbitrary)
       via (BoundedRandom Foo)
 
@@ -218,9 +279,10 @@ arbitraryBoundedEnum          :: (Bounded a, Enum a)     => Gen a
     instance Random  Foo where ..
     ```
 
-# More **QuickCheck**
+# Composing Existing Modifiers
 
-```
+```haskell
+
 
 
 
@@ -229,7 +291,7 @@ arbitraryBoundedEnum          :: (Bounded a, Enum a)     => Gen a
 
 **QuickCheck** has many modifiers
 
-```
+```haskell
 newtype Nums a = Nums [a]
   deriving newtype
     Arbitrary
@@ -243,10 +305,11 @@ newtype Nums a = Nums [a]
 [9,0]
 [-5,1,-5,2,11]
 ```
-# More **QuickCheck**
+# Composing Existing Modifiers
 
-```
+```haskell
 newtype NonEmptyList a = NonEmpty [a] -- Only generates non-empty lists
+
 
 
 
@@ -254,7 +317,7 @@ newtype NonEmptyList a = NonEmpty [a] -- Only generates non-empty lists
 
 **QuickCheck** has many modifiers
 
-```
+```haskell
 newtype Nums a = Nums [a]
   deriving 
     Arbitrary via (NonEmptyList a)
@@ -269,18 +332,19 @@ newtype Nums a = Nums [a]
 [12,5,5,9,10]
 ```
 
-# More **QuickCheck**
+# Composing Existing Modifiers
 
-```
+```haskell
 newtype NonEmptyList a = NonEmpty [a] -- Only generates non-empty lists
 newtype Positive     a = Positive a   -- x > 0
+
 
 
 ```
 
 **QuickCheck** has many modifiers
 
-```
+```haskell
 newtype Nums a = Nums [a]
   deriving 
     Arbitrary via (NonEmptyList (Positive a))
@@ -295,9 +359,9 @@ newtype Nums a = Nums [a]
 [10,6,2,11,10,3,2,11,12]
 ```
 
-# More **QuickCheck**
+# Composing Existing Modifiers
 
-```
+```haskell
 newtype NonEmptyList a = NonEmpty [a] -- Only generates non-empty lists
 newtype Positive     a = Positive a   -- x > 0
 newtype Large        a = Large    a   -- large numbers
@@ -305,7 +369,7 @@ newtype Large        a = Large    a   -- large numbers
 
 **QuickCheck** has many modifiers
 
-```
+```haskell
 newtype Nums a = Nums [a]
   deriving 
     Arbitrary via (NonEmptyList (Positive (Large a)))
@@ -330,7 +394,7 @@ newtype Nums a = Nums [a]
 
 - One representation, multiple structures
 
-    ```
+    ```haskell
     instance (Applicative f, Monoid a) => Monoid (f a) where
       mempty  = pure   mempty
       mappend = liftA2 mappend
@@ -342,12 +406,12 @@ newtype Nums a = Nums [a]
 
 - Get reified as instances
 
-    ```
+    ```haskell
     instance (Applicative f, Monoid a) => Monoid (App f a)
     instance (Alternative f)           => Monoid (Alt f a)
     ```
 
-# Mention JSON deriving shortly
+# JSON
 
 * **Problem**: Only *one* default method.
 
@@ -360,8 +424,17 @@ newtype Nums a = Nums [a]
       { scbColor      :: Maybe Double 
       , scbBrightness :: Maybe Double
       } 
-      deriving ToJSON 
-        via (AesonOptions OmitNothingField (StripPrefix "scb") State)
+      deriving (ToJSON, FromJSON, Show, Read, ...)
+        via (SerializeAs OmitNothingField (StripPrefix "scb") State)
+    ```
+
+- Could work to derive Haskell serialization
+
+    ```haskell
+    >>> State Nothing Nothing
+    State { }
+    >>> State Nothing (Just 4.4)
+    State { Brightness = 4.4 }
     ```
 
 # The Main Idea
@@ -392,7 +465,9 @@ newtype Nums a = Nums [a]
 
 - Captures patterns
 
-    - Groups patterns
+    - Groups patterns, keeps in sync
+
+    - Captures optimisations
 
 - Any isomorphism (`Generic`, `Representable`) lets us carry over structure 
 
@@ -406,16 +481,67 @@ newtype Nums a = Nums [a]
 
 * Thank You
 
-# Isomorphic Structures
+# ADDENDUM: Isomorphic Structures
 
-- So far: only used instances of coercible structures
+- So far: we have stuck to a single representation
+
+- We can steal any instance as long as we have an isomorphism
 
 - ## `GHC.Generics`
 
-- ## `Iso1`
+- ## `Iso1` (your own)
 
+- ## `Representable`
 
-- No actually
+# Example of isomorphisms
+
+```haskell
+newtype StealFrom  a other   = StealFrom a
+newtype StealFrom1 f other a = StealFrom (f a)
+
+type a <~>  b = (forall xx. Rep  a xx `Coercible` Rep  b xx, Generic  a, Generic  b)
+type f <~~> g = (forall xx. Rep1 f xx `Coercible` Rep1 g xx, Generic1 f, Generic1 g)
+
+instance (a <~>other, Semigroup   other) => Semigroup   (a `StealFrom`  other) 
+instance (a <~>other, Monoid      other) => Monoid      (a `StealFrom`  other) 
+instance (a <~>other, Show        other) => Show        (a `StealFrom`  other) 
+instance (a <~>other, Num         other) => Num         (a `StealFrom`  other) 
+instance (f<~~>other, Functor     other) => Functor     (f `StealFrom1` other) 
+instance (f<~~>other, Applicative other) => Applicative (f `StealFrom1` other) 
+```
+
+- Can derive
+
+    ```haskell
+    data Foo a = F { foobs :: [a], foobOfHonour :: Maybe a }
+      deriving (Generic1)
+      deriving (Functor, Applicative, Alternative)
+           via (Foo `StealingFrom1` P.Product ZipList (Alt Maybe))
+    ```
+
+# as well as entire catalogues from other types
+
+```haskell
+data Pair a = a :# a
+  deriving stock (Generic, Generic1)
+
+  deriving (Semigroup, Monoid)
+    via (Pair a `StealingFrom` (a, a))
+
+  deriving ( Num, Show, Bounded, Ix
+           , Storable, Binary, Serial, Hashable, 
+           , Unbox, Ixed)
+    via (Pair a `StealingFrom` V2 a)
+
+  deriving ( Functor, Applicative, Monad, Distributive
+           , Representable, MonadFix, MonadZip
+           , Serial1, Traversable1, Apply, Bind, Additive,
+           , Metric, Finite, R1, R2, Trace, Affine)
+    via (Pair `StealingFrom1` V2)
+
+  deriving (Floating, Fractional)
+    via (App Pair a)
+```
 
 # Associated type family
 
@@ -431,19 +557,17 @@ gives us `Applicative`, `Monad`, `Distributive`, `MonadReader (Rep f)`, `Functor
 
 - And sometimes `Comonad`
 
-    ```
+    ```haskell
     instance (Representable f, Monoid (Rep f)) => Comonad (Co f)
     ```
 
 # 
 
-- First derive `Representable Pair` for `Pair = Either () ()`.
+We also have complete control over the type family.
 
-- We get a representation `Either () ()`
+- If GHC defaults to `Either () ()`
 
-- This is `Bool` but we can call it `newtype PairRep = PRep (Either () ())`
-
-- > "Okay but we cannot coerce from `PairRep` to `Bool`, checkmate
+- We can map it to `Bool`
 
 <!--- pandoc -f markdown -t slidy -i -s --self-contained -o mypresentation.html Presentation.md --->
 
