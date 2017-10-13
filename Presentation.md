@@ -678,6 +678,8 @@ newtype Nums = Nums [Int]
 
 # The End
 
+- Slides: https://rawgit.com/Icelandjack/deriving-via/master/mypresentation.html (goo.gl/fsnZnq)
+
 - **Goal**: Create vocabulary of derivability
 
 - Thank You
