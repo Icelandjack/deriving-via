@@ -5,8 +5,8 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <meta name="author" content="Baldur Blöndal / @Iceland_jack" />
-  <title>Stolen Instances Taste Sweet</title>
+  <meta name="author" content="Baldur Blöndal / @Iceland_jack / /u/Iceland_jack" />
+  <title>Stolen Instances Taste Just Fine</title>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
 div.sourceCode { overflow-x: auto; }
@@ -50,68 +50,57 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </head>
 <body>
 <div class="slide titlepage">
-  <h1 class="title">Stolen Instances Taste Sweet</h1>
+  <h1 class="title">Stolen Instances Taste Just Fine</h1>
   <p class="author">
-Baldur Blöndal / <code>@Iceland_jack</code>
+Baldur Blöndal / <code>@Iceland_jack</code> / <code>/u/Iceland_jack</code>
   </p>
   <p class="date">October, 2017</p>
 </div>
-<div id="what-i-care-about...." class="slide section level1">
-<h1>What I care about....</h1>
-</div>
-<div id="what-i-care-about-enjoy...." class="slide section level1">
-<h1>What I <del>care about</del> enjoy....</h1>
+<div id="thanks-to" class="slide section level1">
+<h1>Thanks to</h1>
 <ul class="incremental">
-<li><p>... capturing <strong>patterns</strong> as a library</p>
-<ul class="incremental">
-<li><del>lore</del></li>
-</ul></li>
-<li><p>... free code</p>
-<ul class="incremental">
-<li><del>boilerplate</del></li>
-</ul></li>
-<li><p>... <strong>properties</strong>, not representation in memory</p></li>
-<li><p>... being able to explore <strong>quickly</strong></p></li>
+<li><p>Ryan Scott and Andres Löh</p></li>
+<li><p>Hans Höglund</p></li>
 </ul>
 </div>
 <div id="boilerplate-patterns-laws" class="slide section level1">
 <h1>Boilerplate &amp; Patterns &amp; Laws</h1>
-<p>Some yummy boilerplate:</p>
+<p>Some yummy boilerplate</p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Monoid</span> b <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (a <span class="ot">-&gt;</span> b) <span class="kw">where</span>
   mempty  <span class="fu">=</span> pure   mempty
   mappend <span class="fu">=</span> liftA2 mappend</code></pre></div>
 </div>
 <div id="boilerplate-patterns-laws-1" class="slide section level1">
 <h1>Boilerplate &amp; Patterns &amp; Laws</h1>
-<p>Some yummy boilerplate:</p>
+<p>Some yummy boilerplate</p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Monoid</span> b <span class="ot">=&gt;</span> <span class="dt">Monoid</span> ((a <span class="ot">-&gt;</span>) b) <span class="kw">where</span>
   mempty  <span class="fu">=</span> pure   mempty
   mappend <span class="fu">=</span> liftA2 mappend</code></pre></div>
 </div>
 <div id="boilerplate-patterns-laws-2" class="slide section level1">
 <h1>Boilerplate &amp; Patterns &amp; Laws</h1>
-<p>Some yummy boilerplate:</p>
+<p>Some yummy boilerplate</p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Monoid</span> a <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (<span class="dt">IO</span> a) <span class="kw">where</span>
   mempty  <span class="fu">=</span> pure   mempty
   mappend <span class="fu">=</span> liftA2 mappend</code></pre></div>
 </div>
 <div id="boilerplate-patterns-laws-3" class="slide section level1">
 <h1>Boilerplate &amp; Patterns &amp; Laws</h1>
-<p>Some yummy boilerplate:</p>
+<p>Some yummy boilerplate</p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Monoid</span> a, <span class="dt">Monoid</span> b) <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (a, b) <span class="kw">where</span>
   mempty  <span class="fu">=</span> pure   mempty
   mappend <span class="fu">=</span> liftA2 mappend</code></pre></div>
 </div>
 <div id="boilerplate-patterns-laws-4" class="slide section level1">
 <h1>Boilerplate &amp; Patterns &amp; Laws</h1>
-<p>Some yummy boilerplate:</p>
+<p>Some yummy boilerplate</p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Monoid</span> a, <span class="dt">Monoid</span> b) <span class="ot">=&gt;</span> <span class="dt">Monoid</span> ((a ,) b) <span class="kw">where</span>
   mempty  <span class="fu">=</span> pure   mempty
   mappend <span class="fu">=</span> liftA2 mappend</code></pre></div>
 </div>
 <div id="boilerplate-patterns-laws-5" class="slide section level1">
 <h1>Boilerplate &amp; Patterns &amp; Laws</h1>
-<p>Some yummy boilerplate:</p>
+<p>Some yummy boilerplate</p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Applicative</span> f, <span class="dt">Monoid</span> a) <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (f a) <span class="kw">where</span>
   mempty  <span class="fu">=</span> pure   mempty
   mappend <span class="fu">=</span> liftA2 mappend</code></pre></div>
@@ -120,13 +109,45 @@ Baldur Blöndal / <code>@Iceland_jack</code>
 <p><code>Applicative</code>s, <code>Traversable</code>s and <code>Monoid</code>s give us the basic building blocks for a lot of <strong>routine programming</strong>. Every <code>Applicative</code> <em>f</em> can be used to lift monoids, ...</p>
 <p>— Conor McBride</p>
 </blockquote>
+<ul class="incremental">
+<li>Same behaviour for all instances (overlaps with <code>Monoid [a]</code>!)</li>
+</ul>
 </div>
 <div class="incremental">
-<p>This gives same behaviour for all instances! (we definitely don't always want that)</p>
+<p>More options...</p>
+<pre><code>```haskell
+instance Alternative f =&gt; Monoid (f a) where
+  mempty  = zero
+  mappend = (&lt;|&gt;)
+```</code></pre>
 </div>
+</div>
+<div id="its-not-so-ba" class="slide section level1">
+<h1>“It's not so ba—”</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Applicative</span> f, <span class="dt">Num</span> a) <span class="ot">=&gt;</span> <span class="dt">Num</span> (f a) <span class="kw">where</span>
+  (<span class="fu">+</span>)         <span class="fu">=</span> liftA2 (<span class="fu">+</span>)
+  (<span class="fu">*</span>)         <span class="fu">=</span> liftA2 (<span class="fu">*</span>)
+  negate      <span class="fu">=</span> liftA  negate
+  abs         <span class="fu">=</span> liftA  abs
+  signum      <span class="fu">=</span> liftA  signum
+  fromInteger <span class="fu">=</span> pure <span class="fu">.</span> fromInteger</code></pre></div>
 </div>
 <div id="its-not-so-ba..-oh." class="slide section level1">
 <h1>“It's not so ba—.. oh.”</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Applicative</span> f, <span class="dt">Num</span> a) <span class="ot">=&gt;</span> <span class="dt">Num</span> (f a) <span class="kw">where</span>
+  (<span class="fu">+</span>)         <span class="fu">=</span> liftA2 (<span class="fu">+</span>)
+  (<span class="fu">*</span>)         <span class="fu">=</span> liftA2 (<span class="fu">*</span>)
+  negate      <span class="fu">=</span> liftA  negate
+  abs         <span class="fu">=</span> liftA  abs
+  signum      <span class="fu">=</span> liftA  signum
+  fromInteger <span class="fu">=</span> pure <span class="fu">.</span> fromInteger
+
+<span class="kw">instance</span> (<span class="dt">Applicative</span> f, <span class="dt">Fractional</span> a) <span class="ot">=&gt;</span> <span class="dt">Fractional</span> (f a) <span class="kw">where</span>
+  recip        <span class="fu">=</span> liftA recip
+  fromRational <span class="fu">=</span> pure <span class="fu">.</span> fromRational</code></pre></div>
+</div>
+<div id="its-not-so-ba..-oh-s" class="slide section level1">
+<h1>“It's not so ba—.. oh s”</h1>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Applicative</span> f, <span class="dt">Num</span> a) <span class="ot">=&gt;</span> <span class="dt">Num</span> (f a) <span class="kw">where</span>
   (<span class="fu">+</span>)         <span class="fu">=</span> liftA2 (<span class="fu">+</span>)
   (<span class="fu">*</span>)         <span class="fu">=</span> liftA2 (<span class="fu">*</span>)
@@ -159,9 +180,9 @@ Baldur Blöndal / <code>@Iceland_jack</code>
 <h1>How do we capture this?</h1>
 <p><code>CPP</code>?</p>
 </div>
-<div id="what-do-haskellers-do-.." class="slide section level1">
-<h1>What do Haskellers do ..</h1>
-<h4 id="when-they-want-to-separate-behaviour-from-representation">.. when they want to separate behaviour from representation?</h4>
+<div id="how-do-haskellers-.." class="slide section level1">
+<h1>How do Haskellers ..</h1>
+<h4 id="give-different-behaviour-to-the-same-representation">.. give different behaviour to the same representation?</h4>
 <p>We introduce a newtype, attach behaviour to it</p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">App</span> f a <span class="fu">=</span> <span class="dt">App</span> (f a)
 
@@ -172,100 +193,255 @@ Baldur Blöndal / <code>@Iceland_jack</code>
   mempty                    <span class="fu">=</span> <span class="dt">App</span> (pure   mempty)
   mappend (<span class="dt">App</span> fa) (<span class="dt">App</span> fb) <span class="fu">=</span> <span class="dt">App</span> (liftA2 mappend fa fb)</code></pre></div>
 </div>
-<div id="what-do-haskellers-do-..-1" class="slide section level1">
-<h1>What do Haskellers do ..</h1>
-<h4 id="when-they-want-to-separate-behaviour-from-representation-1">.. when they want to separate behaviour from representation?</h4>
+<div id="how-do-haskellers-..-1" class="slide section level1">
+<h1>How do Haskellers ..</h1>
+<h4 id="give-different-behaviour-to-the-same-representation-1">.. give different behaviour to the same representation?</h4>
 <p>We introduce a newtype, attach behaviour to it</p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">App</span> f a <span class="fu">=</span> <span class="dt">App</span> (f a)
   <span class="kw">deriving</span> <span class="kw">newtype</span>
     (<span class="dt">Functor</span>, <span class="dt">Applicative</span>)</code></pre></div>
 <p>We attach the “<strong>routine programming</strong>” pattern to <code>App</code></p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Applicative</span> f, <span class="dt">Monoid</span> a) <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (<span class="dt">App</span> f a) <span class="kw">where</span>
-  mempty                    <span class="fu">=</span> pure mempty
-  mappend                   <span class="fu">=</span> liftA2 mappend</code></pre></div>
+  mempty  <span class="fu">=</span> pure   mempty
+  mappend <span class="fu">=</span> liftA2 mappend</code></pre></div>
 <ul class="incremental">
 <li>What is the in-memory representation of <code>App (Either A) B</code>?</li>
 </ul>
 </div>
-<div id="coercible" class="slide section level1">
-<h1><code>Coercible</code></h1>
-<p>We can coerce between newtypes and the values they wrap,</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">coerce ::</span> <span class="dt">Coercible</span> a b <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> b</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Monoid</span> a <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (<span class="dt">IO</span> a) <span class="kw">where</span>
-<span class="ot">  mempty ::</span> <span class="dt">IO</span> a
-  mempty <span class="fu">=</span> coerce 
-    (mempty<span class="ot">  ::</span> <span class="dt">App</span> <span class="dt">IO</span> a)
-
-<span class="ot">  mappend ::</span> <span class="dt">IO</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> a
-  mappend <span class="fu">=</span> coerce 
-    (mappend<span class="ot"> ::</span> <span class="dt">App</span> <span class="dt">IO</span> a <span class="ot">-&gt;</span> <span class="dt">App</span> <span class="dt">IO</span> a <span class="ot">-&gt;</span> <span class="dt">App</span> <span class="dt">IO</span> a)</code></pre></div>
-<div class="incremental">
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">App</span> f a <span class="fu">=</span> <span class="dt">App</span> (f a)
-
-<span class="ot">coerce ::</span> <span class="dt">App</span> <span class="dt">IO</span> a 
-       <span class="ot">-&gt;</span> <span class="dt">IO</span> a
-
-<span class="ot">coerce ::</span> (<span class="dt">App</span> <span class="dt">IO</span> a <span class="ot">-&gt;</span> <span class="dt">App</span> <span class="dt">IO</span> a <span class="ot">-&gt;</span> <span class="dt">App</span> <span class="dt">IO</span> a)
-       <span class="ot">-&gt;</span> (<span class="dt">IO</span>     a <span class="ot">-&gt;</span> <span class="dt">IO</span>     a <span class="ot">-&gt;</span> <span class="dt">IO</span>     a)</code></pre></div>
-</div>
+<div id="philosophy" class="slide section level1">
+<h1>Philosophy</h1>
+<ul class="incremental">
+<li><h3 id="its-good-to-think-of-types">“It’s good to think of <strong>types</strong></h3></li>
+<li><h4 id="as-not-just-the-representation-of-data">as not just the <strong>representation</strong> of data</h4></li>
+<li><h2 id="but-the-equipment-of-data-with-structure.">but the equipment of <strong>data with structure</strong>.”</h2></li>
+<li><h3 id="conor-mcbride">— Conor McBride</h3></li>
+</ul>
 </div>
 <div id="language-derivingvia--" class="slide section level1">
 <h1><code>{-# Language DerivingVia #-}</code></h1>
-<p>This is where <code>DerivingVia</code> comes in</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Foo</span> a <span class="fu">=</span> <span class="fu">...</span> 
-  <span class="kw">deriving</span> <span class="dt">Monoid</span> 
-    via (<span class="dt">App</span> <span class="dt">Foo</span> a)</code></pre></div>
-</div>
-<div id="language-derivingvia---1" class="slide section level1">
-<h1><code>{-# Language DerivingVia #-}</code></h1>
-<p>This is where <code>DerivingVia</code> comes in</p>
+<p>Enter <code>DerivingVia</code></p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Foo</span> a <span class="fu">=</span> <span class="fu">...</span> 
   <span class="kw">deriving</span> (<span class="dt">Semigroup</span>, <span class="dt">Monoid</span>)
     via (<span class="dt">App</span> <span class="dt">Foo</span> a)</code></pre></div>
 </div>
-<div id="language-derivingvia---2" class="slide section level1">
+<div id="language-derivingvia---1" class="slide section level1">
 <h1><code>{-# Language DerivingVia #-}</code></h1>
-<p>This is where <code>DerivingVia</code> comes in</p>
+<p>Enter <code>DerivingVia</code></p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Foo</span> a <span class="fu">=</span> <span class="fu">...</span> 
   <span class="kw">deriving</span> (<span class="dt">Semigroup</span>, <span class="dt">Monoid</span>, <span class="dt">Num</span>, <span class="dt">Floating</span>, <span class="dt">Fractional</span>)
     via (<span class="dt">App</span> <span class="dt">Foo</span> a)</code></pre></div>
 <ul class="incremental">
 <li><p>Translates into</p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Semigroup</span> a <span class="ot">=&gt;</span> <span class="dt">Semigroup</span> (<span class="dt">Foo</span> a) <span class="kw">where</span>
-  (<span class="fu">&lt;&gt;</span>) <span class="fu">=</span> coerce ((<span class="fu">&lt;&gt;</span>) <span class="fu">@</span>(<span class="dt">Foo</span> a))
+  (<span class="fu">&lt;&gt;</span>) <span class="fu">=</span> coerce ((<span class="fu">&lt;&gt;</span>) <span class="fu">@</span>(<span class="dt">App</span> <span class="dt">Foo</span> a))
 
 <span class="kw">instance</span> <span class="dt">Monoid</span> a <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (<span class="dt">Foo</span> a) <span class="kw">where</span>
-  mempty <span class="fu">=</span> coerce (mempty <span class="fu">@</span>(<span class="dt">Foo</span> a))
+  mempty <span class="fu">=</span> coerce (mempty <span class="fu">@</span>(<span class="dt">App</span> <span class="dt">Foo</span> a))
 
 <span class="kw">instance</span> <span class="dt">Num</span> a <span class="ot">=&gt;</span> <span class="dt">Num</span> (<span class="dt">Foo</span> a) <span class="kw">where</span>
-  (<span class="fu">+</span>) <span class="fu">=</span> coerce ((<span class="fu">+</span>) <span class="fu">@</span>(<span class="dt">Foo</span> a))
+  (<span class="fu">+</span>) <span class="fu">=</span> coerce ((<span class="fu">+</span>) <span class="fu">@</span>(<span class="dt">App</span> <span class="dt">Foo</span> a))
   <span class="co">-- ...</span>
 
 <span class="kw">instance</span> <span class="dt">Floating</span> a <span class="ot">=&gt;</span> <span class="dt">Floating</span> (<span class="dt">Foo</span> a) <span class="kw">where</span>
-  pi <span class="fu">=</span> coerce (pi <span class="fu">@</span>(<span class="dt">Foo</span> a))
+  pi <span class="fu">=</span> coerce (pi <span class="fu">@</span>(<span class="dt">App</span> <span class="dt">Foo</span> a))
   <span class="co">-- ...</span></code></pre></div></li>
 </ul>
 </div>
+<div id="coercible" class="slide section level1">
+<h1><code>Coercible</code></h1>
+<p>We can coerce between newtypes and the values they wrap,</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">coerce ::</span> <span class="dt">Coercible</span> a b <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> b</code></pre></div>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Monoid</span> a <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (<span class="dt">F</span> a) <span class="kw">where</span>
+<span class="ot">  mempty ::</span> <span class="dt">F</span> a
+  mempty <span class="fu">=</span> coerce 
+    (mempty<span class="ot">  ::</span> <span class="dt">App</span> <span class="dt">F</span> a)
+
+<span class="ot">  mappend ::</span> <span class="dt">F</span> a <span class="ot">-&gt;</span> <span class="dt">F</span> a <span class="ot">-&gt;</span> <span class="dt">F</span> a
+  mappend <span class="fu">=</span> coerce 
+    (mappend<span class="ot"> ::</span> <span class="dt">App</span> <span class="dt">F</span> a <span class="ot">-&gt;</span> <span class="dt">App</span> <span class="dt">F</span> a <span class="ot">-&gt;</span> <span class="dt">App</span> <span class="dt">F</span> a)</code></pre></div>
+</div>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">App</span> f a <span class="fu">=</span> <span class="dt">App</span> (f a)
+
+<span class="ot">coerce ::</span> <span class="dt">App</span> <span class="dt">F</span> a <span class="ot">-&gt;</span> <span class="dt">F</span> a
+
+<span class="ot">coerce ::</span> (<span class="dt">App</span> <span class="dt">F</span> a <span class="ot">-&gt;</span> <span class="dt">App</span> <span class="dt">F</span> a <span class="ot">-&gt;</span> <span class="dt">App</span> <span class="dt">F</span> a) <span class="ot">-&gt;</span> (<span class="dt">F</span> a <span class="ot">-&gt;</span> <span class="dt">F</span> a <span class="ot">-&gt;</span> <span class="dt">F</span> a)</code></pre></div>
+</div>
+</div>
 <div id="default-deriving-vocabulary-quickcheck" class="slide section level1">
 <h1>Default Deriving / Vocabulary (<strong>QuickCheck</strong>)</h1>
-<p><strong>Problem</strong>: There are many valid <code>Arbitrary</code> you can derive</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">arbitrarySizedIntegral        ::</span> <span class="dt">Integral</span> a              <span class="ot">=&gt;</span> <span class="dt">Gen</span> a
-<span class="ot">arbitrarySizedFractional      ::</span> <span class="dt">Fractional</span> a            <span class="ot">=&gt;</span> <span class="dt">Gen</span> a
-<span class="ot">arbitraryBoundedRandom        ::</span> (<span class="dt">Bounded</span> a, <span class="dt">Random</span> a)   <span class="ot">=&gt;</span> <span class="dt">Gen</span> a
-<span class="ot">arbitraryBoundedEnum          ::</span> (<span class="dt">Bounded</span> a, <span class="dt">Enum</span> a)     <span class="ot">=&gt;</span> <span class="dt">Gen</span> a</code></pre></div>
-<ul class="incremental">
-<li><p>We can codify each of them as an instance</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">BoundedRandom</span> a <span class="fu">=</span> <span class="dt">BR</span> a
+<p>Defining <code>Arbitrary</code></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Arbitrary</span> a <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> a</code></pre></div>
+</div>
+<div id="default-deriving-vocabulary-quickcheck-1" class="slide section level1">
+<h1>Default Deriving / Vocabulary (<strong>QuickCheck</strong>)</h1>
+<p>Defining <code>Arbitrary</code></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Arbitrary</span> a <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> a</code></pre></div>
+<p>Generically?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- genericArbitrary :: (Generic a, GArbitrary (Rep a)) =&gt; Gen a</span>
 
-<span class="kw">instance</span> (<span class="dt">Bounded</span> a, <span class="dt">Random</span> a) <span class="ot">=&gt;</span> <span class="dt">Arbitrary</span> (<span class="dt">BoundedRandom</span> a) <span class="kw">where</span>
-  arbitrary <span class="fu">=</span> <span class="dt">BR</span> <span class="fu">&lt;$&gt;</span> arbitraryBoundedRandom</code></pre></div></li>
-<li><p><code>DerivingVia</code> lets you pick at deriving site</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Foo</span> <span class="fu">=</span> <span class="fu">...</span> <span class="kw">deriving</span> (<span class="dt">Arbitrary</span>)
-  via (<span class="dt">BoundedRandom</span> <span class="dt">Foo</span>)
+<span class="kw">instance</span> <span class="dt">Arbitrary</span> <span class="dt">Person</span> <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> <span class="dt">Person</span>
+  arbitrary <span class="fu">=</span> genericArbitrary</code></pre></div>
+</div>
+<div id="default-deriving-vocabulary-quickcheck-2" class="slide section level1">
+<h1>Default Deriving / Vocabulary (<strong>QuickCheck</strong>)</h1>
+<p>Defining <code>Arbitrary</code></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Arbitrary</span> a <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> a</code></pre></div>
+<p>Generically? Via <code>Integral</code>?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- arbitrarySizedIntegral :: Integral a =&gt; Gen a</span>
 
-<span class="kw">instance</span> <span class="dt">Bounded</span> <span class="dt">Foo</span> <span class="kw">where</span> <span class="fu">..</span>
-<span class="kw">instance</span> <span class="dt">Random</span>  <span class="dt">Foo</span> <span class="kw">where</span> <span class="fu">..</span></code></pre></div></li>
-</ul>
+<span class="kw">instance</span> <span class="dt">Arbitrary</span> <span class="dt">Int</span> <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> <span class="dt">Int</span>
+  arbitrary <span class="fu">=</span> arbitrarySizedIntegral</code></pre></div>
+</div>
+<div id="default-deriving-vocabulary-quickcheck-3" class="slide section level1">
+<h1>Default Deriving / Vocabulary (<strong>QuickCheck</strong>)</h1>
+<p>Defining <code>Arbitrary</code></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Arbitrary</span> a <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> a</code></pre></div>
+<p>Generically? Via <code>Integral</code>?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- arbitrarySizedIntegral :: Integral a =&gt; Gen a</span>
+
+<span class="kw">instance</span> <span class="dt">Arbitrary</span> <span class="dt">Integer</span> <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> <span class="dt">Integer</span>
+  arbitrary <span class="fu">=</span> arbitrarySizedIntegral</code></pre></div>
+</div>
+<div id="default-deriving-vocabulary-quickcheck-4" class="slide section level1">
+<h1>Default Deriving / Vocabulary (<strong>QuickCheck</strong>)</h1>
+<p>Defining <code>Arbitrary</code></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Arbitrary</span> a <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> a</code></pre></div>
+<p>Generically? Via <code>Integral</code>? <code>Bounded</code> <code>Integral</code>?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- arbitrarySizedBoundedIntegral :: (Bounded a, Integral a) =&gt; Gen a</span>
+
+<span class="kw">instance</span> <span class="dt">Arbitrary</span> <span class="dt">Int8</span> <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> <span class="dt">Int8</span>
+  arbitrary <span class="fu">=</span> arbitrarySizedBoundedIntegral</code></pre></div>
+</div>
+<div id="default-deriving-vocabulary-quickcheck-5" class="slide section level1">
+<h1>Default Deriving / Vocabulary (<strong>QuickCheck</strong>)</h1>
+<p>Defining <code>Arbitrary</code></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Arbitrary</span> a <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> a</code></pre></div>
+<p>Generically? Via <code>Integral</code>? <code>Bounded</code> <code>Integral</code>?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- arbitrarySizedBoundedIntegral :: (Bounded a, Integral a) =&gt; Gen a</span>
+
+<span class="kw">instance</span> <span class="dt">Arbitrary</span> <span class="dt">Int16</span> <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> <span class="dt">Int16</span>
+  arbitrary <span class="fu">=</span> arbitrarySizedBoundedIntegral</code></pre></div>
+</div>
+<div id="default-deriving-vocabulary-quickcheck-6" class="slide section level1">
+<h1>Default Deriving / Vocabulary (<strong>QuickCheck</strong>)</h1>
+<p>Defining <code>Arbitrary</code></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Arbitrary</span> a <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> a</code></pre></div>
+<p>Generically? Via <code>Integral</code>? <code>Bounded</code> <code>Integral</code>?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- arbitrarySizedBoundedIntegral :: (Bounded a, Integral a) =&gt; Gen a</span>
+
+<span class="kw">instance</span> <span class="dt">Arbitrary</span> <span class="dt">Int32</span> <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> <span class="dt">Int32</span>
+  arbitrary <span class="fu">=</span> arbitrarySizedBoundedIntegral</code></pre></div>
+</div>
+<div id="default-deriving-vocabulary-quickcheck-7" class="slide section level1">
+<h1>Default Deriving / Vocabulary (<strong>QuickCheck</strong>)</h1>
+<p>Defining <code>Arbitrary</code></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Arbitrary</span> a <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> a</code></pre></div>
+<p>Generically? Via <code>Integral</code>? <code>Bounded</code> <code>Integral</code>?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- arbitrarySizedBoundedIntegral :: (Bounded a, Integral a) =&gt; Gen a</span>
+
+<span class="kw">instance</span> <span class="dt">Arbitrary</span> <span class="dt">Int64</span> <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> <span class="dt">Int64</span>
+  arbitrary <span class="fu">=</span> arbitrarySizedBoundedIntegral</code></pre></div>
+</div>
+<div id="default-deriving-vocabulary-quickcheck-8" class="slide section level1">
+<h1>Default Deriving / Vocabulary (<strong>QuickCheck</strong>)</h1>
+<p>Defining <code>Arbitrary</code></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Arbitrary</span> a <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> a</code></pre></div>
+<p>Generically? Via <code>Integral</code>? <code>Bounded</code> <code>Integral</code>? <code>Fractional</code>?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- arbitrarySizedFractional :: Fractional a =&gt; Gen a</span>
+
+<span class="kw">instance</span> <span class="dt">Arbitrary</span> <span class="dt">Float</span> <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> <span class="dt">Float</span>
+  arbitrary <span class="fu">=</span> arbitrarySizedFractional</code></pre></div>
+</div>
+<div id="default-deriving-vocabulary-quickcheck-9" class="slide section level1">
+<h1>Default Deriving / Vocabulary (<strong>QuickCheck</strong>)</h1>
+<p>Defining <code>Arbitrary</code></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Arbitrary</span> a <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> a</code></pre></div>
+<p>Generically? Via <code>Integral</code>? <code>Bounded</code> <code>Integral</code>? <code>Fractional</code>?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- arbitrarySizedFractional :: Fractional a =&gt; Gen a</span>
+
+<span class="kw">instance</span> <span class="dt">Arbitrary</span> <span class="dt">Double</span> <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> <span class="dt">Double</span>
+  arbitrary <span class="fu">=</span> arbitrarySizedFractional</code></pre></div>
+</div>
+<div id="default-deriving-vocabulary-quickcheck-10" class="slide section level1">
+<h1>Default Deriving / Vocabulary (<strong>QuickCheck</strong>)</h1>
+<p>Defining <code>Arbitrary</code></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Arbitrary</span> a <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> a</code></pre></div>
+<p>Generically? Via <code>Integral</code>? <code>Bounded</code> <code>Integral</code>? <code>Fractional</code>?</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- arbitrarySizedFractional :: Fractional a =&gt; Gen a</span>
+
+<span class="kw">instance</span> <span class="dt">Integral</span> a <span class="ot">=&gt;</span> <span class="dt">Arbitrary</span> (<span class="dt">Ratio</span> a) <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> (<span class="dt">Ratio</span> a)
+  arbitrary <span class="fu">=</span> arbitrarySizedFractional</code></pre></div>
+</div>
+<div id="many-valid-instances" class="slide section level1">
+<h1>Many valid instances!</h1>
+<p>We can codify each of them as an instance</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">ArbitraryGeneric</span> a <span class="fu">=</span> <span class="dt">ArbitraryGeneric</span> a
+    
+<span class="kw">instance</span> (<span class="dt">Generic</span> a, <span class="dt">GArbitrary</span> (<span class="dt">Rep</span> a)) <span class="ot">=&gt;</span> <span class="dt">Arbitrary</span> (<span class="dt">ArbitraryGeneric</span> a) <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> (<span class="dt">ArbitraryGeneric</span> a)
+  arbitrary <span class="fu">=</span> <span class="dt">ArbitraryGeneric</span> <span class="fu">&lt;$&gt;</span> genericArbitrary</code></pre></div>
+<div class="incremental">
+<p>that we can pick at deriving site</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Foo</span> <span class="fu">=</span> <span class="fu">...</span> 
+  <span class="kw">deriving</span> (<span class="dt">Arbitrary</span>)
+    via (<span class="dt">ArbitraryGeneric</span> <span class="dt">Foo</span>)
+
+  <span class="kw">deriving</span> stock (<span class="dt">Generic</span>)</code></pre></div>
+</div>
+</div>
+<div id="many-valid-instances-1" class="slide section level1">
+<h1>Many valid instances!</h1>
+<p>We can codify each of them as an instance</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">ArbitraryIntegral</span> a <span class="fu">=</span> <span class="dt">ArbitraryIntegral</span> a
+
+<span class="kw">instance</span> <span class="dt">Integral</span> a <span class="ot">=&gt;</span> <span class="dt">Arbitrary</span> (<span class="dt">ArbitraryIntegral</span> a) <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> (<span class="dt">ArbitraryIntegral</span> a)
+  arbitrary <span class="fu">=</span> <span class="dt">ArbitraryIntegral</span> <span class="fu">&lt;$&gt;</span> arbitrarySizedIntegral</code></pre></div>
+<p>that we can pick at deriving site</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Foo</span> <span class="fu">=</span> <span class="fu">...</span> 
+  <span class="kw">deriving</span> (<span class="dt">Arbitrary</span>)
+    via (<span class="dt">ArbitraryIntegral</span> <span class="dt">Foo</span>)
+
+<span class="kw">instance</span> <span class="dt">Integral</span> <span class="dt">Foo</span></code></pre></div>
+</div>
+<div id="many-valid-instances-2" class="slide section level1">
+<h1>Many valid instances!</h1>
+<p>We can codify each of them as an instance</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">ArbitraryBoundedIntegral</span> a <span class="fu">=</span> <span class="dt">ArbitraryBoundedIntegral</span> a
+
+<span class="kw">instance</span> (<span class="dt">Bounded</span> a, <span class="dt">Integral</span> a) <span class="ot">=&gt;</span> <span class="dt">Arbitrary</span> (<span class="dt">ArbitraryBoundedIntegral</span> a) <span class="kw">where</span>
+<span class="ot">  arbitrary ::</span> <span class="dt">Gen</span> (<span class="dt">ArbitraryBoundedIntegral</span> a)
+  arbitrary <span class="fu">=</span> <span class="dt">ArbitraryBoundedIntegral</span> <span class="fu">&lt;$&gt;</span> arbitrarySizedBoundedIntegral</code></pre></div>
+<p>that we can pick at deriving site</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Foo</span> <span class="fu">=</span> <span class="fu">...</span> 
+  <span class="kw">deriving</span> (<span class="dt">Arbitrary</span>)
+    via (<span class="dt">ArbitraryBoundedIntegral</span> <span class="dt">Foo</span>)
+
+<span class="kw">instance</span> <span class="dt">Bounded</span>  <span class="dt">Foo</span>
+<span class="kw">instance</span> <span class="dt">Integral</span> <span class="dt">Foo</span></code></pre></div>
 </div>
 <div id="composing-existing-modifiers" class="slide section level1">
 <h1>Composing Existing Modifiers</h1>
@@ -274,11 +450,11 @@ Baldur Blöndal / <code>@Iceland_jack</code>
 
 </code></pre></div>
 <p><strong>QuickCheck</strong> has many modifiers</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Nums</span> a <span class="fu">=</span> <span class="dt">Nums</span> [a]
-  <span class="kw">deriving</span> <span class="kw">newtype</span>
-    <span class="dt">Arbitrary</span>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Nums</span> <span class="fu">=</span> <span class="dt">Nums</span> [<span class="dt">Int</span>]
+  <span class="kw">deriving</span> <span class="dt">Arbitrary</span>
+    via [<span class="dt">Int</span>]
 
-<span class="fu">&gt;</span> sample (arbitrary <span class="fu">@</span>(<span class="dt">Nums</span> <span class="dt">Int</span>))
+<span class="fu">&gt;</span> sample (arbitrary <span class="fu">@</span><span class="dt">Nums</span>)
 []
 [<span class="dv">0</span>,<span class="fu">-</span><span class="dv">2</span>]
 []
@@ -294,11 +470,11 @@ Baldur Blöndal / <code>@Iceland_jack</code>
 
 </code></pre></div>
 <p><strong>QuickCheck</strong> has many modifiers</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Nums</span> a <span class="fu">=</span> <span class="dt">Nums</span> [a]
-  <span class="kw">deriving</span> 
-    <span class="dt">Arbitrary</span> via (<span class="dt">NonEmptyList</span> a)
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Nums</span> <span class="fu">=</span> <span class="dt">Nums</span> [<span class="dt">Int</span>]
+  <span class="kw">deriving</span> <span class="dt">Arbitrary</span> 
+    via (<span class="dt">NonEmptyList</span> <span class="dt">Int</span>)
 
-<span class="fu">&gt;</span> sample (arbitrary <span class="fu">@</span>(<span class="dt">Nums</span> <span class="dt">Int</span>))
+<span class="fu">&gt;</span> sample (arbitrary <span class="fu">@</span><span class="dt">Nums</span>)
 [<span class="dv">2</span>,<span class="dv">1</span>]
 [<span class="dv">1</span>]
 [<span class="fu">-</span><span class="dv">3</span>,<span class="dv">2</span>]
@@ -314,11 +490,11 @@ Baldur Blöndal / <code>@Iceland_jack</code>
 
 </code></pre></div>
 <p><strong>QuickCheck</strong> has many modifiers</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Nums</span> a <span class="fu">=</span> <span class="dt">Nums</span> [a]
-  <span class="kw">deriving</span> 
-    <span class="dt">Arbitrary</span> via (<span class="dt">NonEmptyList</span> (<span class="dt">Positive</span> a))
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Nums</span> <span class="fu">=</span> <span class="dt">Nums</span> [<span class="dt">Int</span>]
+  <span class="kw">deriving</span> <span class="dt">Arbitrary</span>
+    via (<span class="dt">NonEmptyList</span> (<span class="dt">Positive</span> <span class="dt">Int</span>))
 
-<span class="fu">&gt;</span> sample (arbitrary <span class="fu">@</span>(<span class="dt">Nums</span> <span class="dt">Int</span>))
+<span class="fu">&gt;</span> sample (arbitrary <span class="fu">@</span><span class="dt">Nums</span>)
 [<span class="dv">2</span>]
 [<span class="dv">1</span>,<span class="dv">2</span>]
 [<span class="dv">3</span>,<span class="dv">4</span>]
@@ -333,11 +509,11 @@ Baldur Blöndal / <code>@Iceland_jack</code>
 <span class="kw">newtype</span> <span class="dt">Positive</span>     a <span class="fu">=</span> <span class="dt">Positive</span> a   <span class="co">-- x &gt; 0</span>
 <span class="kw">newtype</span> <span class="dt">Large</span>        a <span class="fu">=</span> <span class="dt">Large</span>    a   <span class="co">-- large numbers</span></code></pre></div>
 <p><strong>QuickCheck</strong> has many modifiers</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Nums</span> a <span class="fu">=</span> <span class="dt">Nums</span> [a]
-  <span class="kw">deriving</span> 
-    <span class="dt">Arbitrary</span> via (<span class="dt">NonEmptyList</span> (<span class="dt">Positive</span> (<span class="dt">Large</span> a)))
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Nums</span> <span class="fu">=</span> <span class="dt">Nums</span> [<span class="dt">Int</span>]
+  <span class="kw">deriving</span> <span class="dt">Arbitrary</span> 
+    via (<span class="dt">NonEmptyList</span> (<span class="dt">Positive</span> (<span class="dt">Large</span> <span class="dt">Int</span>)))
 
-<span class="fu">&gt;</span> sample (arbitrary <span class="fu">@</span>(<span class="dt">Nums</span> <span class="dt">Int</span>))
+<span class="fu">&gt;</span> sample (arbitrary <span class="fu">@</span><span class="dt">Nums</span>)
 [<span class="dv">2</span>]
 [<span class="dv">2</span>,<span class="dv">1</span>]
 [<span class="dv">2</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">4</span>]
@@ -346,120 +522,48 @@ Baldur Blöndal / <code>@Iceland_jack</code>
 [<span class="dv">249</span>,<span class="dv">27</span>]
 [<span class="dv">511</span>,<span class="dv">642</span>]</code></pre></div>
 </div>
-<div id="way-of-thinking" class="slide section level1">
-<h1>Way of Thinking</h1>
-<blockquote>
-<p>“It’s good to think of <strong>types</strong> as not just the <strong>representation</strong> of data but the equipment of <strong>data with structure</strong>.”</p>
-<p>— Conor McBride</p>
-</blockquote>
-<ul class="incremental">
-<li><p>One representation, multiple structures</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Applicative</span> f, <span class="dt">Monoid</span> a) <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (f a) <span class="kw">where</span>
-  mempty  <span class="fu">=</span> pure   mempty
-  mappend <span class="fu">=</span> liftA2 mappend
-
-<span class="kw">instance</span> <span class="dt">Alternative</span> f <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (f a) <span class="kw">where</span>
-  mempty  <span class="fu">=</span> zero
-  mappend <span class="fu">=</span> (<span class="fu">&lt;|&gt;</span>)</code></pre></div></li>
-<li><p>Get reified as instances</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Applicative</span> f, <span class="dt">Monoid</span> a) <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (<span class="dt">App</span> f a)
-<span class="kw">instance</span> (<span class="dt">Alternative</span> f)           <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (<span class="dt">Alt</span> f a)</code></pre></div></li>
-</ul>
-</div>
-<div id="json" class="slide section level1">
-<h1>JSON</h1>
-<ul class="incremental">
-<li><p><strong>Problem</strong>: Only <em>one</em> default method.</p></li>
-<li><p><strong>Problem</strong>: What if the default method changes?</p></li>
-<li><p><strong>Problem</strong>: What if you want to derive with options?</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">State</span> <span class="fu">=</span> <span class="dt">State</span>
-  {<span class="ot"> scbColor      ::</span> <span class="dt">Maybe</span> <span class="dt">Double</span> 
-  ,<span class="ot"> scbBrightness ::</span> <span class="dt">Maybe</span> <span class="dt">Double</span>
-  } 
-  <span class="kw">deriving</span> (<span class="dt">ToJSON</span>, <span class="dt">FromJSON</span>, <span class="dt">Show</span>, <span class="dt">Read</span>, <span class="fu">...</span>)
-    via (<span class="dt">SerializeAs</span> <span class="dt">OmitNothingField</span> (<span class="dt">StripPrefix</span> <span class="st">&quot;scb&quot;</span>) <span class="dt">State</span>)</code></pre></div></li>
-<li><p>Could work to derive Haskell serialization</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">&gt;&gt;&gt;</span> <span class="dt">State</span> <span class="dt">Nothing</span> <span class="dt">Nothing</span>
-<span class="dt">State</span> { }
-<span class="fu">&gt;&gt;&gt;</span> <span class="dt">State</span> <span class="dt">Nothing</span> (<span class="dt">Just</span> <span class="fl">4.4</span>)
-<span class="dt">State</span> { <span class="dt">Brightness</span> <span class="fu">=</span> <span class="fl">4.4</span> }</code></pre></div></li>
-</ul>
-</div>
-<div id="the-main-idea" class="slide section level1">
-<h1>The Main Idea</h1>
-<ul class="incremental">
-<li><p>All of this is</p>
-<ul class="incremental">
-<li><p><em>no-op</em></p></li>
-<li><p><em>zero-cost</em> operation</p></li>
-<li><p><em>safe</em></p></li>
-</ul></li>
-<li><p>Transfer behaviour (<em>structure</em>) between types of same <em>representation</em></p></li>
-<li><p>Works with associated type families</p>
-<ul class="incremental">
-<li>Can swap it out for isomorphic type</li>
-</ul></li>
-</ul>
-</div>
 <div id="uses" class="slide section level1">
 <h1>Uses</h1>
 <ul class="incremental">
-<li><p>Reduces boilerplate</p></li>
-<li><p>No more default methods</p>
-<ul class="incremental">
-<li><p>Not tied to a class declaration</p></li>
-<li><p>No single distinguished derivation</p></li>
-</ul></li>
-<li><p>Captures patterns</p>
-<ul class="incremental">
-<li><p>Groups patterns, keeps in sync</p></li>
-<li><p>Captures optimisations</p></li>
-</ul></li>
-<li><p>Any isomorphism (<code>Generic</code>, <code>Representable</code>) lets us carry over structure</p>
-<ul class="incremental">
-<li><p>From representation</p></li>
-<li><p>From anything sharing a representation</p></li>
-</ul></li>
-<li><p>Prefer <code>Monoidal</code> formulation of <code>Applicative</code>? Sorted m8.</p></li>
+<li><p>Kill boilerplate</p></li>
+<li><p>No more (distinguished) default methods</p></li>
+<li><p>Generalizes <code>GeneralizedNewtypeDeriving</code></p></li>
+<li><p>Captures patterns, optimisations</p></li>
+<li><p>Deriving serialisation with options</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">deriving</span> (<span class="dt">ToJSON</span>, <span class="dt">FromJSON</span>, <span class="dt">Show</span>, <span class="dt">Read</span>, <span class="fu">...</span>)
+  via (<span class="dt">SerializeAs</span> <span class="dt">OmitNothingField</span> (<span class="dt">StripPrefix</span> <span class="st">&quot;scb&quot;</span>) <span class="fu">...</span>)</code></pre></div></li>
+<li><p>Transfer behaviour (<em>instances</em>) between types of same <em>representation</em></p></li>
+<li><p>Prefer <code>Monoidal</code> formulation of <code>Applicative</code>? sorted m8</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Functor</span> f <span class="ot">=&gt;</span> <span class="dt">Monoidal</span> f <span class="kw">where</span>
+<span class="ot">  unit ::</span> f ()
+<span class="ot">  mult ::</span> f a <span class="ot">-&gt;</span> f b <span class="ot">-&gt;</span> f (a, b)
+
+<span class="kw">instance</span> <span class="dt">Monoidal</span> f <span class="ot">=&gt;</span> <span class="dt">Applicative</span> (<span class="dt">W</span> f)</code></pre></div></li>
 </ul>
 </div>
 <div id="the-end" class="slide section level1">
 <h1>The End</h1>
 <ul class="incremental">
-<li>Thank You</li>
-</ul>
-</div>
-<div id="addendum-isomorphic-structures" class="slide section level1">
-<h1>ADDENDUM: Isomorphic Structures</h1>
-<ul class="incremental">
-<li><p>So far: we have stuck to a single representation</p></li>
-<li><p>We can steal any instance as long as we have an isomorphism</p></li>
-<li><h2 id="ghc.generics"><code>GHC.Generics</code></h2></li>
-<li><h2 id="iso1-your-own"><code>Iso1</code> (your own)</h2></li>
-<li><h2 id="representable"><code>Representable</code></h2></li>
+<li><p><strong>Goal</strong>: Create vocabulary of derivability</p></li>
+<li><p>Thank You</p></li>
 </ul>
 </div>
 <div id="example-of-isomorphisms" class="slide section level1">
 <h1>Example of isomorphisms</h1>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">StealFrom</span>  a other   <span class="fu">=</span> <span class="dt">StealFrom</span> a
-<span class="kw">newtype</span> <span class="dt">StealFrom1</span> f other a <span class="fu">=</span> <span class="dt">StealFrom</span> (f a)
+<span class="kw">newtype</span> <span class="dt">StealFrom1</span> f other a <span class="fu">=</span> <span class="dt">StealFrom</span> (f a)</code></pre></div>
+<p>We steal from phantom type <code>other</code>.</p>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">HasSameRep</span>  a b <span class="fu">=</span> (<span class="dt">Generic</span>  a, <span class="dt">Generic</span>  b, forall xx<span class="fu">.</span> <span class="dt">Coercible</span> (<span class="dt">Rep</span>  a xx) (<span class="dt">Rep</span>  b xx))
+<span class="kw">type</span> <span class="dt">HasSameRep1</span> f g <span class="fu">=</span> (<span class="dt">Generic1</span> f, <span class="dt">Generic1</span> g, forall xx<span class="fu">.</span> <span class="dt">Coercible</span> (<span class="dt">Rep1</span> f xx) (<span class="dt">Rep1</span> g xx))
 
-<span class="kw">type</span> a <span class="fu">&lt;~&gt;</span>  b <span class="fu">=</span> (forall xx<span class="fu">.</span> <span class="dt">Rep</span>  a xx <span class="ot">`Coercible`</span> <span class="dt">Rep</span>  b xx, <span class="dt">Generic</span>  a, <span class="dt">Generic</span>  b)
-<span class="kw">type</span> f <span class="fu">&lt;~~&gt;</span> g <span class="fu">=</span> (forall xx<span class="fu">.</span> <span class="dt">Rep1</span> f xx <span class="ot">`Coercible`</span> <span class="dt">Rep1</span> g xx, <span class="dt">Generic1</span> f, <span class="dt">Generic1</span> g)
-
-<span class="kw">instance</span> (a <span class="fu">&lt;~&gt;</span>other, <span class="dt">Semigroup</span>   other) <span class="ot">=&gt;</span> <span class="dt">Semigroup</span>   (a <span class="ot">`StealFrom`</span>  other) 
-<span class="kw">instance</span> (a <span class="fu">&lt;~&gt;</span>other, <span class="dt">Monoid</span>      other) <span class="ot">=&gt;</span> <span class="dt">Monoid</span>      (a <span class="ot">`StealFrom`</span>  other) 
-<span class="kw">instance</span> (a <span class="fu">&lt;~&gt;</span>other, <span class="dt">Show</span>        other) <span class="ot">=&gt;</span> <span class="dt">Show</span>        (a <span class="ot">`StealFrom`</span>  other) 
-<span class="kw">instance</span> (a <span class="fu">&lt;~&gt;</span>other, <span class="dt">Num</span>         other) <span class="ot">=&gt;</span> <span class="dt">Num</span>         (a <span class="ot">`StealFrom`</span>  other) 
-<span class="kw">instance</span> (f<span class="fu">&lt;~~&gt;</span>other, <span class="dt">Functor</span>     other) <span class="ot">=&gt;</span> <span class="dt">Functor</span>     (f <span class="ot">`StealFrom1`</span> other) 
-<span class="kw">instance</span> (f<span class="fu">&lt;~~&gt;</span>other, <span class="dt">Applicative</span> other) <span class="ot">=&gt;</span> <span class="dt">Applicative</span> (f <span class="ot">`StealFrom1`</span> other) </code></pre></div>
-<ul class="incremental">
-<li><p>Can derive</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Foo</span> a <span class="fu">=</span> <span class="dt">F</span> {<span class="ot"> foobs ::</span> [a],<span class="ot"> foobOfHonour ::</span> <span class="dt">Maybe</span> a }
-  <span class="kw">deriving</span> (<span class="dt">Generic1</span>)
-  <span class="kw">deriving</span> (<span class="dt">Functor</span>, <span class="dt">Applicative</span>, <span class="dt">Alternative</span>)
-       via (<span class="dt">Foo</span> <span class="ot">`StealingFrom1`</span> <span class="dt">P.Product</span> <span class="dt">ZipList</span> (<span class="dt">Alt</span> <span class="dt">Maybe</span>))</code></pre></div></li>
-</ul>
+<span class="kw">instance</span> (<span class="dt">HasSameRep</span>  a other, <span class="dt">Semigroup</span>   other) <span class="ot">=&gt;</span> <span class="dt">Semigroup</span>   (a <span class="ot">`StealFrom`</span>  other) 
+<span class="kw">instance</span> (<span class="dt">HasSameRep</span>  a other, <span class="dt">Monoid</span>      other) <span class="ot">=&gt;</span> <span class="dt">Monoid</span>      (a <span class="ot">`StealFrom`</span>  other) 
+<span class="kw">instance</span> (<span class="dt">HasSameRep</span>  a other, <span class="dt">Show</span>        other) <span class="ot">=&gt;</span> <span class="dt">Show</span>        (a <span class="ot">`StealFrom`</span>  other) 
+<span class="kw">instance</span> (<span class="dt">HasSameRep</span>  a other, <span class="dt">Num</span>         other) <span class="ot">=&gt;</span> <span class="dt">Num</span>         (a <span class="ot">`StealFrom`</span>  other) 
+<span class="kw">instance</span> (<span class="dt">HasSameRep1</span> f other, <span class="dt">Functor</span>     other) <span class="ot">=&gt;</span> <span class="dt">Functor</span>     (f <span class="ot">`StealFrom1`</span> other) 
+<span class="kw">instance</span> (<span class="dt">HasSameRep1</span> f other, <span class="dt">Applicative</span> other) <span class="ot">=&gt;</span> <span class="dt">Applicative</span> (f <span class="ot">`StealFrom1`</span> other) </code></pre></div>
+</div>
 </div>
 <div id="as-well-as-entire-catalogues-from-other-types" class="slide section level1">
 <h1>as well as entire catalogues from other types</h1>
@@ -491,18 +595,103 @@ Baldur Blöndal / <code>@Iceland_jack</code>
 <span class="ot">  index    ::</span> f a <span class="ot">-&gt;</span> (<span class="dt">Rep</span> f <span class="ot">-&gt;</span> a)
 <span class="ot">  tabulate ::</span> f a <span class="ot">&lt;-</span> (<span class="dt">Rep</span> f <span class="ot">-&gt;</span> a)</code></pre></div>
 <p>gives us <code>Applicative</code>, <code>Monad</code>, <code>Distributive</code>, <code>MonadReader (Rep f)</code>, <code>FunctorWithIndex</code>, <code>FoldableWithIndex</code>, <code>TraversableWithIndex</code> ....</p>
-<ul class="incremental">
-<li><p>And sometimes <code>Comonad</code></p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Representable</span> f, <span class="dt">Monoid</span> (<span class="dt">Rep</span> f)) <span class="ot">=&gt;</span> <span class="dt">Comonad</span> (<span class="dt">Co</span> f)</code></pre></div></li>
-</ul>
 </div>
-<div id="section" class="slide section level1">
-<h1></h1>
-<p>We also have complete control over the type family.</p>
-<ul class="incremental">
-<li><p>If GHC defaults to <code>Either () ()</code></p></li>
-<li><p>We can map it to <code>Bool</code></p></li>
-</ul>
+<div id="deriving-hask" class="slide section level1">
+<h1>Deriving <code>hask</code></h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Wrap</span> cat a b <span class="fu">=</span> <span class="dt">Wrap</span> (cat a b)
+
+<span class="kw">instance</span> <span class="dt">Category</span> cat <span class="ot">=&gt;</span> <span class="dt">Functor</span> (<span class="dt">Wrap</span> cat a) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> cat
+  <span class="kw">type</span> <span class="dt">Cod</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+
+<span class="ot">  fmap ::</span> forall b b'<span class="fu">.</span> cat b b' <span class="ot">-&gt;</span> (<span class="dt">Wrap</span> cat a b <span class="ot">-&gt;</span> <span class="dt">Wrap</span> cat a b')
+  fmap <span class="fu">=</span> coerce ((<span class="fu">.</span>) <span class="fu">@</span>_ <span class="fu">@</span>cat <span class="fu">@</span>b <span class="fu">@</span>b' <span class="fu">@</span>a)</code></pre></div>
+<p>replaces</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Functor</span> (a <span class="ot">-&gt;</span>) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (a <span class="ot">-&gt;</span>) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+  <span class="kw">type</span> <span class="dt">Cod</span> (a <span class="ot">-&gt;</span>) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+  fmap <span class="fu">=</span> (<span class="fu">.</span>)</code></pre></div>
+<h2 id="well-known-fmap-.">Well known: <code>fmap = (.)</code></h2>
+</div>
+<div id="deriving-hask-1" class="slide section level1">
+<h1>Deriving <code>hask</code></h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Wrap</span> cat a b <span class="fu">=</span> <span class="dt">Wrap</span> (cat a b)
+
+<span class="kw">instance</span> <span class="dt">Category</span> cat <span class="ot">=&gt;</span> <span class="dt">Functor</span> (<span class="dt">Wrap</span> cat a) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> cat
+  <span class="kw">type</span> <span class="dt">Cod</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+
+<span class="ot">  fmap ::</span> forall b b'<span class="fu">.</span> cat b b' <span class="ot">-&gt;</span> (<span class="dt">Wrap</span> cat a b <span class="ot">-&gt;</span> <span class="dt">Wrap</span> cat a b')
+  fmap <span class="fu">=</span> coerce ((<span class="fu">.</span>) <span class="fu">@</span>_ <span class="fu">@</span>cat <span class="fu">@</span>b <span class="fu">@</span>b' <span class="fu">@</span>a)</code></pre></div>
+<p>replaces</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Category</span> p, <span class="dt">Category</span> q) <span class="ot">=&gt;</span> <span class="dt">Functor</span> (<span class="dt">Nat</span> p q f) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (<span class="dt">Nat</span> p q f) <span class="fu">=</span> <span class="dt">Nat</span> p q
+  <span class="kw">type</span> <span class="dt">Cod</span> (<span class="dt">Nat</span> p q f) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+  fmap <span class="fu">=</span> (<span class="fu">.</span>)</code></pre></div>
+</div>
+<div id="deriving-hask-2" class="slide section level1">
+<h1>Deriving <code>hask</code></h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Wrap</span> cat a b <span class="fu">=</span> <span class="dt">Wrap</span> (cat a b)
+
+<span class="kw">instance</span> <span class="dt">Category</span> cat <span class="ot">=&gt;</span> <span class="dt">Functor</span> (<span class="dt">Wrap</span> cat a) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> cat
+  <span class="kw">type</span> <span class="dt">Cod</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+
+<span class="ot">  fmap ::</span> forall b b'<span class="fu">.</span> cat b b' <span class="ot">-&gt;</span> (<span class="dt">Wrap</span> cat a b <span class="ot">-&gt;</span> <span class="dt">Wrap</span> cat a b')
+  fmap <span class="fu">=</span> coerce ((<span class="fu">.</span>) <span class="fu">@</span>_ <span class="fu">@</span>cat <span class="fu">@</span>b <span class="fu">@</span>b' <span class="fu">@</span>a)</code></pre></div>
+<p>replaces</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Category</span> cat, <span class="dt">Op</span> cat <span class="fu">~</span> <span class="dt">Y</span> cat) <span class="ot">=&gt;</span> <span class="dt">Functor</span> (<span class="dt">Y</span> cat a) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (<span class="dt">Y</span> cat a) <span class="fu">=</span> <span class="dt">Y</span> cat
+  <span class="kw">type</span> <span class="dt">Cod</span> (<span class="dt">Y</span> cat a) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+  fmap <span class="fu">=</span> (<span class="fu">.</span>)</code></pre></div>
+</div>
+<div id="deriving-hask-3" class="slide section level1">
+<h1>Deriving <code>hask</code></h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Wrap</span> cat a b <span class="fu">=</span> <span class="dt">Wrap</span> (cat a b)
+
+<span class="kw">instance</span> <span class="dt">Category</span> cat <span class="ot">=&gt;</span> <span class="dt">Functor</span> (<span class="dt">Wrap</span> cat a) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> cat
+  <span class="kw">type</span> <span class="dt">Cod</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+
+<span class="ot">  fmap ::</span> forall b b'<span class="fu">.</span> cat b b' <span class="ot">-&gt;</span> (<span class="dt">Wrap</span> cat a b <span class="ot">-&gt;</span> <span class="dt">Wrap</span> cat a b')
+  fmap <span class="fu">=</span> coerce ((<span class="fu">.</span>) <span class="fu">@</span>_ <span class="fu">@</span>cat <span class="fu">@</span>b <span class="fu">@</span>b' <span class="fu">@</span>a)</code></pre></div>
+<p>replaces</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Functor</span> (a <span class="fu">:-</span>) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (a <span class="fu">:-</span>) <span class="fu">=</span> (<span class="fu">:-</span>)
+  <span class="kw">type</span> <span class="dt">Cod</span> (a <span class="fu">:-</span>) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+  fmap <span class="fu">=</span> (<span class="fu">.</span>)</code></pre></div>
+</div>
+<div id="deriving-hask-4" class="slide section level1">
+<h1>Deriving <code>hask</code></h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Wrap</span> cat a b <span class="fu">=</span> <span class="dt">Wrap</span> (cat a b)
+
+<span class="kw">instance</span> <span class="dt">Category</span> cat <span class="ot">=&gt;</span> <span class="dt">Functor</span> (<span class="dt">Wrap</span> cat a) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> cat
+  <span class="kw">type</span> <span class="dt">Cod</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+
+<span class="ot">  fmap ::</span> forall b b'<span class="fu">.</span> cat b b' <span class="ot">-&gt;</span> (<span class="dt">Wrap</span> cat a b <span class="ot">-&gt;</span> <span class="dt">Wrap</span> cat a b')
+  fmap <span class="fu">=</span> coerce ((<span class="fu">.</span>) <span class="fu">@</span>_ <span class="fu">@</span>cat <span class="fu">@</span>b <span class="fu">@</span>b' <span class="fu">@</span>a)</code></pre></div>
+<p>replaces</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Functor</span> (a <span class="fu">:~:</span>) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (a <span class="fu">:~:</span>) <span class="fu">=</span> (<span class="fu">:~:</span>)
+  <span class="kw">type</span> <span class="dt">Cod</span> (a <span class="fu">:~:</span>) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+  fmap <span class="fu">=</span> (<span class="fu">.</span>)</code></pre></div>
+</div>
+<div id="deriving-hask-5" class="slide section level1">
+<h1>Deriving <code>hask</code></h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Wrap</span> cat a b <span class="fu">=</span> <span class="dt">Wrap</span> (cat a b)
+
+<span class="kw">instance</span> <span class="dt">Category</span> cat <span class="ot">=&gt;</span> <span class="dt">Functor</span> (<span class="dt">Wrap</span> cat a) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> cat
+  <span class="kw">type</span> <span class="dt">Cod</span> (<span class="dt">Wrap</span> cat a) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+
+<span class="ot">  fmap ::</span> forall b b'<span class="fu">.</span> cat b b' <span class="ot">-&gt;</span> (<span class="dt">Wrap</span> cat a b <span class="ot">-&gt;</span> <span class="dt">Wrap</span> cat a b')
+  fmap <span class="fu">=</span> coerce ((<span class="fu">.</span>) <span class="fu">@</span>_ <span class="fu">@</span>cat <span class="fu">@</span>b <span class="fu">@</span>b' <span class="fu">@</span>a)</code></pre></div>
+<p>replaces</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Functor</span> (<span class="dt">Coercion</span> a) <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Dom</span> (<span class="dt">Coercion</span> a) <span class="fu">=</span> <span class="dt">Coercion</span>
+  <span class="kw">type</span> <span class="dt">Cod</span> (<span class="dt">Coercion</span> a) <span class="fu">=</span> (<span class="ot">-&gt;</span>)
+  fmap <span class="fu">=</span> (<span class="fu">.</span>)</code></pre></div>
 <!--- pandoc -f markdown -t slidy -i -s --self-contained -o mypresentation.html Presentation.md --->
 </div>
 </body>
