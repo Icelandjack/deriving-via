@@ -1,6 +1,5 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
@@ -10,7 +9,6 @@ module MonadTransformers where
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
-import Data.Coerce
 
 newtype Stack m a = Stack (ReaderT Int (StateT Bool (WriterT String m)) a)
   deriving newtype
@@ -21,14 +19,16 @@ newtype Stack m a = Stack (ReaderT Int (StateT Bool (WriterT String m)) a)
     , MonadState Bool
     , MonadWriter String
     )
-  -- deriving MonadTrans via (ReaderT Int `ComposeT` StateT Bool `ComposeT` WriterT String)
+  deriving MonadTrans via (ReaderT Int `ComposeT` StateT Bool `ComposeT` WriterT String)
 
+{-
 instance MonadTrans Stack where
   lift = coerce @(forall m a. Monad m =>
                   m a -> (ReaderT Int `ComposeT` StateT Bool `ComposeT` WriterT String) m a)
                 @(forall m a. Monad m =>
                   m a -> Stack m a)
                 lift
+-}
 
 -----
 
