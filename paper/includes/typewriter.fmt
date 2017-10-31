@@ -1,0 +1,75 @@
+%if not lhs2tex_typewriter_fmt_read
+%let typewriter_fmt_read = True
+\ReadOnlyOnce{typewriter.fmt}%
+
+\renewcommand\hscodestyle{\small} % make all code smaller
+\renewcommand\Varid[1]{\texttt{#1}}
+\renewcommand\Conid[1]{\texttt{#1}}
+\renewcommand\keyw[1]{{\color{keyword}\textbf{\texttt{#1}}}}
+\renewcommand\opsym[1]{\mathrel{\texttt{#1}}}
+\newcommand\backquoted[1]{\mathbin{\texttt{`}#1\texttt{`}}}
+\newcommand\texthat{\verb|^|}
+
+% increase math-mode horizontal spacing
+\thinmuskip=6mu
+\medmuskip=7mu
+\thickmuskip=8mu
+
+%if style /= newcode
+%subst backquoted a = "\backquoted{\id{" a "}}"
+%format \  = "\mathord{\texttt{\textbackslash}\,}"
+%format [  = "\mathopen{\texttt{[}}"
+%format ]  = "\mathclose{\texttt{]}}"
+%format {  = "\mathopen{\texttt{\{}}"
+%format }  = "\mathclose{\texttt{\}}}"
+%format (  = "\mathopen{\texttt{(}}"
+%format )  = "\mathclose{\texttt{)}}"
+%format _  = "\mathord{\texttt{\_}}"
+%format -> = "\mathrel{\texttt{-\!>}}"
+%format => = "\mathrel{\texttt{=\!>}}"
+%format <- = "\mathrel{\texttt{<-}}"
+%format .  = "\mathrel{\texttt{.}}"
+%format ,  = "\mathpunct{\texttt{,}}"
+%format =  = "\mathrel{\texttt{=}}"
+%format |  = "\mathrel{\texttt{|}}"
+%format :: = "\mathrel{\texttt{:\!:}}"
+%format == = "\opsym{=\!=}"
+%format <= = "\opsym{<\!=}"
+%format >= = "\opsym{>\!=}"
+%format > = "\opsym{>}"
+%format < = "\opsym{<}"
+%format /= = "\opsym{/\!=}"
+%format |> = "\opsym{|>}"
+%format <$> = "\opsym{<\$>}"
+%format <*> = "\opsym{<*>}"
+%format <|> = "\opsym{<|>}"
+%format >>= = "\opsym{>\!>\!=}"
+%format >> = "\opsym{>\!>}"
+%format ==> = "\opsym{==>}"
+%format ++ = "\opsym{+\!+}"
+%format $ = "\opsym{\textdollar}"
+%format ~ = "\opsym{\textasciitilde}"
+%format `elem` = "\mathbin{\texttt{`}" elem "\texttt{`}}"
+%format TCOMMAND = "\keyw{:t}"
+%format TYPECOMMAND = "\keyw{:type}"
+%format ICOMMAND = "\keyw{:i}"
+%format INFOCOMMAND = "\keyw{:info}"
+%format KCOMMAND = "\keyw{:k}"
+%format KINDCOMMAND = "\keyw{:kind}"
+%format KBANGCOMMAND = "\keyw{:kind!}"
+%format STAR = "\ki{*}"
+%format (MODULE (x)) = "{\color{black}\colorlet{identifier}{black}\colorlet{type}{black}" x "}"
+%format EX (x) =
+%format === = "="
+%format forall = "\keyw{forall}"
+%format (BANG x) = "\mathord{\opsym{!}}" x
+%else
+%format STAR = *
+%format EX (x) = "ex_" x " = "
+%format (MODULE (x)) = x
+%format (BANG x) = "!" x
+%endif
+
+\EndFmtInput
+%
+%endif

@@ -1,0 +1,92 @@
+%if not lhs2tex_general_fmt_read
+%let lhs2tex_general_fmt_read = True
+%include lhs2TeX.fmt
+%include spacing.fmt
+%if style /= newcode
+\ReadOnlyOnce{general.fmt}%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Loading standard stuff
+
+%include polycode.fmt
+%include colorcode.fmt
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Proper handling of verbatim
+
+\newcommand\gobble[1]{}
+%subst verbatim a       = "\begingroup\verbsize\begin{codeblock}\tt\gobble'n" a "'n\end{codeblock}\endgroup'n"
+%subst verbnl           = "\leavevmode\\'n\tt\hspace*{0pt}\gobble "
+\newcommand\verbsize{\small}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Proper handling of code
+
+%subst inline a         = "{\ensuremath{" a "}}"
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Syntax highlighting for code
+
+%subst keyword a        = "\keyw{" a "}"
+%subst numeral a        = "\con{" a "}"
+%subst string  a        = "\con{\text{\tt \char34 " a "\char34}}"
+%subst char    a        = "\con{\text{\tt ''" a "''}}"
+
+\RequirePackage{tango}
+
+% new colors
+\colorlet{type}{skyblueB}
+\colorlet{term}{chameleonA}
+\colorlet{kind}{orangeB}
+\colorlet{keyword}{plumC}
+\colorlet{constr}{chameleonC}
+\colorlet{superkind}{orangeC}
+
+\newcommand{\keyw}[1]{{\color{keyword}\textbf{#1}}}
+\newcommand{\ty}[1]{{\color{type}\Conid{#1}}\global\let\lvl\ty}
+\newcommand{\con}[1]{{\color{constr}{\Conid{#1}}}\global\let\lvl\tm}
+\newcommand{\id}[1]{{\color{term}\Varid{#1}}\global\let\lvl\tm}
+\newcommand{\cl}[1]{{\color{type}\Varid{#1}}\global\let\lvl\ty}
+\newcommand{\ki}[1]{{\color{kind}\Varid{#1}}\global\let\lvl\ki}
+\newcommand{\suki}[1]{{\color{superkind}\Varid{#1}}\global\let\lvl\suki}
+\newcommand\prom{\let\con\ty\let\ty\ki}
+\let\tm\Varid
+\let\lvl\tm
+\newcommand{\opsym}[1]{\mathrel{#1}}
+
+%include typewriter.fmt
+%include syntax-prelude.fmt
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Comments and Pragmas
+
+\newcommand{\graycomments}{%
+\visiblecomments
+\renewcommand\onelinecomment{\quad\color{keyword}-{}- }}
+\graycomments
+
+\def\eqcommentbeginchars{\quad\{\ }%
+\def\eqcommentendchars{\}}%
+\newcommand{\eqcomments}{%
+\visiblecomments
+\let\commentbegin\eqcommentbeginchars
+\let\commentend\eqcommentendchars}
+
+
+%subst pragma a = "\mbox{\pragmabegin " a " \pragmaend}"
+\newcommand\pragmabeginchars{\color{keyword}\ttfamily\{-\#\ }
+\newcommand\pragmaendchars{\#-\}}
+\let\pragmabegin=\pragmabeginchars
+\let\pragmaend=\pragmaendchars
+
+%if style /= newcode
+%format >>> = "\texttt{\color{black!60}GHCi>~}"
+%format === = "\ensuremath{=}"
+%endif
+\newcommand{\userinput}[1]{\texttt{\color{red!50!blue}#1}}
+\newcommand{\useroutput}[1]{\texttt{\color{keyword}#1}}
+
+\EndFmtInput
+%
+%endif
+%endif
