@@ -1,0 +1,258 @@
+%% Tango color table for LaTeX
+%% Copyright © 2012 Sébastien Gross  <seb•ɑƬ•chezwam•ɖɵʈ•org>
+%%
+%% This file may be distributed and/or modified
+%%
+%% 1. under the LaTeX Project Public License and/or
+%% 2. under the WTF Public License.
+%%
+%%
+%% This defines Tango scheme colors for LaTeX (see
+%% http://tango.freedesktop.org).
+%%
+%% Please note that commands have been defined using letters instead of
+%% numbers (ei. "Butter 1" -> butterA)
+%%
+%% You can use colors:
+%%
+%%  - directly:                      Colored \textcolor{butterA}{text} here.
+%%  - by color name:                 Colored \butterA{text} here.
+%%  - by color backgroung name:      Colored \BbutterA{text} here.
+%%  - by beamer overlay:             Colored \butterA<2-3>{text} here.
+%%  - by beamer background overlay:  Colored \BbutterA<2-3>{text} here.
+%%  - by HTML code:                  Colored \textcolor{HTML}{\butter}{text} here.
+%%
+%% To install it copy the tango directory to either:
+%%   - $TEXHOME/tex/latex/
+%%   - ~/texmf/tex/latex/
+%%   - ~/Library/texmf/tex/latex
+%%
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{tango}[2013/03/08 v1.1 Add background colors]
+
+\RequirePackage{xcolor}
+\RequirePackage{color}
+
+% Butter 1 #FCE94F
+\def\butterAHTML{FCE94F}
+\definecolor{butterA}{HTML}{\butterAHTML}
+\newcommand{\butterA}[1]{\textcolor{butterA}{#1}}
+\newcommand{\BbutterA}[1]{\colorbox{butterA}{#1}}
+
+% Butter 2 #edd400
+\def\butterBHTML{EDD400}
+\definecolor{butterB}{HTML}{\butterBHTML}
+\newcommand{\butterB}[1]{\textcolor{butterB}{#1}}
+\newcommand{\BbutterB}[1]{\colorbox{butterB}{#1}}
+
+% Butter 3 #c4a000
+\def\butterCHTML{C4A000}
+\definecolor{butterC}{HTML}{\butterCHTML}
+\newcommand{\butterC}[1]{\textcolor{butterC}{#1}}
+\newcommand{\BbutterC}[1]{\colorbox{butterC}{#1}}
+
+% Chameleon 1 #8ae234
+\def\chameleonAHTML{8AE234}
+\definecolor{chameleonA}{HTML}{\chameleonAHTML}
+\newcommand{\chameleonA}[1]{\textcolor{chameleonA}{#1}}
+\newcommand{\BchameleonA}[1]{\colorbox{chameleonA}{#1}}
+
+% Chameleon 2 #73d216
+\def\chameleonBHTML{73D216}
+\definecolor{chameleonB}{HTML}{\chameleonBHTML}
+\newcommand{\chameleonB}[1]{\textcolor{chameleonB}{#1}}
+\newcommand{\BchameleonB}[1]{\colorbox{chameleonB}{#1}}
+
+% Chameleon 3 #4e9a06
+\def\chameleonCHTML{4E9A06}
+\definecolor{chameleonC}{HTML}{\chameleonCHTML}
+\newcommand{\chameleonC}[1]{\textcolor{chameleonC}{#1}}
+\newcommand{\BchameleonC}[1]{\colorbox{chameleonC}{#1}}
+
+% Orange 1 #fcaf3e
+\def\orangeAHTML{FCAF3E}
+\definecolor{orangeA}{HTML}{\orangeAHTML}
+\newcommand{\orangeA}[1]{\textcolor{orangeA}{#1}}
+\newcommand{\BorangeA}[1]{\colorbox{orangeA}{#1}}
+
+% Orange 2 #f57900
+\def\orangeBHTML{F57900}
+\definecolor{orangeB}{HTML}{\orangeBHTML}
+\newcommand{\orangeB}[1]{\textcolor{orangeB}{#1}}
+\newcommand{\BorangeB}[1]{\textcolor{orangeB}{#1}}
+
+% Orange 3 #ce5c00
+\def\orangeCHTML{CE5C00}
+\definecolor{orangeC}{HTML}{\orangeCHTML}
+\newcommand{\orangeC}[1]{\textcolor{orangeC}{#1}}
+\newcommand{\BorangeC}[1]{\colorbox{orangeC}{#1}}
+
+% Sky Blue 1 #729fcf
+\def\skyblueAHTML{729FCF}
+\definecolor{skyblueA}{HTML}{\skyblueAHTML}
+\newcommand{\skyblueA}[1]{\textcolor{skyblueA}{#1}}
+\newcommand{\BskyblueA}[1]{\colorbox{skyblueA}{#1}}
+
+% Sky Blue 2 #3465a4
+\def\skyblueBHTML{3465A4}
+\definecolor{skyblueB}{HTML}{\skyblueBHTML}
+\newcommand{\skyblueB}[1]{\textcolor{skyblueB}{#1}}
+\newcommand{\BskyblueB}[1]{\colorbox{skyblueB}{#1}}
+
+% Sky Blue 3 #204a87
+\def\skyblueCHTML{204A87}
+\definecolor{skyblueC}{HTML}{\skyblueCHTML}
+\newcommand{\skyblueC}[1]{\textcolor{skyblueC}{#1}}
+\newcommand{\BskyblueC}[1]{\colorbox{skyblueC}{#1}}
+
+% Plum 1 #ad7fa8
+\def\plumAHTML{AD7FA8}
+\definecolor{plumA}{HTML}{\plumAHTML}
+\newcommand{\plumA}[1]{\textcolor{plumA}{#1}}
+\newcommand{\BplumA}[1]{\colorbox{plumA}{#1}}
+
+% Plum 2 #75507b
+\def\plumBHTML{75507B}
+\definecolor{plumB}{HTML}{\plumBHTML}
+\newcommand{\plumB}[1]{\textcolor{plumB}{#1}}
+\newcommand{\BplumB}[1]{\colorbox{plumB}{#1}}
+
+% Plum 3 #5c3566
+\def\plumCHTML{5C3566}
+\definecolor{plumC}{HTML}{\plumCHTML}
+\newcommand{\plumC}[1]{\textcolor{plumC}{#1}}
+\newcommand{\BplumC}[1]{\colorbox{plumC}{#1}}
+
+% Chocolate 1 #e9b96e
+\def\chocolateAHTML{E9B96E}
+\definecolor{chocolateA}{HTML}{\chocolateAHTML}
+\newcommand{\chocolateA}[1]{\textcolor{chocolateA}{#1}}
+\newcommand{\BchocolateA}[1]{\colorbox{chocolateA}{#1}}
+
+% Chocolate 2 #c17d11
+\def\chocolateBHTML{C17D11}
+\definecolor{chocolateB}{HTML}{\chocolateBHTML}
+\newcommand{\chocolateB}[1]{\textcolor{chocolateB}{#1}}
+\newcommand{\BchocolateB}[1]{\colorbox{chocolateB}{#1}}
+
+% Chocolate 3 #8f5902
+\def\chocolateCHTML{8F5902}
+\definecolor{chocolateC}{HTML}{\chocolateCHTML}
+\newcommand{\chocolateC}[1]{\textcolor{chocolateC}{#1}}
+\newcommand{\BchocolateC}[1]{\colorbox{chocolateC}{#1}}
+
+% Scarlet Red 1 #ef2929
+\def\scarletredAHTML{EF2929}
+\definecolor{scarletredA}{HTML}{\scarletredAHTML}
+\newcommand{\scarletredA}[1]{\textcolor{scarletredA}{#1}}
+\newcommand{\BscarletredA}[1]{\colorbox{scarletredA}{#1}}
+
+% Scarlet Red 2 #cc0000
+\def\scarletredBHTML{CC0000}
+\definecolor{scarletredB}{HTML}{\scarletredBHTML}
+\newcommand{\scarletredB}[1]{\textcolor{scarletredB}{#1}}
+\newcommand{\BscarletredB}[1]{\colorbox{scarletredB}{#1}}
+
+% Scarlet Red 3 #a40000
+\def\scarletredCHTML{A40000}
+\definecolor{scarletredC}{HTML}{\scarletredCHTML}
+\newcommand{\scarletredC}[1]{\textcolor{scarletredC}{#1}}
+\newcommand{\BscarletredC}[1]{\colorbox{scarletredC}{#1}}
+
+% Aluminium 1 #eeeeec
+\def\aluminiumAHTML{EEEEEC}
+\definecolor{aluminiumA}{HTML}{\aluminiumAHTML}
+\newcommand{\aluminiumA}[1]{\textcolor{aluminiumA}{#1}}
+\newcommand{\BaluminiumA}[1]{\colorbox{aluminiumA}{#1}}
+
+% Aluminium 2 #d3d7cf
+\def\aluminiumBHTML{D3D7CF}
+\definecolor{aluminiumB}{HTML}{\aluminiumBHTML}
+\newcommand{\aluminiumB}[1]{\textcolor{aluminiumB}{#1}}
+\newcommand{\BaluminiumB}[1]{\colorbox{aluminiumB}{#1}}
+
+% Aluminium 3 #babdb6
+\def\aluminiumCHTML{BABDB6}
+\definecolor{aluminiumC}{HTML}{\aluminiumCHTML}
+\newcommand{\aluminiumC}[1]{\textcolor{aluminiumC}{#1}}
+\newcommand{\BaluminiumC}[1]{\colorbox{aluminiumC}{#1}}
+
+% Aluminium 4 #888a85
+\def\aluminiumDHTML{888A85}
+\definecolor{aluminiumD}{HTML}{\aluminiumDHTML}
+\newcommand{\aluminiumD}[1]{\textcolor{aluminiumD}{#1}}
+\newcommand{\BaluminiumD}[1]{\colorbox{aluminiumD}{#1}}
+
+% Aluminium 5 #555753
+\def\aluminiumEHTML{555753}
+\definecolor{aluminiumE}{HTML}{\aluminiumEHTML}
+\newcommand{\aluminiumE}[1]{\textcolor{aluminiumE}{#1}}
+\newcommand{\BaluminiumE}[1]{\colorbox{aluminiumE}{#1}}
+
+% Aluminium 6 #2e3436
+\def\aluminiumFHTML{2E3436}
+\definecolor{aluminiumF}{HTML}{\aluminiumFHTML}
+\newcommand{\aluminiumF}[1]{\textcolor{aluminiumF}{#1}}
+\newcommand{\BaluminiumF}[1]{\colorbox{aluminiumF}{#1}}
+
+\@ifclassloaded{beamer}{%
+  \renewcommand<>{\butterA}[1]{\alt#2{\beameroriginal{\butterA}{#1}}{#1}}
+  \renewcommand<>{\BbutterA}[1]{\alt#2{\beameroriginal{\BbutterA}{#1}}{#1}}
+  \renewcommand<>{\butterB}[1]{\alt#2{\beameroriginal{\butterB}{#1}}{#1}}
+  \renewcommand<>{\BbutterB}[1]{\alt#2{\beameroriginal{\BbutterB}{#1}}{#1}}
+  \renewcommand<>{\butterC}[1]{\alt#2{\beameroriginal{\butterC}{#1}}{#1}}
+  \renewcommand<>{\BbutterC}[1]{\alt#2{\beameroriginal{\BbutterC}{#1}}{#1}}
+  \renewcommand<>{\chameleonA}[1]{\alt#2{\beameroriginal{\chameleonA}{#1}}{#1}}
+  \renewcommand<>{\BchameleonA}[1]{\alt#2{\beameroriginal{\BchameleonA}{#1}}{#1}}
+  \renewcommand<>{\chameleonB}[1]{\alt#2{\beameroriginal{\chameleonB}{#1}}{#1}}
+  \renewcommand<>{\BchameleonB}[1]{\alt#2{\beameroriginal{\BchameleonB}{#1}}{#1}}
+  \renewcommand<>{\chameleonC}[1]{\alt#2{\beameroriginal{\chameleonC}{#1}}{#1}}
+  \renewcommand<>{\BchameleonC}[1]{\alt#2{\beameroriginal{\BchameleonC}{#1}}{#1}}
+  \renewcommand<>{\orangeA}[1]{\alt#2{\beameroriginal{\orangeA}{#1}}{#1}}
+  \renewcommand<>{\BorangeA}[1]{\alt#2{\beameroriginal{\BorangeA}{#1}}{#1}}
+  \renewcommand<>{\orangeB}[1]{\alt#2{\beameroriginal{\orangeB}{#1}}{#1}}
+  \renewcommand<>{\BorangeB}[1]{\alt#2{\beameroriginal{\BorangeB}{#1}}{#1}}
+  \renewcommand<>{\orangeC}[1]{\alt#2{\beameroriginal{\orangeC}{#1}}{#1}}
+  \renewcommand<>{\BorangeC}[1]{\alt#2{\beameroriginal{\BorangeC}{#1}}{#1}}
+  \renewcommand<>{\skyblueA}[1]{\alt#2{\beameroriginal{\skyblueA}{#1}}{#1}}
+  \renewcommand<>{\BskyblueA}[1]{\alt#2{\beameroriginal{\BskyblueA}{#1}}{#1}}
+  \renewcommand<>{\skyblueB}[1]{\alt#2{\beameroriginal{\skyblueB}{#1}}{#1}}
+  \renewcommand<>{\BskyblueB}[1]{\alt#2{\beameroriginal{\BskyblueB}{#1}}{#1}}
+  \renewcommand<>{\skyblueC}[1]{\alt#2{\beameroriginal{\skyblueC}{#1}}{#1}}
+  \renewcommand<>{\BskyblueC}[1]{\alt#2{\beameroriginal{\BskyblueC}{#1}}{#1}}
+  \renewcommand<>{\plumA}[1]{\alt#2{\beameroriginal{\plumA}{#1}}{#1}}
+  \renewcommand<>{\BplumA}[1]{\alt#2{\beameroriginal{\BplumA}{#1}}{#1}}
+  \renewcommand<>{\plumB}[1]{\alt#2{\beameroriginal{\plumB}{#1}}{#1}}
+  \renewcommand<>{\BplumB}[1]{\alt#2{\beameroriginal{\BplumB}{#1}}{#1}}
+  \renewcommand<>{\plumC}[1]{\alt#2{\beameroriginal{\plumC}{#1}}{#1}}
+  \renewcommand<>{\BplumC}[1]{\alt#2{\beameroriginal{\BplumC}{#1}}{#1}}
+  \renewcommand<>{\chocolateA}[1]{\alt#2{\beameroriginal{\chocolateA}{#1}}{#1}}
+  \renewcommand<>{\BchocolateA}[1]{\alt#2{\beameroriginal{\BchocolateA}{#1}}{#1}}
+  \renewcommand<>{\chocolateB}[1]{\alt#2{\beameroriginal{\chocolateB}{#1}}{#1}}
+  \renewcommand<>{\BchocolateB}[1]{\alt#2{\beameroriginal{\BchocolateB}{#1}}{#1}}
+  \renewcommand<>{\chocolateC}[1]{\alt#2{\beameroriginal{\chocolateC}{#1}}{#1}}
+  \renewcommand<>{\BchocolateC}[1]{\alt#2{\beameroriginal{\BchocolateC}{#1}}{#1}}
+  \renewcommand<>{\scarletredA}[1]{\alt#2{\beameroriginal{\scarletredA}{#1}}{#1}}
+  \renewcommand<>{\BscarletredA}[1]{\alt#2{\beameroriginal{\BscarletredA}{#1}}{#1}}
+  \renewcommand<>{\scarletredB}[1]{\alt#2{\beameroriginal{\scarletredB}{#1}}{#1}}
+  \renewcommand<>{\BscarletredB}[1]{\alt#2{\beameroriginal{\BscarletredB}{#1}}{#1}}
+  \renewcommand<>{\scarletredC}[1]{\alt#2{\beameroriginal{\scarletredC}{#1}}{#1}}
+  \renewcommand<>{\BscarletredC}[1]{\alt#2{\beameroriginal{\BscarletredC}{#1}}{#1}}
+  \renewcommand<>{\aluminiumA}[1]{\alt#2{\beameroriginal{\aluminiumA}{#1}}{#1}}
+  \renewcommand<>{\BaluminiumA}[1]{\alt#2{\beameroriginal{\BaluminiumA}{#1}}{#1}}
+  \renewcommand<>{\aluminiumB}[1]{\alt#2{\beameroriginal{\aluminiumB}{#1}}{#1}}
+  \renewcommand<>{\BaluminiumB}[1]{\alt#2{\beameroriginal{\BaluminiumB}{#1}}{#1}}
+  \renewcommand<>{\aluminiumC}[1]{\alt#2{\beameroriginal{\aluminiumC}{#1}}{#1}}
+  \renewcommand<>{\BaluminiumC}[1]{\alt#2{\beameroriginal{\BaluminiumC}{#1}}{#1}}
+  \renewcommand<>{\aluminiumD}[1]{\alt#2{\beameroriginal{\aluminiumD}{#1}}{#1}}
+  \renewcommand<>{\BaluminiumD}[1]{\alt#2{\beameroriginal{\BaluminiumD}{#1}}{#1}}
+  \renewcommand<>{\aluminiumE}[1]{\alt#2{\beameroriginal{\aluminiumE}{#1}}{#1}}
+  \renewcommand<>{\BaluminiumE}[1]{\alt#2{\beameroriginal{\BaluminiumE}{#1}}{#1}}
+  \renewcommand<>{\aluminiumF}[1]{\alt#2{\beameroriginal{\aluminiumF}{#1}}{#1}}
+  \renewcommand<>{\BaluminiumF}[1]{\alt#2{\beameroriginal{\BaluminiumF}{#1}}{#1}}
+}
+
+\endinput
+
+%% tango.sty ends here.
