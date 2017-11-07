@@ -27,7 +27,6 @@
 \title{Deriving-via}
 \author{Baldur Blöndal}
 \affiliation{
-  \institution{Standard Chartered Bank}
 }
 \author{Andres Löh}
 \affiliation{
@@ -65,11 +64,19 @@ all problems in generic programming that ever existed.
 > newtype Foo a = MkFoo (Either a Int)
 >   deriving Functor via (Flip Either Int)
 
-\section{Specification}
-
 \section{Examples}
 
-\section{Conclusions and Future Work}
+\section{Formalism}
+
+\section{Advanced uses}
+
+\subsection{Generalized GeneralizedNewtypeDeriving}
+
+\subsection{DeriveAnyClass}
+
+\section{Limitations, Conclusions and Future Work}
+
+\section{Related Work}
 
 \end{document}
 
