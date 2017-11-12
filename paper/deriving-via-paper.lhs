@@ -8,6 +8,7 @@
   ]{acmart}
 
 \usepackage{booktabs}
+\usepackage{hyperref}
 
 %include general.fmt
 
@@ -84,7 +85,7 @@ reasons, rewrite)
 \begin{itemize}  
 \item It overlaps with every \texttt{Monoid} instance over an applied type.
 \item "Structure of the \texttt{f} is often considered more significant that that of \texttt{x}."\footnote{Much of this is stolen from Conor: https://personal.cis.strath.ac.uk/conor.mcbride/so-pigworker.pdf}
-\item It may not be the desired \texttt{Monoid}: Some constructors have an ‘inherent monoidal structural’, most notably the \textit{free monoid} (lists: \texttt{[a]}) where we prioritize the list structure and not that of the elements.
+\item It may not be the desired \texttt{Monoid}: Some constructors have an ‘inherent monoidal structure’, most notably the \textit{free monoid} (lists: \texttt{[a]}) where we prioritize the list structure and not that of the elements.
 \end{itemize}
 
 Lists are in fact an instance of a wholly separate way of defining
@@ -97,12 +98,45 @@ Lists are in fact an instance of a wholly separate way of defining
 >   mappend :: f a -> f a -> f a
 >   mappend = (<|>)
 
+So what are our options.
+
+An unfortunate solution is to duplicate code
+
+> instance Monoid a => Monoid (IO a) where
+>   mempty   = pure   mempty
+>   mappend  = liftA2 mappend
+> 
+> instance (Monoid a, Monoid b) => Monoid (a, b) where
+>   mempty  = pure   mempty
+>   mappend = liftA2 mappend
+> 
+> instance Monoid b => Monoid (a -> b) where
+>   mempty  = pure   mempty
+>   mappend = liftA2 mappend
+
+but this quickly becomes unviable as \texttt{Num}, \texttt{Floating}
+and \texttt{Fractional} which amount to around 50 methods lifted in
+the exact same way. Another solution provided by Conal Elliott is to
+use
+preprocessor.\footnote{https://hackage.haskell.org/package/applicative-numbers}
+
+But we already have 
 
 \section{Examples}
 
 \section{Formalism}
 
 \section{Advanced uses}
+
+\begin{itemize}
+  \item \textbf{Avoiding orphan instances} Before we had a \texttt{Monoid (IO a)} instance, we could not write\footnote{http://www.haskellforall.com/2014/07/equational-reasoning-at-scale.html}
+> newtype Plugin = Plugin (IO (String -> IO ())) 
+>   deriving Monoid
+  \textbf{deriving via} enables us to override and insert arbitrary
+  instances adding the following line
+>     via App IO (String -> App IO ()) 
+  \item \textbf{Asymptotic improvement} For representable functors the definitions of \texttt{m *> \_ = m} and \texttt{\_ <* m = m} are \textit{O(1)}.\footnote{Edward Kmett: \url{https://ghc.haskell.org/trac/ghc/ticket/10892?cversion=0&cnum_hist=4\#comment:4} }
+\end{itemize}
 
 \subsection{Generalized GeneralizedNewtypeDeriving}
 
