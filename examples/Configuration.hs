@@ -1,16 +1,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE UndecidableInstances #-}
 module Configuration where
 
 import Data.Aeson.Types
-import Data.Kind
+import Data.Singletons.Prelude (SingKind(..), SingI(..))
 import GHC.Generics (Generic(..))
 
 -- The cumbersome, manual way
@@ -51,34 +49,3 @@ instance ToJSON State2 where
 
 printState2 :: IO ()
 printState2 = print (toJSON (State2 Nothing Nothing))
-
--- Singletons stuff
-
-data family Sing :: k -> Type
-
-data SomeSing k where
-  SomeSing :: Sing (a :: k) -> SomeSing k
-
-class SingKind k where
-  type Demote k = r | r -> k
-  fromSing :: Sing (a :: k) -> Demote k
-  toSing :: Demote k -> SomeSing k
-
-class SingI (a :: k) where
-  sing :: Sing a
-
-data instance Sing :: Bool -> Type where
-  SFalse :: Sing False
-  STrue  :: Sing True
-
-instance SingKind Bool where
-  type Demote Bool = Bool
-  fromSing SFalse = False
-  fromSing STrue  = True
-  toSing False = SomeSing SFalse
-  toSing True  = SomeSing STrue
-
-instance SingI False where
-  sing = SFalse
-instance SingI True where
-  sing = STrue
