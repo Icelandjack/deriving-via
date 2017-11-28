@@ -35,9 +35,9 @@
 \RequirePackage{tango}
 
 % new colors
-\colorlet{type}{skyblueB}
-\colorlet{term}{chameleonA}
-\colorlet{kind}{orangeB}
+\colorlet{type}{skyblueC}
+\colorlet{term}{chameleonC}
+\colorlet{kind}{orangeC}
 \colorlet{keyword}{plumC}
 \colorlet{constr}{chameleonC}
 \colorlet{superkind}{orangeC}
