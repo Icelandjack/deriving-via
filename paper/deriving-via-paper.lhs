@@ -30,11 +30,14 @@
 
 %if style == newcode
 
+> {-# LANGUAGE DerivingStrategies #-}
 > {-# LANGUAGE FlexibleInstances #-}
 > {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 > {-# LANGUAGE InstanceSigs #-}
+> {-# LANGUAGE StandaloneDeriving #-}
 >
 > import Control.Applicative
+> import Control.Monad
 
 %endif
 
@@ -169,10 +172,10 @@ type, even if that type is not an applicative functor. Consider
 (as defined in |MODULE Data.Monoid|). While |Endo| is not an applicative functor,
 it admits a perfectly valid monoid instance:
 
-> instance overlapping Monoid (Endo a) where
+> instance overlapping Monoid2 (Endo a) where
 >
->   mempty = MkEndo id
->   mappend (MkEndo f) (MkEndo g) = MkEndo (f . g)
+>   mempty2 = MkEndo id
+>   mappend2 (MkEndo f) (MkEndo g) = MkEndo (f . g)
 
 But this instance overlaps with the general instance above, and while we
 can make GHC accept it nevertheless, the presence of overlapping instances
@@ -277,7 +280,16 @@ and wrapping the instance head in it:
 >   mappend (MkFromApplicative f) (MkFromApplicative g) =
 >     MkFromApplicative (liftA2 mappend f g)
 
-Such an instance definition can be made more concise by employing the
+Since GHC 8.4, we also need a |Semigroup| instance, because it just became
+a superclass of |Monoid|\footnote{See Section~\ref{sec:superclasses} for
+a more detailed discussion of this aspect.}:
+
+> instance (Applicative f, Monoid a) => Semigroup (FromApplicative f a) where
+>
+>   (<>) :: FromApplicative f a -> FromApplicative f a -> FromApplicative f a
+>   (<>) = mappend
+
+Such instance definitions can be made more concise by employing the
 existing language extension @GeneralizedNewtypeDeriving@ which allows
 us to make an instance on the underlying type available on the wrapped
 type. This is always possible because a |newtype|-wrapped type is guaranteed
@@ -288,9 +300,11 @@ the roles paper?}:
 >   deriving (Functor, Applicative, Alternative)
 >
 > instance Alternative f => Monoid (FromAlternative f a) where
->
 >   mempty   =  empty
 >   mappend  =  (<|>)
+>
+> instance Alternative f => Semigroup (FromAlternative f a) where
+>   (<>) = mappend
 
 We now introduce a new style of |deriving| that allows us to instruct
 the compiler to use such a newtype-derived rule as the basis of a new
@@ -300,7 +314,7 @@ For example, using the @StandaloneDeriving@ language extension, the
 |Monoid| instances for |IO| and |[]| could be written as follows:
 
 < deriving via (FromApplicative IO a) instance Monoid a => Monoid (IO a)
-< deriving via (FromAlternative [] a) instance IO [a]
+< deriving via (FromAlternative [] a) instance Monoid3 [a]
 
 Here, |via| is a new language construct that explains \emph{how} GHC should
 derive the instance, namely be reusing the instance already available for the
@@ -333,6 +347,67 @@ in this paper compiles, so it will hopefully be available in a near future
 release of GHC.
 
 \section{Examples}\label{sec:examples}
+%if style /= newcode
+%format FromMonad = "\ty{FromMonad}"
+%format MkFromMonad = "\con{FromMonad}"
+%format Stream = "\ty{Stream}"
+%format Yield = "\con{Yield}"
+%format Done = "\con{Done}"
+%endif
+
+\subsection{Defining superclasses}\label{sec:superclasses}
+
+When the ``Applicative Monad Proposal'' was introduced and turned |Monad|
+from a plain type class into one that has |Applicative| as a superclass
+(which in turn has |Functor| as a superclass), one counter-argument against
+the change was that someone who wants to primarily wants to declare a
+|Monad| instance is now required two extra instances for |Functor| and
+|Applicative| -- both of which are usually boilerplate, because they can
+be defined from the |Monad| instance.
+
+We can capture these rules as follows:
+
+> newtype FromMonad m a = MkFromMonad (m a)
+>   deriving Monad
+>
+> instance Monad m => Functor (FromMonad m) where
+>   fmap  =  liftM
+>
+> instance Monad m => Applicative (FromMonad m) where
+>   pure   =  return
+>   (<*>)  =  ap
+
+If we now have a datatype with a monad instance, we can simply derive
+the |Functor| and |Applicative| instances:
+
+> data Stream a b = Yield a (Stream a b) | Done b
+>   deriving (Functor, Applicative)
+>     via (FromMonad (Stream a))
+
+> instance Monad (Stream a) where
+>
+>   return = Done
+>
+>   Yield a k >>= f  =  Yield a (k >>= f)
+>   Done b    >>= f  =  f b
+
+A similar rule could also be added to define the |(<>)| of the |Semigroup|
+class in terms of an existing |Monoid| instance.
+
+\alwarning{Several other mechanisms have been proposed to deal with this situation.
+We should go through them and point out whether they're subsumed by this or not.}
+
+One potentially problematic aspect remains. Another proposal that has been made
+but (as of now) not been accepted, namely to remove the |return| method from
+the |Monad| class. The argument is that it is redundant given the presence of
+|pure| in |Applicative|. All other points that have been raised about this
+proposal aside, it should be noted that removing |return| from the |Monad|
+class would prevent the above scheme from working. A similar, yet somewhat
+weaker, argument applies to suggested changes to relax the constraints of
+|liftM| and |ap| to merely |Applicative| and change their definitions to be
+identical to |fmap| and |(<*>)|, respectively.
+
+\subsection{Subsuming @GeneralizedNewtypeDeriving@}\label{sec:gnd}
 
 \section{Formalism}\label{sec:formalism}
 
