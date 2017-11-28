@@ -68,12 +68,12 @@ https://www.youtube.com/watch?v=3U3lV5VPmOU}
 %endif
 
 It is common folklore that \texttt{Monoid}s can be lifted over
-\texttt{Applicative}s, 
+\texttt{Applicative}s,
 
 > instance (Appliative f, Monoid a) => Monoid (f a) where
 >   mempty :: f a
 >   mempty = pure mempty
-> 
+>
 >   mappend :: f a -> f a -> f a
 >   mappend = liftA2 mappend
 
@@ -82,7 +82,7 @@ Conor McBride calls this “routine programming” using \texttt{Monoid} and \te
 But this instance is undesirable for multiple reasons (TODO: more
 reasons, rewrite)
 
-\begin{itemize}  
+\begin{itemize}
 \item It overlaps with every \texttt{Monoid} instance over an applied type.
 \item "Structure of the \texttt{f} is often considered more significant that that of \texttt{x}."\footnote{Much of this is stolen from Conor: https://personal.cis.strath.ac.uk/conor.mcbride/so-pigworker.pdf}
 \item It may not be the desired \texttt{Monoid}: Some constructors have an ‘inherent monoidal structure’, most notably the \textit{free monoid} (lists: \texttt{[a]}) where we prioritize the list structure and not that of the elements.
@@ -94,7 +94,7 @@ Lists are in fact an instance of a wholly separate way of defining
 > instance Alternative f => Monoid (f a) where
 >   mempty :: f a
 >   mempty = empty
-> 
+>
 >   mappend :: f a -> f a -> f a
 >   mappend = (<|>)
 
@@ -105,11 +105,11 @@ An unfortunate solution is to duplicate code
 > instance Monoid a => Monoid (IO a) where
 >   mempty   = pure   mempty
 >   mappend  = liftA2 mappend
-> 
+>
 > instance (Monoid a, Monoid b) => Monoid (a, b) where
 >   mempty  = pure   mempty
 >   mappend = liftA2 mappend
-> 
+>
 > instance Monoid b => Monoid (a -> b) where
 >   mempty  = pure   mempty
 >   mappend = liftA2 mappend
@@ -130,7 +130,7 @@ same representation: \textbf{newtype}s.\footnote{\texttt{Sum} and
 > newtype Wrap  a   = Wrap  a
 > newtype Wrap1 f a = Wrap1 (f a)
 
-Now, without overloading, we can define a \texttt{Monoid} instance over \texttt{Applicative} and \text{Alternative}: there is no canonical 
+Now, without overloading, we can define a \texttt{Monoid} instance over \texttt{Applicative} and \text{Alternative}: there is no canonical
 
 > newtype App f a = App (f a) deriving newtype (Functor, Applicative)
 > newtype Alt f a = Alt (f a) deriving newtype (Functor, Applicative, Alternative)
@@ -138,7 +138,7 @@ Now, without overloading, we can define a \texttt{Monoid} instance over \texttt{
 > instance (Applicative f, Monoid a) => Monoid (App f a) where
 >   mempty  = pure   mempty
 >   mappend = liftA2 mappend
-> 
+>
 > instance Alterantive f => Monoid (Alt f a) where
 >   mempty  = empty
 >   mappend = (<|>)
@@ -147,7 +147,7 @@ What this extension allows is to derive instances that exist for types
 of the same representation, so we can derive (TODO: should be rewritten)
 
 > deriving Monoid via (Alt []     a) instance Monoid [a]
-> 
+>
 > deriving Monoid via (Alt IO     a) instance Monoid a             => Monoid (IO a)
 > deriving Monoid via (Alt (a, )  b) instance (Monoid a, Monoid b) => Monoid (a, b)
 > deriving Monoid via (Alt (a ->) b) instance Monoid b             => Monoid (a -> b)
@@ -160,7 +160,7 @@ of the same representation, so we can derive (TODO: should be rewritten)
 
 \begin{itemize}
   \item \textbf{Avoiding orphan instances} Before we had a \texttt{Monoid (IO a)} instance, we could not write\footnote{http://www.haskellforall.com/2014/07/equational-reasoning-at-scale.html}
-> newtype Plugin = Plugin (IO (String -> IO ())) 
+> newtype Plugin = Plugin (IO (String -> IO ()))
 >   deriving Monoid
   \textbf{deriving via} enables us to override and insert arbitrary
   instances adding the following line
