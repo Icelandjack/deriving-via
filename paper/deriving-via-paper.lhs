@@ -383,7 +383,7 @@ the |Functor| and |Applicative| instances:
 > data Stream a b = Yield a (Stream a b) | Done b
 >   deriving (Functor, Applicative)
 >     via (FromMonad (Stream a))
-
+>
 > instance Monad (Stream a) where
 >
 >   return = Done
