@@ -4,7 +4,7 @@ DEFAULT = deriving-via-paper
 GHCI = ghci
 
 %.ghci : %.lhs $(INCLUDE_DIR)/*
-	ghci -pgmL "lhs2TeX" -optL-P$(INCLUDE_DIR): -optL--pre $<
+	$(GHCI) -pgmL "lhs2TeX" -optL-P$(INCLUDE_DIR): -optL--pre $<
 
 %.ghcid : %.lhs $(INCLUDE_DIR)/*
 	ghcid -c "$(GHCI) -pgmL "lhs2TeX" -optL-P$(INCLUDE_DIR): -optL--pre" $<
