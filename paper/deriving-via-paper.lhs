@@ -14,9 +14,9 @@
 \colorlet{bbnote}{blue}
 \colorlet{alnote}{orange}
 \colorlet{rsnote}{red}
-\newcommand\bbnote[1]{{\color{bbnote}[BB: #1]}}
-\newcommand\alnote[1]{{\color{alnote}[AL: #1]}}
-\newcommand\rsnote[1]{{\color{rsnote}[RS: #1]}}
+\newcommand\bbnote[1]{\footnote{\color{bbnote}[BB: #1]}}
+\newcommand\alnote[1]{\footnote{\color{alnote}[AL: #1]}}
+\newcommand\rsnote[1]{\footnote{\color{rsnote}[RS: #1]}}
 
 %include general.fmt
 
@@ -272,7 +272,8 @@ new instances by using a known mechanism: |newtype|s.
 
 We can turn a problematic generic and overlapping instance into an
 entirely unproblematic (but not yet useful) one by defining a |newtype|
-and wrapping the instance head in it:
+and wrapping the instance head in it\alnote{According to Baldur, Conor
+calls these ``adaptors''. Perhaps we should consider this terminology too.}:
 
 > newtype FromApplicative f a = MkFromApplicative (f a)
 >
