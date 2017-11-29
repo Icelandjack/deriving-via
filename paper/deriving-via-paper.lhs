@@ -214,7 +214,7 @@ So even with overlapping instances enabled, we could not define all the rules
 we wanted to in this way.
 
 Currently, the only viable workaround is to define individual instances for
-each datatype in spirit of the |Monoid IO| shown in the beginning. But as we
+each datatype in spirit of the |Monoid IO a| shown in the beginning. But as we
 shall see in the remainder of this paper, there are many such rules, and while
 the approach of defining individual instances in a uniform format may be
 somewhat feasible for classes that comprise just one or two methods, it becomes
@@ -293,16 +293,17 @@ a more detailed discussion of this aspect.}:
 Such instance definitions can be made more concise by employing the
 existing language extension @GeneralizedNewtypeDeriving@ which allows
 us to make an instance on the underlying type available on the wrapped
-type. This is always possible because a |newtype|-wrapped type is guaranteed
-to have the same representation as the underlying type \alnote{perhaps cite
-the roles paper?}:
+type. This is always possible because a |newtype|-wrapped type is
+guaranteed to have the same representation as the underlying type
+\alnote{perhaps cite the roles paper?}\footnote{|FromAlternative| is
+found in @base@ under the name @Data.Monoid.Alt@.}
 
 > newtype FromAlternative f a = MkFromAlternative (f a)
 >   deriving (Functor, Applicative, Alternative)
 >
 > instance Alternative f => Monoid (FromAlternative f a) where
->   mempty   =  empty
->   mappend  =  (<|>)
+>   mempty   = empty
+>   mappend  = (<|>)
 >
 > instance Alternative f => Semigroup (FromAlternative f a) where
 >   (<>) = mappend
@@ -428,7 +429,7 @@ instances adding the following line
 
 <     via (App IO (String -> App IO ()))
 
-\alnote{I used this just now to get a |Semigroup| instance for |Compose f g a|}
+\alnote{I used this just now to get a Semigroup instance for Compose f g a.}
 
 \subsection{Asymptotic improvement}
 
@@ -439,8 +440,10 @@ For representable functors the definitions of |m *> \ _ = m| and |\ _ <* m = m| 
 This lets us pass static static value to instance deriving.
 
 \subsubsection{Classes over Defunctionalization Symbols}
-  \item \textbf{TOOD}: Using \textit{Singletons} library we can create
-  instances of actual functions of types, not just matchable constructors
+
+\textbf{TOOD}: Using \textit{Singletons} library we can create
+instances of actual functions of types, not just matchable
+constructors
 
 > class Functor f where
 >   fmap :: (a -> a') -> (f@@a -> f@@a')
