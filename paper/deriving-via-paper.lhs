@@ -105,6 +105,7 @@ https://www.youtube.com/watch?v=3U3lV5VPmOU}
 %format MkFoo = "\con{Foo}"
 %format Flip = "\ty{Flip}"
 %format Monoid = "\cl{Monoid}"
+%format Semigroup = "\cl{Semigroup}"
 %format mempty = "\id{mempty}"
 %format mappend = "\id{mappend}"
 %format liftA = "\id{liftA}"
@@ -193,8 +194,8 @@ looks as follows:
 
 > instance Monoid2 [a] where
 >
->   mempty2 = []
->   mappend2 = (++)
+>   mempty2   =  []
+>   mappend2  =  (++)
 
 This instance does not coincide with the instantiation of the rule above
 (and in particular, imposes no constraint on |a| to be a monoid). In fact,
@@ -203,8 +204,8 @@ based on an |Alternative| instance for the type constructor:
 
 > instance Alternative f => Monoid3 (f a) where
 >
->   mempty3 = empty
->   mappend3 = (<|>)
+>   mempty3   =  empty
+>   mappend3  =  (<|>)
 
 But clearly, we could not have both general instances in our program at the
 same time. The way that Haskell instance search works is to only look at the
@@ -344,7 +345,10 @@ in Section~\ref{sec:conclusions}.
 
 The extension is fully implemented in a GHC branch and all the code presented
 in this paper compiles, so it will hopefully be available in a near future
-release of GHC.
+release of GHC. \alwarning{We should make sure that we don't end up promising
+something that isn't true, but I think it's likely we'll have a full implementation
+by the time the paper is published, given that we have an almost working one
+already.}
 
 \section{Examples}\label{sec:examples}
 %if style /= newcode
