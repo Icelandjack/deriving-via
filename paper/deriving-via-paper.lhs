@@ -316,7 +316,7 @@ instance definition.
 
 For example, using the @StandaloneDeriving@ language extension, the
 |Monoid| instances for |IO| and |[]| could be written as follows
-\alwarn{Both these declarations currenly fail}:
+\alwarning{Both these declarations currenly fail}:
 
 < deriving via (FromApplicative IO a) instance Monoid3 a => Monoid3 (IO a)
 < deriving via (FromAlternative [] a) instance Monoid3 [a]
@@ -432,7 +432,7 @@ instances adding the following line
 
 <     via (App IO (String -> App IO ()))
 
-\bbnote{I used this just now to get a |Semigroup| instance for |Compose f g a|.}
+\bbnote{I used this just now to get a Semigroup instance for Compose f g a.}
 
 \subsection{Asymptotic improvement}
 
@@ -444,7 +444,7 @@ This lets us pass static static value to instance deriving.
 
 \subsubsection{Classes over Defunctionalization Symbols}
 
-\blnote{TODO}: Using \textit{Singletons} library we can create
+\bbnote{TODO}: Using \textit{Singletons} library we can create
 instances of actual functions of types, not just matchable
 constructors
 
