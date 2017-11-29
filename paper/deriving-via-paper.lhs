@@ -9,11 +9,14 @@
 
 \usepackage{booktabs}
 \usepackage{hyperref}
-\usepackage[nomargin,inline,draft]{fixme}
-\FXRegisterAuthor{bb}{ebb}{BB}
-\FXRegisterAuthor{al}{eal}{AL}
-\FXRegisterAuthor{rs}{ers}{RS}
-\fxusetheme{colorsig}
+
+% comments
+\colorlet{bbnote}{blue}
+\colorlet{alnote}{orange}
+\colorlet{rsnote}{red}
+\newcommand\bbnote[1]{{\color{bbnote}[BB: #1]}}
+\newcommand\alnote[1]{{\color{alnote}[AL: #1]}}
+\newcommand\rsnote[1]{{\color{rsnote}[RS: #1]}}
 
 %include general.fmt
 
@@ -145,7 +148,7 @@ While the definition as given is specific to |IO|, the principle is not:
 we can always lift a monoid |a| over a type constructor |f| as long as
 |f| is an applicative functor. This is the case for |IO|, but it is also
 true for all the other applicative functors out there.
-\alwarning{There was a reference to Conor McBride here, mentioning ``routine
+\alnote{There was a reference to Conor McBride here, mentioning ``routine
 programming'' and \url{http://strictlypositive.org/Idiom.pdf}. We might want
 to reinsert this.}
 
@@ -182,7 +185,7 @@ But this instance overlaps with the general instance above, and while we
 can make GHC accept it nevertheless, the presence of overlapping instances
 often leads to undesirable behavior.
 
-\alwarning{The original enumeration mentioned another point which I do
+\alnote{The original enumeration mentioned another point which I do
 not understand right now, so I omitted it for the time being:
 ``Structure of the |f| is often considered more significant that that of |x|.''
 Much of this is stolen from Conor: https://personal.cis.strath.ac.uk/conor.mcbride/so-pigworker.pdf}
@@ -250,8 +253,8 @@ functor (and similarly, there are ways to lift |Floating| and |Fractional|):
 Defining such a boilerplate instance manually for a concrete type constructor
 is so annoying that Conal Elliott has introduced a preprocessor for this particular
 use case several years ago.\footnote{https://hackage.haskell.org/package/applicative-numbers}
-\alwarning{Should ideally be replaced with a proper citation.}
-\alwarning{And Conal is by no means alone: see
+\alnote{Should ideally be replaced with a proper citation.}
+\alnote{And Conal is by no means alone: see
 https://gist.github.com/Icelandjack/e1ddefb0d5a79617a81ee98c49fbbdc4\#a-lot-of-things-we-can-find-with-define
 We cannot put a gist dump like this into a paper. We might want to make a selection,
 or just describe the situation in words.}
@@ -297,8 +300,8 @@ existing language extension @GeneralizedNewtypeDeriving@ which allows
 us to make an instance on the underlying type available on the wrapped
 type. This is always possible because a |newtype|-wrapped type is
 guaranteed to have the same representation as the underlying type
-\alnote{perhaps cite the roles paper?}\bbnote{@FromAlternative@ is
-found in @base@ under the name @Data.Monoid.Alt@.}
+\alnote{perhaps cite the roles paper?}\bbnote{|FromAlternative| is
+found in @base@ under the name |Data.Monoid.Alt|.}
 \alnote{Ok, I had not known this. Perhaps I should rename these
 again, then.}
 
@@ -318,7 +321,7 @@ instance definition.
 
 For example, using the @StandaloneDeriving@ language extension, the
 |Monoid| instances for |IO| and |[]| could be written as follows
-\alwarning{Both these declarations currenly fail}:
+\alnote{Both these declarations currenly fail}:
 
 < deriving via (FromApplicative IO a) instance Monoid3 a => Monoid3 (IO a)
 < deriving via (FromAlternative [] a) instance Monoid3 [a]
@@ -351,7 +354,7 @@ in Section~\ref{sec:conclusions}.
 
 The extension is fully implemented in a GHC branch and all the code presented
 in this paper compiles, so it will hopefully be available in a near future
-release of GHC. \alwarning{We should make sure that we don't end up promising
+release of GHC. \alnote{We should make sure that we don't end up promising
 something that isn't true, but I think it's likely we'll have a full implementation
 by the time the paper is published, given that we have an almost working one
 already.}
@@ -404,7 +407,7 @@ the |Functor| and |Applicative| instances:
 A similar rule could also be added to define the |(<>)| of the |Semigroup|
 class in terms of an existing |Monoid| instance.
 
-\alwarning{Several other mechanisms have been proposed to deal with this situation.
+\alnote{Several other mechanisms have been proposed to deal with this situation.
 We should go through them and point out whether they're subsumed by this or not.}
 
 One potentially problematic aspect remains. Another proposal that has been made
