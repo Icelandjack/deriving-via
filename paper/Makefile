@@ -1,12 +1,13 @@
 INCLUDE_DIR = ./includes
 OUTPUT_DIR = ./output
 DEFAULT = deriving-via-paper
+GHCI = ghci
 
 %.ghci : %.lhs $(INCLUDE_DIR)/*
 	ghci -pgmL "lhs2TeX" -optL-P$(INCLUDE_DIR): -optL--pre $<
 
 %.ghcid : %.lhs $(INCLUDE_DIR)/*
-	ghcid -c "ghci -pgmL "lhs2TeX" -optL-P$(INCLUDE_DIR): -optL--pre" $<
+	ghcid -c "$(GHCI) -pgmL "lhs2TeX" -optL-P$(INCLUDE_DIR): -optL--pre" $<
 
 %.tex : %.lhs $(INCLUDE_DIR)/*
 	lhs2TeX -P$(INCLUDE_DIR): --poly -o $@ $<

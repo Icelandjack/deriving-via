@@ -151,3 +151,7 @@
 %format <$>     = "\opsym{<\$>}"
 %format <*>     = "\opsym{<\!\mathord{*}\!>}"
 %format ++      = "\opsym{+\!+}"
+%format <*      = "\opsym{<*}"
+%format *>      = "\opsym{*>}"
+%format <*>     = "\opsym{<*>}"
+%format <>      = "\opsym{<>}"
