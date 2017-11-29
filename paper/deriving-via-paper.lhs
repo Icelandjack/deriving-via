@@ -297,8 +297,10 @@ existing language extension @GeneralizedNewtypeDeriving@ which allows
 us to make an instance on the underlying type available on the wrapped
 type. This is always possible because a |newtype|-wrapped type is
 guaranteed to have the same representation as the underlying type
-\alnote{perhaps cite the roles paper?}\footnote{|FromAlternative| is
-found in @base@ under the name |MODULE (Data.Monoid).Alt|.}
+\alnote{perhaps cite the roles paper?}\bbnote{@FromAlternative@ is
+found in @base@ under the name @Data.Monoid.Alt@.}
+\alnote{Ok, I had not known this. Perhaps I should rename these
+again, then.}
 
 > newtype FromAlternative f a = MkFromAlternative (f a)
 >   deriving (Functor, Applicative, Alternative)
