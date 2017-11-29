@@ -421,6 +421,8 @@ weaker, argument applies to suggested changes to relax the constraints of
 |liftM| and |ap| to merely |Applicative| and change their definitions to be
 identical to |fmap| and |(<*>)|, respectively.
 
+\subsection{QuickCheck}\label{sec:quickcheck}
+
 \subsection{Subsuming @GeneralizedNewtypeDeriving@}\label{sec:gnd}
 
 \section{Formalism}\label{sec:formalism}
