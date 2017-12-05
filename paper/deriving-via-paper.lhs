@@ -227,24 +227,15 @@ For example, there is a way to lift a |Num| instance through any applicative
 functor (and similarly, there are ways to lift |Floating| and |Fractional|):
 
 > instance (Applicative f, Num a) => Num (f a) where
->
->   (+) :: f a -> f a -> f a
+>   (+), (-), (*) :: f a -> f a -> f a
 >   (+) = liftA2 (+)
->
->   (-) :: f a -> f a -> f a
 >   (-) = liftA2 (-)
->
->   (*) :: f a -> f a -> f a
 >   (*) = liftA2 (*)
 >
->   negate :: f a -> f a
+>   negate, abs, signum :: f a -> f a
 >   negate = liftA negate
->
->   abs :: f a -> f a
->   abs = liftA negate
->
->   signum :: f a -> f a
->   signum = liftA negate
+>   abs    = liftA abs
+>   signum = liftA signum
 >
 >   fromInteger :: Integer -> f a
 >   fromInteger = pure . fromInteger
