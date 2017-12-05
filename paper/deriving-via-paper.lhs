@@ -125,7 +125,6 @@ https://www.youtube.com/watch?v=3U3lV5VPmOU}
 %format MkAlt = "\con{Alt}"
 %format Endo = "\ty{Endo}"
 %format MkEndo = "\con{Endo}"
-%format appEndo = "\id{appEndo}"
 %endif
 
 In Haskell, type classes capture common interfaces. When we declare a datatype
@@ -171,7 +170,7 @@ instance is undesirable for several reasons:
 First, the instance overlaps with any other |Monoid| instance for an applied
 type, even if that type is not an applicative functor. Consider
 
-> newtype Endo a = MkEndo { appEndo :: a -> a }
+> newtype Endo a = MkEndo (a -> a)
 
 (as defined in |MODULE Data.Monoid|). While |Endo| is not an applicative functor,
 it admits a perfectly valid monoid instance:
