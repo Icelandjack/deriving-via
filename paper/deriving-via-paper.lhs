@@ -436,11 +436,74 @@ instances adding the following line
 
 For representable functors the definitions of |m *> \ _ = m| and |\ _ <* m = m| are \(O(1)\).\footnote{Edward Kmett: \url{https://ghc.haskell.org/trac/ghc/ticket/10892?cversion=0&cnum_hist=4\#comment:4} } This codifies knowledge (on a ``library, not lore'' principle) where the code can be documented and linked to.
 
-\subsection{Dependent Programming}
+\subsection{Deriving with configuration}
 
 This lets us pass static static value to instance deriving.
 
-\subsubsection{Classes over Defunctionalization Symbols}
+
+
+
+\subsection{Capturing theorems / knowledge with instances}
+
+Many of these newtypes existed a long time before |-XDerivingVia| did
+but can be used directly with it which is promising.
+
+\subsubsection{Every Applicative can be reversed}
+
+Reversed applicative:
+
+> newtype Rev f a = Rev (f a) deriving Functor
+> 
+> instance Applicative f => Applicative (Rev f) where
+>   pure = Rev . pure
+>
+>   Rev f <*> Rev x = Rev (liftA2 (flip ($)) f x)
+
+
+\subsubsection{Every Applicative can be captured by Monoidal}
+
+There is an equivalent, more symmetric definition of |Applicative| arising from category theory (characterizing Applicative functors as strong lax monoidal functors)\footnote{ \url{https://arxiv.org/pdf/1406.4823.pdf} } that can be more convenient to define and work with\footnote{Functional Pearl: \url{http://openaccess.city.ac.uk/13222/1/Applicative-final.pdf} Applicative Programming with Effects}\footnote{\url{http://openaccess.city.ac.uk/1141/1/Constructors.pdf} }
+
+> class Functor f => Monoidal f where
+>   unit :: f ()
+>   (⋆)  :: f a -> f b -> f (a, b)
+
+Allowing us to derive |Applicative| from a |Monoidal| instance,
+
+> newtype WrapMonoidal f a = WM (f a)
+>   deriving newtype (Functor, Monoidal)
+> 
+> instance Monoidal f => Applicative (WrapMonoidal f) where
+>   pure a    = a <$ unit
+>   mf <*> mx = fmap (\(f, x) -> f x) (mf ⋆ mx)
+
+We can then define the opposite direction, codifying the equivalence
+in these two instances
+
+< instance Monoidal    f => Applicative (WrapMonoidal    f)
+< instance Applicative f => Monoidal    (WrapApplicative f)
+
+\subsubsection{Every Monad can be defined with join and return}
+
+Name taken from 
+
+> class Functor m => Triple m where
+>   eta :: a -> m a
+>   mu  :: m (m a) -> m a
+> 
+> newtype WrapMonadJoin m a = WMJ (m a)
+>   deriving newtype
+>     (Functor)
+> 
+> instance MonadJoin m => Applicative (WrapMonadJoin m) where
+>   pure = WMJ . eta
+> 
+>   (<*>) = WMJ mx = WMJ (mu (fmap (\f -> mu (fmap (eta . f) mx)) mf))
+> 
+> instance MonadJoin m => Monad (WrapMonadJoin m) where
+>   WMJ mx >>= k = WMJ (mu (fmap (\(k -> WMJ m) -> m) mx))
+
+\subsection{Classes over Defunctionalization Symbols}
 
 \bbnote{TODO}: Using \textit{Singletons} library we can create
 instances of actual functions of types, not just matchable
@@ -449,23 +512,13 @@ constructors
 < class Functor f where
 <   fmap :: (a -> a') -> (f@@a -> f@@a')
 <
-< instance Functor id where
-<   fmap :: (a -> a') -> (a -> a')
-<   fmap = id
-<
-< instance Functor dup where
-<   fmap :: (a -> a') -> ((a, a) -> (a', a'))
-<   fmap = join (***)
-<
-< instance (Functor f, Functor g) => Functor (f . g) where
-<   fmap :: (a -> a') -> (f (g a) -> f (g a'))
-<   fmap = fmap @f . fmap @g
-<
+< dup     a     = (a, a)
 < kleisli f a b = a -> f @@ b
 <
-< instance Functor f => Functor (kleisli f a) where
-<   fmap :: (b -> b') -> ((a -> f@@b) -> (a -> f@@b'))
-<   fmap f kont = fmap @f f . kont
+< instance Functor id
+< instance Functor dup
+< instance (Functor f, Functor g) => Functor (f . g)
+< instance Functor f => Functor (kleisli f a)
 
 at the cost of inference. But if we are willing to guide the
 inference Haskell will synthesize the code for us:
