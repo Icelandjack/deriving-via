@@ -8,9 +8,11 @@
 
 module QC where
 
+import Data.List (sort)
 import Data.Singletons
 import Data.Singletons.TH
 import Data.Singletons.Prelude
+import Data.Singletons.Prelude.List
 import Prelude
 import Data.Kind
 
@@ -45,14 +47,14 @@ instance SingI IsWeekdaySym0 where
 
 ----------------------------------------------------------------------
 -- Adapter that generates an arbitrary values satisfying a predicate
-newtype SuchThat (a::Type) :: (a ~> Bool) -> Type where
-  SuchThat :: a -> SuchThat a predicate
+newtype SuchThat :: (a ~> Bool) -> Type where
+  SuchThat :: a -> SuchThat (predicate::a ~> Bool)
 
 -- From Richard's Effects library.
 type Good a = (Demote a ~ a, SingKind a)
 
-instance (Arbitrary a, Good a, SingI predicate) => Arbitrary (SuchThat a predicate) where
-  arbitrary :: Gen (SuchThat a predicate)
+instance (Arbitrary a, Good a, SingI predicate) => Arbitrary (SuchThat (predicate::a ~> Bool)) where
+  arbitrary :: Gen (SuchThat predicate)
   arbitrary = SuchThat <$> suchThat arbitrary 
     (fromSing (sing :: Sing predicate))
 
@@ -71,8 +73,8 @@ instance (Arbitrary a, Good a, SingI predicate) => Arbitrary (SuchThat a predica
 newtype Weekend = Weekend Day 
   deriving Show via Day
   deriving (Arbitrary) via 
-    (SuchThat Day IsWeekendSym0)
-          -- type IsWeekend = FlipSym2 ElemSym0 '[ 'Sat, 'Sun ]
+    (SuchThat IsWeekendSym0)
+      -- type IsWeekend = FlipSym2 ElemSym0 '[ 'Sat, 'Sun ]
 
 -- >>> sample (arbitrary @Weekday)
 -- Thu
@@ -89,6 +91,32 @@ newtype Weekend = Weekend Day
 newtype Weekday = Weekday Day 
   deriving Show via Day
   deriving (Arbitrary) via 
-    (SuchThat Day IsWeekdaySym0)
-          -- type IsWeekday = FlipSym2 ElemSym0 '[ 'Mon, 'Tue, 'Wed, 'Thu, 'Fri ]
-          -- type IsWeekday = NotSym0 :.$$$ IsWeekendIsWeekdaySym0
+    (SuchThat IsWeekdaySym0)
+      -- type IsWeekday = FlipSym2 ElemSym0 '[ 'Mon, 'Tue, 'Wed, 'Thu, 'Fri ]
+      -- type IsWeekday = NotSym0 :.$$$ IsWeekendIsWeekdaySym0
+
+----------------------------------------------------------------------
+
+-- We can hopefully derive the modifiers from QuickCheck
+
+singletons [d|
+  ordered :: Ord a => [a] -> Bool
+  ordered xs = sort xs == xs
+  |]
+
+-- TODO
+-- 
+-- newtype OrderedList a = OL [a]
+--   deriving Arbitrary via (SuchThat OrderedSym0)
+    
+
+{-
+newtype OrderedList  a  = OL [a]    deriving Arbitrary via (SuchThat (\xs -> sort xs == xs)
+newtype NonEmptyList a  = NE [a]    deriving Arbitrary via (SuchThat (not . null))
+newtype Positive     a  = P  a      deriving Arbitrary via (SuchThat (> 0))
+newtype NonZero      a  = NZ a      deriving Arbitrary via (SuchThat (/= 0))
+newtype NonNegative  a  = NN a      deriving Arbitrary via (SuchThat (>= 0))
+newtype PrintableString = PS String deriving Arbitrary via (SuchThat (all isPrint))
+-}
+
+
