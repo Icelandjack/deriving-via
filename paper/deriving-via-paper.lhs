@@ -462,7 +462,15 @@ Reversed applicative:
 
 \subsubsection{Every Applicative can be captured by Monoidal}
 
-There is an equivalent, more symmetric definition of |Applicative| arising from category theory (characterizing Applicative as a strong lax monoidal functor)\footnote{ \url{https://arxiv.org/pdf/1406.4823.pdf} } that can be more convenient to define and work with\footnote{Functional Pearl: \url{http://openaccess.city.ac.uk/13222/1/Applicative-final.pdf} Applicative Programming with Effects}\footnote{\url{http://openaccess.city.ac.uk/1141/1/Constructors.pdf} }
+There is an equivalent, more symmetric definition of |Applicative|
+arising from category theory (characterizing Applicative as a strong
+lax monoidal functor)\footnote{
+\url{https://arxiv.org/pdf/1406.4823.pdf} } that can be more
+convenient to define and work with\footnote{Functional Pearl:
+\url{http://openaccess.city.ac.uk/13222/1/Applicative-final.pdf}
+Applicative Programming with
+Effects}\footnote{\url{http://openaccess.city.ac.uk/1141/1/Constructors.pdf}
+}
 
 > class Functor f => Monoidal f where
 >   unit :: f ()
