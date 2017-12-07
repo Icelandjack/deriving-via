@@ -90,7 +90,7 @@ newtype Weekend = Weekend Day
 -- Wed
 newtype Weekday = Weekday Day 
   deriving Show via Day
-  deriving (Arbitrary) via 
+  deriving Arbitrary via 
     (SuchThat IsWeekdaySym0)
       -- type IsWeekday = FlipSym2 ElemSym0 '[ 'Mon, 'Tue, 'Wed, 'Thu, 'Fri ]
       -- type IsWeekday = NotSym0 :.$$$ IsWeekendIsWeekdaySym0
