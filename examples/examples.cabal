@@ -11,7 +11,7 @@ library
                        DeriveFunctor
                        MonadTransformers
                        SemigroupMonoid
-                       MTL
+                       -- MTL
                        QC
                        ApplicativeSum
   build-depends:       aeson         >= 1.2  && < 1.3
