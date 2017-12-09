@@ -18,7 +18,7 @@ import Data.Kind
 
 import Test.QuickCheck
 
-newtype ArbBounded a = ArbBounded a deriving (Enum, Bounded) via (a)
+newtype ArbBounded a = ArbBounded a deriving (Enum, Bounded) via a
 
 instance (Bounded a, Enum a) => Arbitrary (ArbBounded a) where
   arbitrary :: Gen (ArbBounded a)
@@ -91,14 +91,15 @@ newtype Weekend = Weekend Day
 newtype Weekday = Weekday Day 
   deriving Show via Day
   deriving Arbitrary via 
-    (SuchThat IsWeekdaySym0)
+    SuchThatWeekday
       -- type IsWeekday = FlipSym2 ElemSym0 '[ 'Mon, 'Tue, 'Wed, 'Thu, 'Fri ]
       -- type IsWeekday = NotSym0 :.$$$ IsWeekendIsWeekdaySym0
+
+type SuchThatWeekday = SuchThat IsWeekdaySym0
 
 ----------------------------------------------------------------------
 
 -- We can hopefully derive the modifiers from QuickCheck
-
 singletons [d|
   ordered :: Ord a => [a] -> Bool
   ordered xs = sort xs == xs
@@ -106,7 +107,9 @@ singletons [d|
 
 -- TODO
 -- 
--- newtype OrderedList a = OL [a]
+newtype OrderedList a = OL [a]
+  deriving Show via
+    [a]
 --   deriving Arbitrary via (SuchThat OrderedSym0)
     
 

@@ -459,8 +459,7 @@ Reversed applicative:
 >
 >   Rev f <*> Rev x = Rev (liftA2 (flip ($)) f x)
 
-
-\subsubsection{Every Applicative can be captured by Monoidal}
+\subsubsection{Equivalent Applicative definition}
 
 There is an equivalent, more symmetric definition of |Applicative|
 arising from category theory (characterizing Applicative as a strong
@@ -476,7 +475,8 @@ Effects}\footnote{\url{http://openaccess.city.ac.uk/1141/1/Constructors.pdf}
 >   unit :: f ()
 >   (⋆)  :: f a -> f b -> f (a, b)
 
-Allowing us to derive |Applicative| from a |Monoidal| instance,
+Allowing us to derive |Applicative| from a |Monoidal| instance, allow
+us to use whatever formulation we prefer
 
 > newtype WrapMonoidal f a = WM (f a)
 >   deriving newtype (Functor, Monoidal)
@@ -491,17 +491,15 @@ in these two instances
 < instance Monoidal    f => Applicative (WrapMonoidal    f)
 < instance Applicative f => Monoidal    (WrapApplicative f)
 
-\subsubsection{Every Monad can be defined with join and return}
+\subsubsection{Equivalent Monad definition}
 
-Name taken from 
+\footnote{Name taken from \url{http://www.fceia.unr.edu.ar/~mauro/pubs/Notions_of_Computation_as_Monoids.pdf}}
 
 > class Functor m => Triple m where
 >   eta :: a -> m a
 >   mu  :: m (m a) -> m a
 > 
-> newtype WrapMonadJoin m a = WMJ (m a)
->   deriving newtype
->     (Functor)
+> newtype WrapMonadJoin m a = WMJ (m a) deriving newtype Functor
 > 
 > instance MonadJoin m => Applicative (WrapMonadJoin m) where
 >   pure = WMJ . eta

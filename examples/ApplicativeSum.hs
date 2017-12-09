@@ -21,6 +21,8 @@ import Data.Kind
 import Data.Monoid hiding (Sum(..), Product(..))
 import Prelude
 import Linear (V1(..), V3(..))
+import Control.Monad.STM
+import Control.Concurrent.STM.TVar
 
 -- sneezy.cs.nott.ac.uk/darcs/term/Idiomatics.lhs (dead link?)
 --
@@ -64,8 +66,9 @@ data Prod1    :: (f .~> g) -> (f       .~> Product f g)
 data Prod2    :: (g .~> f) -> (g       .~> Product f g)
 data Sum1     :: (g .~> f) -> (SUM (tag::f .~> g) .~> f)
 
-data Bimap :: (f .~> f') -> (g .~> g') -> (Product f g .~> Product f' g')
-data Comp  :: (a .~> b) -> (b .~> c) -> (a .~> c)
+data Bimap  :: (f .~> f') -> (g .~> g') -> (Product f g .~> Product f' g')
+data Comp   :: (a .~> b) -> (b .~> c) -> (a .~> c)
+data Atomic :: STM .~> IO
 
 -- Reflect applicative morphism from tag
 class (Applicative f, Applicative g) => AppHom (tag::f .~> g) where
@@ -131,6 +134,10 @@ instance AppHom (Head::V3 .~> V1) where
   appHom :: V3 ~> V1
   appHom (V3 a _ _) = V1 a
 
+instance AppHom (Atomic::STM .~> IO) where
+  appHom :: STM ~> IO
+  appHom = atomically
+
 -- Let's define 
 newtype SUM (tag::g .~> f) a = SUM (Sum f g a)
   deriving stock Functor
@@ -182,3 +189,42 @@ pattern TheV3 :: a -> a -> a -> HeadOfV3 a
 pattern TheV3 a b c = HeadOfV3 (InR (V3 a b c))
 
 type Formlet mo err env a = Product (Const mo) (Compose (Reader env) (Sum (Const err) Identity)) a
+
+-- We either have =STM= or =IO=.
+--
+-- We can combine two =STM=s.
+-- We can combine two =IO=s.
+--
+-- When merging a =STM= and =IO= are are biased towards =IO= and
+-- =Applicative= automatically adjusts =STM= to =IO= with
+--
+--   atomically :: STM ~> IO
+--
+newtype STM_IO a = STM_IO (Sum IO STM a)
+  deriving newtype Functor
+
+  deriving Applicative via
+    (SUM Atomic)
+-- 
+-- this is equivalent to
+-- 
+--   instance Applicative STM_IO where
+--     pure = AsSTM . pure
+-- 
+--     AsSTM f <*> AsSTM s = AsSTM            (f <*>            s)
+--     AsSTM f <*> AsIO  s = AsIO  (atomically f <*>            s)
+--     AsIO  f <*> AsSTM s = AsIO             (f <*> atomically s)
+--     AsIO  f <*> AsIO  s = AsIO             (f <*>            s)
+
+{-# Complete AsIO, AsSTM #-}
+pattern AsIO :: IO a -> STM_IO a
+pattern AsIO io = STM_IO (InL io)
+
+pattern AsSTM :: STM a -> STM_IO a
+pattern AsSTM io = STM_IO (InR io)
+
+io :: STM_IO Int
+io = AsIO readLn
+
+stm_read :: TVar Int -> STM_IO Int
+stm_read a = AsSTM (readTVar a)
