@@ -538,6 +538,9 @@ inference Haskell will synthesize the code for us:
 <   deriving Prelude.Functor
 <     via (Apply (dup . kleisli dup a))
 
+Refinement Reflection:
+Parallel Legacy Languages as Theorem Provers (deriving  
+
 \subsection{DeriveAnyClass}
 
 \section{Related Work}\label{sec:related}
