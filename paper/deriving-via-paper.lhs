@@ -584,9 +584,105 @@ expressive power. Here, we demonstrate how one can scrap uses of
 @DefaultSignatures@ in favor of |deriving via|, and show how |deriving via|
 can overcome the limitations of @DefaultSignatures@.
 
-Another common use case for @DefaultSignatures@ is to use it in conjunction
-with generic programming libraries, such as those found in |GHC.Generics|
-~\cite{gdmfh} or @generics-sop@~\cite{true-sums-of-products}.
+The typical use case for @DefaultSignatures@ when one has a type class method
+that has a frequently used default implementation at a different type.
+For instance, consider a |Pretty| class with a method |pPrint| for
+pretty-printing data:
+
+< class Pretty a where
+<   pPrint :: a -> Doc
+
+Coming up with |Pretty| instances for the vast majority of ADTs is repetitive
+and tedious, so a common pattern is to abstract away this tedium using
+generic programming libraries, such as those found in |GHC.Generics|
+~\cite{gdmfh} or @generics-sop@~\cite{true-sums-of-products}. For example,
+it is possible using |GHC.Generics| to write:
+
+< genericPPrint :: (Generic a, GPretty (Rep a)) => a -> Doc
+
+The details of how |Generic|, |GPretty|, and |Rep| work are not important to
+understanding the example. What is important is to note that a typical
+default implementation of |pPrint| in terms of |genericPPrint| is infeasible:
+
+< class Pretty a where
+<   pPrint :: a -> Doc
+<   pPrint = genericPPrint
+
+The code above will not typecheck, as `genericPPrint` requires extra
+constraints |(Generic a, GPretty (Rep a))| that `pPrint` does not provide.
+Before the advent of @DefaultSignatures@, one had to work around this by
+defining `pPrint` to be `genericPPrint` in every |Pretty| instance, as in the
+examples below:
+
+< instance Pretty Bool where
+<   pPrint = genericPPrint
+<
+< instance Pretty a => Pretty (Maybe a) where
+<   pPrint = genericPPrint
+<
+< instance (Pretty a, Pretty b) => Pretty (Either a b) where
+<   pPrint = genericPPrint
+
+To avoid this repetition, @DefaultSignatures@ allows one to provide a default
+implementation of a type class method using \textit{different} constraints
+than the method itself has. For instance:
+
+< class Pretty a where
+<   pPrint :: a -> Doc
+<   default pPrint :: (Generic a, GPretty (Rep a)) => a -> Doc
+<   pPrint = genericPPrint
+
+Then, if any instances of `Pretty` are given without an explicit definition of
+`pPrint`, the |default| implementation is used. In order for this to typecheck,
+the data type |a| used in the instance must satisfy the constraints
+|(Generic a, GPretty (Rep a))|. This allows us to reduce the three instances
+above to just:
+
+< instance Pretty Bool
+< instance Pretty a => Pretty (Maybe a)
+< instance (Pretty a, Pretty b) => Pretty (Either a b)
+
+Although @DefaultSignatures@ removes the need for many occurrences of
+boilerplate code, it also imposes a significant limitation: every type class
+method can only have at most one default implementation. As a result,
+@DefaultSignatures@ effectively endorses one default implementation as the
+canonical one. But in many scenarios, there is far more than just one way to
+do something. Our |pPrint| example is no exception. Instead of
+|genericPPrint|, one might one to:
+
+\begin{itemize}
+ \item Leverage a |Show|-based default implementation instead of a
+       |Generic|-based one
+ \item Swap out |genericPPrint| with a version that uses @generics-sop@ instead
+       of |GHC.Generics|
+ \item Use a tweaked version of |genericPPrint| which displays extra debugging
+       information
+\end{itemize}
+
+All of these are perfectly reasonable choices a programmer might want to make,
+but alas, @DefaultSignatures@ will only accept a single implementation as the
+One True Default.
+
+Fortunately, |deriving via| provides a convenient way of encoding default
+implementations with the ability to toggle between different choices:
+|newtype|s! For instance, we can codify two different approaches to
+implementing |pPrint| as follows:
+
+< newtype GenericPPrint a = GenericPPrint a
+<
+< instance (Generic a, GPretty (Rep a)) => Pretty (GenericPPrint a) where
+<   pPrint (GenericPPrint x) = genericPPrint x
+<
+< newtype ShowPPrint a = ShowPPrint a
+<
+< instance Show a => Pretty (ShowPPrint a) where
+<   pPrint (ShowPPrint x) = stringToDoc (show x)
+
+With these |newtype|s in hand, picking between them is as simple as changing
+a single type:
+
+< deriving via (GenericPPrint Foo) instance Pretty Foo
+< deriving via (ShowPPrint    Foo) instance Pretty Foo
 
 \section{Related Work}\label{sec:related}
 
