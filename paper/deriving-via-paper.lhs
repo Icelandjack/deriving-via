@@ -435,6 +435,8 @@ This code would generate the instance:
 >   abs    = coerce (abs    :: Int -> Int)
 >   -- etc.
 
+\rsnote{Should we introduce |coerce| here?}
+
 That is, one can implement an |Num| instance for |Age| by reusing the |Num|
 instance for |Int|. But observe that this is simply a special case of
 |deriving via|! If we use the |newtype|'s representation type as the |via|
@@ -448,6 +450,47 @@ This would generate the exact same code as if we were using
 generalized @GeneralizedNewtypeDeriving@.
 
 \section{Formalism}\label{sec:formalism}
+
+Seeing enough examples of |deriving via| can give the impression that it is
+a somewhat magical extension. In this section, we aim to explain the "magic"
+underlying |deriving via| by giving a precise, algorithmic description of
+
+\begin{itemize}
+ \item How |deriving via| clauses are typechecked
+ \item What code |deriving via| generates behind the scenes
+\end{itemize}
+
+Throughout this section, we will refer to two groups of examples. One example,
+shown below, is intended to be as general as possible:
+
+< data D x_1 ... x_d = ...
+<   deriving (C y_1 ... y_(c-1))
+<            via (V z_1 ... z_v)
+<
+< class C y_1 ... y_(c-1) y_c where
+<   type T1 t1_1 ... y_c ... t1_m
+<   ...
+<   type Ts ts_1 ... y_c ... ts_n
+<
+<   m1 :: mty1_1 ... y_c ... mty1_o
+<   ...
+<   mf :: mtyf_1 ... y_c ... mtyf_p
+
+In other words, |D| is a data type with |d| type parameters, |C| is a type
+class with |c| type parameters, and |V| is some type with |v| type parameters.
+Moreover, |C| has |s| associated type families and |f| class methods, each
+with different kinds and types, but all of which mentioning the last type
+parameter of |C|, |y_c|.
+
+Because it is sometimes difficult to communicate ideas by showing them in
+their full generality with |D|, |C|, and |V|, we will also occasionally make
+reference to the following simpler examples:
+
+TODO RGS: Put stuff here
+
+To avoid clutter, we assume that all types have monomorphic kinds. However, it
+is easy to incorporate kind polymorphism~\cite{haskell-promotion}, and our
+implementation of these ideas in GHC does so.
 
 \section{Advanced uses}\label{sec:advanced}
 
@@ -608,7 +651,7 @@ default implementation of |pPrint| in terms of |genericPPrint| is infeasible:
 <   pPrint :: a -> Doc
 <   pPrint = genericPPrint
 
-The code above will not typecheck, as `genericPPrint` requires extra
+The code above will not typecheck, as |genericPPrint| requires extra
 constraints |(Generic a, GPretty (Rep a))| that |pPrint| does not provide.
 Before the advent of @DefaultSignatures@, one had to work around this by
 defining |pPrint| to be |genericPPrint| in every |Pretty| instance, as in the
@@ -632,7 +675,7 @@ than the method itself has. For instance:
 <   default pPrint :: (Generic a, GPretty (Rep a)) => a -> Doc
 <   pPrint = genericPPrint
 
-Then, if any instances of `Pretty` are given without an explicit definition of
+Then, if any instances of |Pretty| are given without an explicit definition of
 |pPrint|, the |default| implementation is used. In order for this to typecheck,
 the data type |a| used in the instance must satisfy the constraints
 |(Generic a, GPretty (Rep a))|. This allows us to reduce the three instances
