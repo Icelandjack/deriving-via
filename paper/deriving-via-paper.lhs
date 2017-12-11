@@ -688,6 +688,45 @@ a single type:
 
 \section{Limitations, Conclusions and Future Work}\label{sec:conclusions}
 
+\subsection{Quality of error messages}
+
+The nice thing about |deriving| is that when it works, it tends to work
+extremely well. When it \textit{doesn't} work, however, it can be challenging
+to formulate an error message that adequately explains what went wrong. The
+fundamental issue is that error messages resulting from uses of |deriving|
+are usually rooted in \textit{generated} code, and pointing to code that the
+user didn't write in error messages can lead to a confusing debugging
+experience.
+
+|deriving via| is certainly no exception to this trend. In fact, the problem
+of creating lucid error messages is arguably \textit{worse} in the context of
+|deriving via|, as we give users the power to derive instances through whatever
+type they wish. Unfortunately, this makes it easier to shoot oneself in the
+foot, as it is now easier than ever before to feed |deriving| garbage. As one
+example, if a user were to accidentally write this code:
+
+< newtype Foo a = MkFoo (Maybe a) deriving Ord via a
+
+Then GHC would throw the following, rather unhelpful error:
+
+TODO RGS: I don't know how to format this
+% • Occurs check: cannot construct the infinite type: a ~ Maybe a
+%     arising from the coercion of the method ‘compare’
+%       from type ‘a -> a -> Ordering’ to type ‘Foo a -> Foo a -> Ordering’
+% • When deriving the instance for (Ord (Foo a))
+
+The real problem is that |a| and |Maybe a| do not have the same representation
+at runtime, but the error does not make this obvious. It is possible that one
+could add an \textit{ad hoc} check for this class of programs, but there are
+likely many more tricky corner cases lurking around the corner, given that
+one can put anything after |via|.
+
+We do not propose a solution to this problem here, but instead note that issues
+with |deriving via| error quality are ultimately issues with |coerce| error
+quality, given that the error messages are a result of |coerce| failing to
+typecheck. It is likely that investing more effort into making |coerce|'s
+error messages easier to understand would benefit |deriving via| as well.
+
 \bibliographystyle{includes/ACM-Reference-Format}
 
 \bibliography{refs}
