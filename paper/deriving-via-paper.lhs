@@ -584,6 +584,10 @@ expressive power. Here, we demonstrate how one can scrap uses of
 @DefaultSignatures@ in favor of |deriving via|, and show how |deriving via|
 can overcome the limitations of @DefaultSignatures@.
 
+Another common use case for @DefaultSignatures@ is to use it in conjunction
+with generic programming libraries, such as those found in |GHC.Generics|
+~\cite{gdmfh} or @generics-sop@~\cite{true-sums-of-products}.
+
 \section{Related Work}\label{sec:related}
 
 \section{Limitations, Conclusions and Future Work}\label{sec:conclusions}
