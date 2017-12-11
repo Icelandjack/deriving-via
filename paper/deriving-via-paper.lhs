@@ -291,7 +291,7 @@ existing language extension @GeneralizedNewtypeDeriving@ which allows
 us to make an instance on the underlying type available on the wrapped
 type. This is always possible because a |newtype|-wrapped type is
 guaranteed to have the same representation as the underlying type
-\alnote{perhaps cite the roles paper?}\bbnote{|FromAlternative| is
+\cite{zero-cost-coercions}\bbnote{|FromAlternative| is
 found in @base@ under the name |Data.Monoid.Alt|.}
 \alnote{Ok, I had not known this. Perhaps I should rename these
 again, then.}
@@ -453,7 +453,7 @@ but can be used directly with it which is promising.
 Reversed applicative:
 
 > newtype Rev f a = Rev (f a) deriving Functor
-> 
+>
 > instance Applicative f => Applicative (Rev f) where
 >   pure = Rev . pure
 >
@@ -480,7 +480,7 @@ us to use whatever formulation we prefer
 
 > newtype WrapMonoidal f a = WM (f a)
 >   deriving newtype (Functor, Monoidal)
-> 
+>
 > instance Monoidal f => Applicative (WrapMonoidal f) where
 >   pure a    = a <$ unit
 >   mf <*> mx = fmap (\(f, x) -> f x) (mf ⋆ mx)
@@ -498,14 +498,14 @@ in these two instances
 > class Functor m => Triple m where
 >   eta :: a -> m a
 >   mu  :: m (m a) -> m a
-> 
+>
 > newtype WrapMonadJoin m a = WMJ (m a) deriving newtype Functor
-> 
+>
 > instance MonadJoin m => Applicative (WrapMonadJoin m) where
 >   pure = WMJ . eta
-> 
+>
 >   (<*>) = WMJ mx = WMJ (mu (fmap (\f -> mu (fmap (eta . f) mx)) mf))
-> 
+>
 > instance MonadJoin m => Monad (WrapMonadJoin m) where
 >   WMJ mx >>= k = WMJ (mu (fmap (\(k -> WMJ m) -> m) mx))
 
@@ -539,13 +539,17 @@ inference Haskell will synthesize the code for us:
 <     via (Apply (dup . kleisli dup a))
 
 Refinement Reflection:
-Parallel Legacy Languages as Theorem Provers (deriving  
+Parallel Legacy Languages as Theorem Provers (deriving
 
 \subsection{DeriveAnyClass}
 
 \section{Related Work}\label{sec:related}
 
 \section{Limitations, Conclusions and Future Work}\label{sec:conclusions}
+
+\bibliographystyle{includes/ACM-Reference-Format}
+
+\bibliography{refs}
 
 \end{document}
 
