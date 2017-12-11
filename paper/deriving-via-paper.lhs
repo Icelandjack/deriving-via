@@ -415,6 +415,38 @@ identical to |fmap| and |(<*>)|, respectively.
 
 \subsection{Subsuming @GeneralizedNewtypeDeriving@}\label{sec:gnd}
 
+\rsnote{The prose in this section assumes that we have introduced the ideas and
+underlying concepts behind @GeneralizedNewtypeDeriving@ beforehand. When doing
+another pass over this section in the future, we should verify that that is
+indeed the case.}
+
+An interesting property of |deriving via| is that it completely subsumes the
+capabilities of the @GeneralizedNewtypeDeriving@ extension. Recall that
+@GeneralizedNewtypeDeriving@ is used to derive an instance for a |newtype| by
+reusing the instance of its underlying representation type. For instance:
+
+> newtype Age = MkAge Int
+>   deriving Num
+
+This code would generate the instance:
+
+> instance Num Age where
+>   negate = coerce (negate :: Int -> Int)
+>   abs    = coerce (abs    :: Int -> Int)
+>   -- etc.
+
+That is, one can implement an |Num| instance for |Age| by reusing the |Num|
+instance for |Int|. But observe that this is simply a special case of
+|deriving via|! If we use the |newtype|'s representation type as the |via|
+type, then we can just as well derive the instance above like so:
+
+< newtype Age = MkAge Int
+<  deriving Num via Int
+
+This would generate the exact same code as if we were using
+@GeneralizedNewtypeDeriving@. To put it more succintly, |deriving via| is
+generalized @GeneralizedNewtypeDeriving@.
+
 \section{Formalism}\label{sec:formalism}
 
 \section{Advanced uses}\label{sec:advanced}
