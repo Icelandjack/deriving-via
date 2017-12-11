@@ -492,6 +492,47 @@ To avoid clutter, we assume that all types have monomorphic kinds. However, it
 is easy to incorporate kind polymorphism~\cite{haskell-promotion}, and our
 implementation of these ideas in GHC does so.
 
+\subsection{Type variable scoping}
+
+Consider the following example:
+
+< data Foo a = ...
+<   deriving (Bar a b) via (Baz a b c)
+
+Where is each type variable quantified in this example? The answers are:
+
+\begin{itemize}
+ \item |a| is bound by |Foo| itself in the declaration |data Foo a|.
+       These type variable binders are the outermost ones, and as a result, it
+       scopes over both the derived class, |Bar a b|, as well as the |via|
+       type, |Baz a b c|.
+ \item |b| is bound by the derived class, |Bar a b|. However, |b| is
+       \textit{implicitly} quantified, whereas |a| is \textit{explicitly}
+       quantified. |b| scopes over the |via| type as well.
+ \item |c| is not bound anywhere, and is a free variable.
+\end{itemize}
+
+In the example above, |b| was implicitly quantified, but it is in fact
+possible to explicitly quantify it using explicit |forall| syntax:
+
+< data Foo a = ...
+<   deriving (forall b. Bar a) via (Baz a b c)
+
+This declaration of |Foo| is wholly equivalent to the earlier one, but the use
+of |forall| makes it clear where |b|'s binding site is. The possibility for
+explicit quantification of class type variables raises an interesting question:
+how is the following data type treated?
+
+< data X a = ...
+<   deriving (forall a. Y a) via (Z a)
+
+First, recall that the data type variable binders are the outermost ones.
+Moreover, because |Y| explicitly binds its own type variable named |a| within
+the |deriving| clause, the |a| within |Y a| is distinct from the |a| in |X a|.
+And since the binding site for the |a| in |Y a| occurs deeper than the binding
+site for the |a| in |X a|, the |a| in |Z a| refers to the same |a| as in
+|Y a|.
+
 \section{Advanced uses}\label{sec:advanced}
 
 \subsection{Avoiding orphan instances}
