@@ -609,9 +609,9 @@ default implementation of |pPrint| in terms of |genericPPrint| is infeasible:
 <   pPrint = genericPPrint
 
 The code above will not typecheck, as `genericPPrint` requires extra
-constraints |(Generic a, GPretty (Rep a))| that `pPrint` does not provide.
+constraints |(Generic a, GPretty (Rep a))| that |pPrint| does not provide.
 Before the advent of @DefaultSignatures@, one had to work around this by
-defining `pPrint` to be `genericPPrint` in every |Pretty| instance, as in the
+defining |pPrint| to be |genericPPrint| in every |Pretty| instance, as in the
 examples below:
 
 < instance Pretty Bool where
@@ -633,7 +633,7 @@ than the method itself has. For instance:
 <   pPrint = genericPPrint
 
 Then, if any instances of `Pretty` are given without an explicit definition of
-`pPrint`, the |default| implementation is used. In order for this to typecheck,
+|pPrint|, the |default| implementation is used. In order for this to typecheck,
 the data type |a| used in the instance must satisfy the constraints
 |(Generic a, GPretty (Rep a))|. This allows us to reduce the three instances
 above to just:
