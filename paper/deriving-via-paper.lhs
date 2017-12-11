@@ -573,7 +573,16 @@ inference Haskell will synthesize the code for us:
 Refinement Reflection:
 Parallel Legacy Languages as Theorem Provers (deriving
 
-\subsection{DeriveAnyClass}
+\subsection{Enhancing @DefaultSignatures@}\label{sec:defaultsignatures}
+
+In \ref{sec:gnd}, we observed that |deriving via| can fully replace the
+@GeneralizedNewtypeDeriving@ extension. In fact, that's not the only language
+extension that |deriving via| can be used as a substitute for! There is another
+type class-related extension, @DefaultSignatures@, which is frequently used by
+GHC programmers to eliminate large classes of boilerplate but it limited by its
+expressive power. Here, we demonstrate how one can scrap uses of
+@DefaultSignatures@ in favor of |deriving via|, and show how |deriving via|
+can overcome the limitations of @DefaultSignatures@.
 
 \section{Related Work}\label{sec:related}
 
