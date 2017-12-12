@@ -585,6 +585,7 @@ site for the |a| in |X a|, the |a| in |Z a| refers to the same |a| as in
 \section{Advanced uses}\label{sec:advanced}
 
 \subsection{Avoiding orphan instances}
+
 Before we had a |Monoid| instance for |IO a| this could not be derived\footnote{http://www.haskellforall.com/2014/07/equational-reasoning-at-scale.html}
 
 < newtype Plugin = Plugin (IO (String -> IO ()))
@@ -617,12 +618,14 @@ but can be used directly with it which is promising.
 
 Reversed applicative:
 
-< newtype Rev f a = Rev (f a) deriving Functor
-<
-< instance Applicative f => Applicative (Rev f) where
-<   pure = Rev . pure
-<
-<   Rev f <*> Rev x = Rev (liftA2 (flip ($)) f x)
+> newtype Rev f a = Rev (f a) deriving Functor
+>
+> instance Applicative f => Applicative (Rev f) where
+>   pure = Rev . pure
+>
+>   Rev f <*> Rev x = Rev (liftA2 (flip ($)) x f)
+
+\alnote{|Rev| is called |Backwards| in @transformers@.}
 
 \subsubsection{Equivalent Applicative definition}
 
