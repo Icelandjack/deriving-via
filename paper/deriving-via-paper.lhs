@@ -673,20 +673,28 @@ in these two instances
 \subsubsection{Equivalent Monad definition}
 
 \footnote{Name taken from \url{http://www.fceia.unr.edu.ar/~mauro/pubs/Notions_of_Computation_as_Monoids.pdf}}
+%if style /= newcode
+%format Triple = "\cl{Triple}"
+%format eta = "\id{eta}"
+%format mu = "\id{mu}"
+%format WrapTriple = "\ty{WrapTriple}"
+%format WT = "\con{WT}"
+%format unWT = "\id{unWT}"
+%endif
 
-< class Functor m => Triple m where
-<   eta :: a -> m a
-<   mu  :: m (m a) -> m a
-<
-< newtype WrapMonadJoin m a = WMJ (m a) deriving newtype Functor
-<
-< instance MonadJoin m => Applicative (WrapMonadJoin m) where
-<   pure = WMJ . eta
-<
-<   (<*>) = WMJ mx = WMJ (mu (fmap (\f -> mu (fmap (eta . f) mx)) mf))
-<
-< instance MonadJoin m => Monad (WrapMonadJoin m) where
-<   WMJ mx >>= k = WMJ (mu (fmap (\(k -> WMJ m) -> m) mx))
+> class Functor m => Triple m where
+>   eta  ::  a -> m a
+>   mu   ::  m (m a) -> m a
+>
+> newtype WrapTriple m a = WT { unWT :: m a } deriving newtype Functor
+>
+> instance Triple m => Applicative (WrapTriple m) where
+>   pure = WT . eta
+>
+>   WT mf <*> WT mx = WT (mu (fmap (\f -> mu (fmap (eta . f) mx)) mf))
+>
+> instance Triple m => Monad (WrapTriple m) where
+>   WT mx >>= k = WT (mu (fmap (unWT . k) mx))
 
 \subsection{Classes over Defunctionalization Symbols}
 
