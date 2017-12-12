@@ -652,6 +652,7 @@ Effects}\footnote{\url{http://openaccess.city.ac.uk/1141/1/Constructors.pdf}
 %format WrapMonoidal = "\ty{WrapMonoidal}"
 %format WrapApplicative = "\ty{WrapApplicative}"
 %format WM = "\con{WM}"
+%format <$ = "\opsym{<\$}"
 %endif
 
 > class Functor f => Monoidal f where
