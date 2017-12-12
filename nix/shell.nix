@@ -1,10 +1,11 @@
+with import <nixpkgs> {};
+
 let
-  nixpkgs = import <nixpkgs> {};
-  ghc-deriving-via = (import ./ghc-deriving-via.nix).ghc-deriving-via;
+  ghc-deriving-via = callPackage ./ghc-deriving-via.nix {};
 in
-  nixpkgs.stdenv.mkDerivation rec {
+  stdenv.mkDerivation rec {
     name = "ghc-deriving-via-env";
-    env = nixpkgs.buildEnv {
+    env = buildEnv {
       inherit name;
       paths = buildInputs;
     };

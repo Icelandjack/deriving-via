@@ -1,6 +1,10 @@
-with (import <nixpkgs> {}).pkgs;
-
-rec {
+{ stdenv
+, writeText
+, cacert
+, git
+, haskell
+} :
+let
 
   # We need a version of fetchgit that allows us to register two
   # remotes for the main repo, so that the submodules which use
@@ -54,6 +58,8 @@ rec {
         ];
       };
 
+in
+
   # This builds the fork of GHC with the desired changes.
   #
   # We do so by overriding the ghcHEAD expression which does almost
@@ -63,39 +69,37 @@ rec {
   # in a fully reproducable build, but it means changes are not
   # picked up automatically.
   #
-  ghc-deriving-via =
-    (haskell.compiler.ghcHEAD.override { version = "8.3.20171129"; })
-      .overrideAttrs
-        (old :
-          { src = fetchgit-ghc {
-              name   = "ghc-deriving-via.git"; # store name for the sources
-              origin = "git://git.haskell.org/ghc.git"; # primary repo
-              url    = "git://github.com/ryanglscott/ghc.git"; # our fork
-              ref    = "refs/heads/deriving-via"; # branch we want
-              commit = "04b246d279ea424086f70e08db490c0dc5ffbbc7"; # commit we want
-              sha256 = "0nybj19hkk7ccshg2dp70har5vmav0dsdfr2vlda5x69jsn6wbip";
-            };
+  (haskell.compiler.ghcHEAD.override { version = "8.3.20171129"; })
+    .overrideAttrs
+      (old :
+        { src = fetchgit-ghc {
+            name   = "ghc-deriving-via.git"; # store name for the sources
+            origin = "git://git.haskell.org/ghc.git"; # primary repo
+            url    = "git://github.com/ryanglscott/ghc.git"; # our fork
+            ref    = "refs/heads/deriving-via"; # branch we want
+            commit = "04b246d279ea424086f70e08db490c0dc5ffbbc7"; # commit we want
+            sha256 = "0nybj19hkk7ccshg2dp70har5vmav0dsdfr2vlda5x69jsn6wbip";
+          };
 
-            # # Set build flavour to devel2.
-            #
-            # preConfigure = old.preConfigure + ''
-            #   sed 's|#BuildFlavour.*=.*quickest|BuildFlavour = devel2|' mk/build.mk.sample > mk/build.mk
-            # '';
+          # # Set build flavour to devel2.
+          #
+          # preConfigure = old.preConfigure + ''
+          #   sed 's|#BuildFlavour.*=.*quickest|BuildFlavour = devel2|' mk/build.mk.sample > mk/build.mk
+          # '';
 
-            # # Mostly copied from head.nix, but removed the paxmarking of haddock,
-            # # because it does not exist in a devel2 build.
-            #
-            # postInstall =
-            #   with lib.strings;
-            #   let
-            #     newPaxmark = ''
-            #       paxmark m $out/lib/${old.name}/bin/ghc
-            #     '';
-            #     modifiedOld =
-            #       concatStringsSep "\n" (lib.drop 1 (splitString "\n" old.postInstall));
-            #   in
-            #     newPaxmark + modifiedOld;
-          }
-        );
-}
+          # # Mostly copied from head.nix, but removed the paxmarking of haddock,
+          # # because it does not exist in a devel2 build.
+          #
+          # postInstall =
+          #   with lib.strings;
+          #   let
+          #     newPaxmark = ''
+          #       paxmark m $out/lib/${old.name}/bin/ghc
+          #     '';
+          #     modifiedOld =
+          #       concatStringsSep "\n" (lib.drop 1 (splitString "\n" old.postInstall));
+          #   in
+          #     newPaxmark + modifiedOld;
+        }
+      )
 
