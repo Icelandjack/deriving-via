@@ -642,10 +642,17 @@ convenient to define and work with\footnote{Functional Pearl:
 Applicative Programming with
 Effects}\footnote{\url{http://openaccess.city.ac.uk/1141/1/Constructors.pdf}
 }
+%if style /= newcode
+%format Monoidal = "\cl{Monoidal}"
+%format unit = "\id{unit}"
+%format WrapMonoidal = "\ty{WrapMonoidal}"
+%format WrapApplicative = "\ty{WrapApplicative}"
+%format WM = "\con{WM}"
+%endif
 
 > class Functor f => Monoidal f where
->   unit :: f ()
->   (⋆)  :: f a -> f b -> f (a, b)
+>   unit  ::  f ()
+>   (⋆)   ::  f a -> f b -> f (a, b)
 
 Allowing us to derive |Applicative| from a |Monoidal| instance, allow
 us to use whatever formulation we prefer
@@ -660,8 +667,8 @@ us to use whatever formulation we prefer
 We can then define the opposite direction, codifying the equivalence
 in these two instances
 
-< instance Monoidal    f => Applicative (WrapMonoidal    f)
-< instance Applicative f => Monoidal    (WrapApplicative f)
+< instance Monoidal     f => Applicative  (WrapMonoidal     f)
+< instance Applicative  f => Monoidal     (WrapApplicative  f)
 
 \subsubsection{Equivalent Monad definition}
 
