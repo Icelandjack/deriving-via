@@ -44,6 +44,7 @@
 >
 > import Control.Applicative
 > import Control.Monad
+> import Data.Coerce
 
 %endif
 
@@ -128,6 +129,7 @@ https://www.youtube.com/watch?v=3U3lV5VPmOU}
 %format MkAlt = "\con{Alt}"
 %format Endo = "\ty{Endo}"
 %format MkEndo = "\con{Endo}"
+%format coerce = "\id{coerce}"
 %endif
 
 In Haskell, type classes capture common interfaces. When we declare a datatype
@@ -427,16 +429,36 @@ An interesting property of |deriving via| is that it completely subsumes the
 capabilities of the @GeneralizedNewtypeDeriving@ extension. Recall that
 @GeneralizedNewtypeDeriving@ is used to derive an instance for a |newtype| by
 reusing the instance of its underlying representation type. For instance:
+%if style /= newcode
+%format Age = "\ty{Age}"
+%format MkAge = "\con{MkAge}"
+%endif
 
-< newtype Age = MkAge Int
-<   deriving Num
+> newtype Age = MkAge Int
+>   deriving Num
 
 This code would generate the instance:
+%if style == newcode
+%format Age = Age2
+%format MkAge = MkAge2
 
-< instance Num Age where
-<   negate = coerce (negate :: Int -> Int)
-<   abs    = coerce (abs    :: Int -> Int)
-<   -- etc.
+> newtype Age = MkAge Int
+
+%endif
+
+> instance Num Age where
+>   negate  =  coerce (negate  ::  Int -> Int)
+>   abs     =  coerce (abs     ::  Int -> Int)
+>   -- etc.
+
+%if style == newcode
+
+>   (+) = undefined
+>   (*) = undefined
+>   signum = undefined
+>   fromInteger = undefined
+
+%endif
 
 \rsnote{Should we introduce |coerce| here?}
 
@@ -444,9 +466,13 @@ That is, one can implement an |Num| instance for |Age| by reusing the |Num|
 instance for |Int|. But observe that this is simply a special case of
 |deriving via|! If we use the |newtype|'s representation type as the |via|
 type, then we can just as well derive the instance above like so:
+%if style == newcode
+%format Age = Age3
+%format MkAge = MkAge3
+%endif
 
-< newtype Age = MkAge Int
-<  deriving Num via Int
+> newtype Age = MkAge Int
+>  deriving Num via Int
 
 This would generate the exact same code as if we were using
 @GeneralizedNewtypeDeriving@. To put it more succintly, |deriving via| is
@@ -465,25 +491,36 @@ underlying |deriving via| by giving a precise, algorithmic description of
 
 Throughout this section, we will refer to two groups of examples. One example,
 shown below, is intended to be as general as possible:
+%if style /= newcode
+%format (sub (x) (i)) = x "_{" i "}"
+%format D = "\ty{D}"
+%format y_1
+%format DOTS = "\textrm{\dots} "
+%format T1 = "\ty{T1}"
+%format Ts = "\ty{Ts}"
+%format m1 = "\id{m1}"
+%format mf = "\id{mf}"
+%format C = "\cl{C}"
+%endif
 
-< data D x_1 ... x_d = ...
-<   deriving (C y_1 ... y_(c-1))
-<            via (V z_1 ... z_v)
+< data D (sub x 1) DOTS (sub x d) = DOTS
+<   deriving (C (sub y 1) DOTS (sub y (c - 1)))
+<            via (V (sub z 1) DOTS (sub z v))
 <
-< class C y_1 ... y_(c-1) y_c where
-<   type T1 t1_1 ... y_c ... t1_m
-<   ...
-<   type Ts ts_1 ... y_c ... ts_n
+< class C (sub y 1) DOTS (sub y (c-1)) (sub y c) where
+<   type T1 (sub t1 1) DOTS (sub y c) DOTS (sub t1 m)
+<   DOTS
+<   type Ts (sub ts 1) DOTS (sub y c) DOTS (sub ts n)
 <
-<   m1 :: mty1_1 ... y_c ... mty1_o
-<   ...
-<   mf :: mtyf_1 ... y_c ... mtyf_p
+<   m1 :: (sub mty1 1) DOTS (sub y c) DOTS (sub mty1 o)
+<   DOTS
+<   mf :: (sub mtyf 1) DOTS (sub y c) DOTS (sub mtyf p)
 
 In other words, |D| is a data type with |d| type parameters, |C| is a type
 class with |c| type parameters, and |V| is some type with |v| type parameters.
 Moreover, |C| has |s| associated type families and |f| class methods, each
 with different kinds and types, but all of which mentioning the last type
-parameter of |C|, |y_c|.
+parameter of |C|, |sub y c|.
 
 Because it is sometimes difficult to communicate ideas by showing them in
 their full generality with |D|, |C|, and |V|, we will also occasionally make
@@ -498,8 +535,12 @@ implementation of these ideas in GHC does so.
 \subsection{Type variable scoping}
 
 Consider the following example:
+%if style /= newcode
+%format Bar = "\cl{Bar}"
+%format Baz = "\cl{Baz}"
+%endif
 
-< data Foo a = ...
+< data Foo a = DOTS
 <   deriving (Bar a b) via (Baz a b c)
 
 Where is each type variable quantified in this example? The answers are:
@@ -510,7 +551,7 @@ Where is each type variable quantified in this example? The answers are:
        scopes over both the derived class, |Bar a b|, as well as the |via|
        type, |Baz a b c|.
  \item |b| is bound by the derived class, |Bar a b|. However, |b| is
-       \textit{implicitly} quantified, whereas |a| is \textit{explicitly}
+       \emph{implicitly} quantified, whereas |a| is \emph{explicitly}
        quantified. |b| scopes over the |via| type as well.
  \item |c| is not bound anywhere, and is a free variable.
 \end{itemize}
@@ -518,15 +559,20 @@ Where is each type variable quantified in this example? The answers are:
 In the example above, |b| was implicitly quantified, but it is in fact
 possible to explicitly quantify it using explicit |forall| syntax:
 
-< data Foo a = ...
+< data Foo a = DOTS
 <   deriving (forall b. Bar a) via (Baz a b c)
 
 This declaration of |Foo| is wholly equivalent to the earlier one, but the use
 of |forall| makes it clear where |b|'s binding site is. The possibility for
 explicit quantification of class type variables raises an interesting question:
 how is the following data type treated?
+%if style /= newcode
+%format X = "\ty{X}"
+%format Y = "\cl{Y}"
+%format Z = "\cl{Z}"
+%endif
 
-< data X a = ...
+< data X a = DOTS
 <   deriving (forall a. Y a) via (Z a)
 
 First, recall that the data type variable binders are the outermost ones.
