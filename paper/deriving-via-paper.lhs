@@ -617,13 +617,17 @@ but can be used directly with it which is promising.
 \subsubsection{Every Applicative can be reversed}
 
 Reversed applicative:
+%if style /= newcode
+%format Rev = "\ty{Rev}"
+%format MkRev = "\con{Rev}"
+%endif
 
-> newtype Rev f a = Rev (f a) deriving Functor
+> newtype Rev f a = MkRev (f a) deriving Functor
 >
 > instance Applicative f => Applicative (Rev f) where
->   pure = Rev . pure
+>   pure = MkRev . pure
 >
->   Rev f <*> Rev x = Rev (liftA2 (flip ($)) x f)
+>   MkRev f <*> MkRev x = MkRev (liftA2 (flip ($)) x f)
 
 \alnote{|Rev| is called |Backwards| in @transformers@.}
 
