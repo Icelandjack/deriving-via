@@ -37,14 +37,18 @@
 %if style == newcode
 
 > {-# LANGUAGE DerivingStrategies #-}
+> {-# LANGUAGE FlexibleContexts #-}
 > {-# LANGUAGE FlexibleInstances #-}
 > {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 > {-# LANGUAGE InstanceSigs #-}
+> {-# LANGUAGE PolyKinds #-}
 > {-# LANGUAGE StandaloneDeriving #-}
+> {-# LANGUAGE TypeOperators #-}
 >
 > import Control.Applicative
 > import Control.Monad
 > import Data.Coerce
+> import GHC.Generics
 
 %endif
 
@@ -743,9 +747,29 @@ The typical use case for @DefaultSignatures@ when one has a type class method
 that has a frequently used default implementation at a different type.
 For instance, consider a |Pretty| class with a method |pPrint| for
 pretty-printing data:
+%if style /= newcode
+%format Pretty = "\cl{Pretty}"
+%format pPrint = "\id{pPrint}"
+%format Doc = "\ty{Doc}"
+%format GPretty = "\cl{GPretty}"
+%format genericPPrint = "\id{genericPPrint}"
+%format Rep = "\ty{Rep}"
+%format Generic = "\cl{Generic}"
+%else
 
-< class Pretty a where
-<   pPrint :: a -> Doc
+> data Doc
+>
+> class GPretty (f :: k -> *) where
+> instance GPretty f => GPretty (M1 t m f)
+> instance GPretty U1
+> instance Pretty a => GPretty (K1 r a)
+> instance (GPretty f, GPretty g) => GPretty (f :+: g)
+> instance (GPretty f, GPretty g) => GPretty (f :*: g)
+
+%endif
+
+> class Pretty a where
+>   pPrint :: a -> Doc
 
 Coming up with |Pretty| instances for the vast majority of ADTs is repetitive
 and tedious, so a common pattern is to abstract away this tedium using
@@ -753,8 +777,13 @@ generic programming libraries, such as those found in |GHC.Generics|
 ~\cite{gdmfh} or @generics-sop@~\cite{true-sums-of-products}. For example,
 it is possible using |GHC.Generics| to write:
 
-< genericPPrint :: (Generic a, GPretty (Rep a)) => a -> Doc
+> genericPPrint :: (Generic a, GPretty (Rep a)) => a -> Doc
 
+%if style == newcode
+
+> genericPPrint = undefined
+
+%endif
 The details of how |Generic|, |GPretty|, and |Rep| work are not important to
 understanding the example. What is important is to note that a typical
 default implementation of |pPrint| in terms of |genericPPrint| is infeasible:
@@ -769,14 +798,14 @@ Before the advent of @DefaultSignatures@, one had to work around this by
 defining |pPrint| to be |genericPPrint| in every |Pretty| instance, as in the
 examples below:
 
-< instance Pretty Bool where
-<   pPrint = genericPPrint
-<
-< instance Pretty a => Pretty (Maybe a) where
-<   pPrint = genericPPrint
-<
-< instance (Pretty a, Pretty b) => Pretty (Either a b) where
-<   pPrint = genericPPrint
+> instance Pretty Bool where
+>   pPrint = genericPPrint
+>
+> instance Pretty a => Pretty (Maybe a) where
+>   pPrint = genericPPrint
+>
+> instance (Pretty a, Pretty b) => Pretty (Either a b) where
+>   pPrint = genericPPrint
 
 To avoid this repetition, @DefaultSignatures@ allows one to provide a default
 implementation of a type class method using \textit{different} constraints
