@@ -615,7 +615,7 @@ This lets us pass static static value to instance deriving.
 
 \subsection{Capturing theorems / knowledge with instances}
 
-Many of these newtypes existed a long time before |-XDerivingVia| did
+Many of these newtypes existed a long time before @-XDerivingVia@ did
 but can be used directly with it which is promising.
 
 \subsubsection{Every Applicative can be reversed}
