@@ -63,7 +63,7 @@ rec {
   # in a fully reproducable build, but it means changes are not
   # picked up automatically.
   #
-  ghc-deriving-via-override =
+  ghc-deriving-via =
     (haskell.compiler.ghcHEAD.override { version = "8.3.20171129"; })
       .overrideAttrs
         (old :
