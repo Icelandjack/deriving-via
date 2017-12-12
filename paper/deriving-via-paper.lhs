@@ -428,15 +428,15 @@ capabilities of the @GeneralizedNewtypeDeriving@ extension. Recall that
 @GeneralizedNewtypeDeriving@ is used to derive an instance for a |newtype| by
 reusing the instance of its underlying representation type. For instance:
 
-> newtype Age = MkAge Int
->   deriving Num
+< newtype Age = MkAge Int
+<   deriving Num
 
 This code would generate the instance:
 
-> instance Num Age where
->   negate = coerce (negate :: Int -> Int)
->   abs    = coerce (abs    :: Int -> Int)
->   -- etc.
+< instance Num Age where
+<   negate = coerce (negate :: Int -> Int)
+<   abs    = coerce (abs    :: Int -> Int)
+<   -- etc.
 
 \rsnote{Should we introduce |coerce| here?}
 
@@ -571,12 +571,12 @@ but can be used directly with it which is promising.
 
 Reversed applicative:
 
-> newtype Rev f a = Rev (f a) deriving Functor
->
-> instance Applicative f => Applicative (Rev f) where
->   pure = Rev . pure
->
->   Rev f <*> Rev x = Rev (liftA2 (flip ($)) f x)
+< newtype Rev f a = Rev (f a) deriving Functor
+<
+< instance Applicative f => Applicative (Rev f) where
+<   pure = Rev . pure
+<
+<   Rev f <*> Rev x = Rev (liftA2 (flip ($)) f x)
 
 \subsubsection{Equivalent Applicative definition}
 
@@ -614,19 +614,19 @@ in these two instances
 
 \footnote{Name taken from \url{http://www.fceia.unr.edu.ar/~mauro/pubs/Notions_of_Computation_as_Monoids.pdf}}
 
-> class Functor m => Triple m where
->   eta :: a -> m a
->   mu  :: m (m a) -> m a
->
-> newtype WrapMonadJoin m a = WMJ (m a) deriving newtype Functor
->
-> instance MonadJoin m => Applicative (WrapMonadJoin m) where
->   pure = WMJ . eta
->
->   (<*>) = WMJ mx = WMJ (mu (fmap (\f -> mu (fmap (eta . f) mx)) mf))
->
-> instance MonadJoin m => Monad (WrapMonadJoin m) where
->   WMJ mx >>= k = WMJ (mu (fmap (\(k -> WMJ m) -> m) mx))
+< class Functor m => Triple m where
+<   eta :: a -> m a
+<   mu  :: m (m a) -> m a
+<
+< newtype WrapMonadJoin m a = WMJ (m a) deriving newtype Functor
+<
+< instance MonadJoin m => Applicative (WrapMonadJoin m) where
+<   pure = WMJ . eta
+<
+<   (<*>) = WMJ mx = WMJ (mu (fmap (\f -> mu (fmap (eta . f) mx)) mf))
+<
+< instance MonadJoin m => Monad (WrapMonadJoin m) where
+<   WMJ mx >>= k = WMJ (mu (fmap (\(k -> WMJ m) -> m) mx))
 
 \subsection{Classes over Defunctionalization Symbols}
 

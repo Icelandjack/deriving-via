@@ -11,6 +11,7 @@ in
     };
     buildInputs = [
       ghc-deriving-via
+      haskellPackages.ghcid
       haskellPackages.lhs2tex
       (texlive.combine {
         inherit (texlive)
