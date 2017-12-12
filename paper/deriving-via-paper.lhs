@@ -7,6 +7,9 @@
   authordraft=true,% development mode
   ]{acmart}
 
+% disable the watermark
+\SetWatermarkText{}%
+
 \usepackage{booktabs}
 \usepackage{hyperref}
 
