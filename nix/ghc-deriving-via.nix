@@ -6,7 +6,13 @@ rec {
   # remotes for the main repo, so that the submodules which use
   # relative paths are all pointing to the correct location.
   fetchgit-ghc =
-    { origin, url, commit, ref, sha256, name } :
+    { origin   # location of master and all relative submodules
+    , url      # location of fork
+    , commit   # commit hash we want to build
+    , ref      # git ref / branch we want to fetch
+    , sha256   # checksum of the complete checkout
+    , name     # nix-store name of the sources
+    } :
     stdenv.mkDerivation
       { inherit name;
         builder = writeText "builder.sh" ''
@@ -70,14 +76,15 @@ rec {
               sha256 = "0nybj19hkk7ccshg2dp70har5vmav0dsdfr2vlda5x69jsn6wbip";
             };
 
-            # # Set build flavour to devel2. For some reason, the default build
-            # # flavour fails on haddock, so at least we have to disable that.
+            # # Set build flavour to devel2.
+            #
             # preConfigure = old.preConfigure + ''
             #   sed 's|#BuildFlavour.*=.*quickest|BuildFlavour = devel2|' mk/build.mk.sample > mk/build.mk
             # '';
 
             # # Mostly copied from head.nix, but removed the paxmarking of haddock,
-            # # because it does not exist in our build.
+            # # because it does not exist in a devel2 build.
+            #
             # postInstall =
             #   with lib.strings;
             #   let
