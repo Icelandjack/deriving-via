@@ -725,7 +725,7 @@ in these two instances
 
 \subsection{Classes over Defunctionalization Symbols}
 
-\bbnote{TODO}: Using \textit{Singletons} library we can create
+\bbnote{TODO}: Using \emph{Singletons} library we can create
 instances of actual functions of types, not just matchable
 constructors
 
@@ -831,7 +831,7 @@ examples below:
 >   pPrint = genericPPrint
 
 To avoid this repetition, @DefaultSignatures@ allows one to provide a default
-implementation of a type class method using \textit{different} constraints
+implementation of a type class method using \emph{different} constraints
 than the method itself has. For instance:
 
 < class Pretty a where
@@ -898,15 +898,15 @@ a single type:
 \subsection{Quality of error messages}
 
 The nice thing about |deriving| is that when it works, it tends to work
-extremely well. When it \textit{doesn't} work, however, it can be challenging
+extremely well. When it \emph{doesn't} work, however, it can be challenging
 to formulate an error message that adequately explains what went wrong. The
 fundamental issue is that error messages resulting from uses of |deriving|
-are usually rooted in \textit{generated} code, and pointing to code that the
+are usually rooted in \emph{generated} code, and pointing to code that the
 user didn't write in error messages can lead to a confusing debugging
 experience.
 
 |deriving via| is certainly no exception to this trend. In fact, the problem
-of creating lucid error messages is arguably \textit{worse} in the context of
+of creating lucid error messages is arguably \emph{worse} in the context of
 |deriving via|, as we give users the power to derive instances through whatever
 type they wish. Unfortunately, this makes it easier to shoot oneself in the
 foot, as it is now easier than ever before to feed |deriving| garbage. As one
@@ -924,7 +924,7 @@ TODO RGS: I don't know how to format this
 
 The real problem is that |a| and |Maybe a| do not have the same representation
 at runtime, but the error does not make this obvious. It is possible that one
-could add an \textit{ad hoc} check for this class of programs, but there are
+could add an \emph{ad hoc} check for this class of programs, but there are
 likely many more tricky corner cases lurking around the corner, given that
 one can put anything after |via|.
 
