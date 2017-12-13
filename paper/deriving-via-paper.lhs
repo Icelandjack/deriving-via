@@ -608,7 +608,7 @@ we wanted to sequential compotision for |IO ()| rather than lifted
 behaviour all we need to do is write an adapter type
 
 > newtype Seq f = Seq (f ())
-> 
+>
 > instance Applicative f => Monoid (Seq f) where
 >   mempty :: Seq f
 >   mempty = Seq (pure ())
@@ -619,6 +619,13 @@ behaviour all we need to do is write an adapter type
 and derive via
 
 <     via (App IO (String -> Seq IO))
+
+%if style == newcode
+
+> instance Applicative f => Semigroup (Seq f) where
+>   (<>) = mappend
+
+%endif
 
 \subsection{Asymptotic improvement}
 
