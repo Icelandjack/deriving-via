@@ -36,6 +36,8 @@
 
 %if style == newcode
 
+> {-# LANGUAGE DefaultSignatures #-}
+> {-# LANGUAGE DeriveGeneric #-}
 > {-# LANGUAGE DerivingStrategies #-}
 > {-# LANGUAGE FlexibleContexts #-}
 > {-# LANGUAGE FlexibleInstances #-}
@@ -44,6 +46,7 @@
 > {-# LANGUAGE PolyKinds #-}
 > {-# LANGUAGE StandaloneDeriving #-}
 > {-# LANGUAGE TypeOperators #-}
+> {-# LANGUAGE UndecidableInstances #-}
 >
 > import Control.Applicative
 > import Control.Monad
@@ -778,16 +781,27 @@ pretty-printing data:
 %format genericPPrint = "\id{genericPPrint}"
 %format Rep = "\ty{Rep}"
 %format Generic = "\cl{Generic}"
+%format Foo1 = "\ty{Foo}"
+%format Foo2 = "\ty{Foo}"
 %else
 
 > data Doc
 >
+> stringToDoc :: String -> Doc
+> stringToDoc = undefined
+>
 > class GPretty (f :: k -> *) where
 > instance GPretty f => GPretty (M1 t m f)
 > instance GPretty U1
-> instance Pretty a => GPretty (K1 r a)
+> instance GPretty (K1 r a) -- omitting the Pretty constraint normally needed
 > instance (GPretty f, GPretty g) => GPretty (f :+: g)
 > instance (GPretty f, GPretty g) => GPretty (f :*: g)
+
+> data Foo1 = Foo1
+>   deriving (Generic)
+
+> data Foo2 = Foo2
+>   deriving (Show, Generic)
 
 %endif
 
@@ -833,11 +847,15 @@ examples below:
 To avoid this repetition, @DefaultSignatures@ allows one to provide a default
 implementation of a type class method using \emph{different} constraints
 than the method itself has. For instance:
+%if style == newcode
+%format Pretty = Pretty2
+%format pPrint = pPrint2
+%endif
 
-< class Pretty a where
-<   pPrint :: a -> Doc
-<   default pPrint :: (Generic a, GPretty (Rep a)) => a -> Doc
-<   pPrint = genericPPrint
+> class Pretty a where
+>   pPrint :: a -> Doc
+>   default pPrint :: (Generic a, GPretty (Rep a)) => a -> Doc
+>   pPrint = genericPPrint
 
 Then, if any instances of |Pretty| are given without an explicit definition of
 |pPrint|, the |default| implementation is used. In order for this to typecheck,
@@ -845,9 +863,9 @@ the data type |a| used in the instance must satisfy the constraints
 |(Generic a, GPretty (Rep a))|. This allows us to reduce the three instances
 above to just:
 
-< instance Pretty Bool
-< instance Pretty a => Pretty (Maybe a)
-< instance (Pretty a, Pretty b) => Pretty (Either a b)
+> instance Pretty Bool
+> instance Pretty a => Pretty (Maybe a)
+> instance (Pretty a, Pretty b) => Pretty (Either a b)
 
 Although @DefaultSignatures@ removes the need for many occurrences of
 boilerplate code, it also imposes a significant limitation: every type class
@@ -874,22 +892,29 @@ Fortunately, |deriving via| provides a convenient way of encoding default
 implementations with the ability to toggle between different choices:
 |newtype|s! For instance, we can codify two different approaches to
 implementing |pPrint| as follows:
+%if style /= newcode
+%format GenericPPrint = "\ty{GenericPPrint}"
+%format MkGenericPPrint = "\con{GenericPPrint}"
+%format ShowPPrint = "\ty{ShowPPrint}"
+%format MkShowPPrint = "\con{ShowPPrint}"
+%format stringToDoc = "\id{stringToDoc}"
+%endif
 
-< newtype GenericPPrint a = GenericPPrint a
-<
-< instance (Generic a, GPretty (Rep a)) => Pretty (GenericPPrint a) where
-<   pPrint (GenericPPrint x) = genericPPrint x
-<
-< newtype ShowPPrint a = ShowPPrint a
-<
-< instance Show a => Pretty (ShowPPrint a) where
-<   pPrint (ShowPPrint x) = stringToDoc (show x)
+> newtype GenericPPrint a = MkGenericPPrint a
+>
+> instance (Generic a, GPretty (Rep a)) => Pretty (GenericPPrint a) where
+>   pPrint (MkGenericPPrint x) = genericPPrint x
+>
+> newtype ShowPPrint a = MkShowPPrint a
+>
+> instance Show a => Pretty (ShowPPrint a) where
+>   pPrint (MkShowPPrint x) = stringToDoc (show x)
 
 With these |newtype|s in hand, picking between them is as simple as changing
 a single type:
 
-< deriving via (GenericPPrint Foo) instance Pretty Foo
-< deriving via (ShowPPrint    Foo) instance Pretty Foo
+> deriving via (GenericPPrint Foo1) instance Pretty Foo1
+> deriving via (ShowPPrint    Foo2) instance Pretty Foo2
 
 \section{Related Work}\label{sec:related}
 
@@ -915,15 +940,23 @@ example, if a user were to accidentally write this code:
 < newtype Foo a = MkFoo (Maybe a) deriving Ord via a
 
 Then GHC would throw the following, rather unhelpful error:
+\begingroup
+\invisiblecomments
 
-TODO RGS: I don't know how to format this
-% • Occurs check: cannot construct the infinite type: a ~ Maybe a
-%     arising from the coercion of the method ‘compare’
-%       from type ‘a -> a -> Ordering’ to type ‘Foo a -> Foo a -> Ordering’
-% • When deriving the instance for (Ord (Foo a))
+< -- \textbullet\ Occurs check: cannot construct the infinite type: |a ~ Maybe a|
+< -- \phantom{\textbullet\ }\quad arising from the coercion of the method `|compare|'
+< -- \phantom{\textbullet\ }\qquad from type `|a -> a -> Ordering|' to type `|Foo a -> Foo a -> Ordering|'
+< -- \textbullet\ When deriving the instance for |(Ord (Foo a))|
+
+\endgroup
 
 The real problem is that |a| and |Maybe a| do not have the same representation
-at runtime, but the error does not make this obvious. It is possible that one
+at runtime, but the error does not make this obvious.%
+\alnote{This seems similar to the question I brought up during the call
+yesterday, so unless we find a better place, this might be a good point to
+discuss the example of empty type classes and why we don't want to impose
+a specific check for representation-equivalence that is not induced by the
+class methods.} It is possible that one
 could add an \emph{ad hoc} check for this class of programs, but there are
 likely many more tricky corner cases lurking around the corner, given that
 one can put anything after |via|.
