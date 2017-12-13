@@ -198,10 +198,10 @@ not understand right now, so I omitted it for the time being:
 ``Structure of the |f| is often considered more significant that that of |x|.''
 Much of this is stolen from Conor: https://personal.cis.strath.ac.uk/conor.mcbride/so-pigworker.pdf}
 
-Second, even if |f| is an applicative functor, the resulting monoid instance
-may not be the only one that can be defined, or the one we want to use.
-Most notably, lists are the \emph{free monoid}, and their monoid instance
-looks as follows:
+Second, even if |f| is an applicative functor, the resulting monoid
+instance may not be the only one that can be defined, or the one we
+want to use.  Most notably, lists are the \emph{free monoid} (the most
+‘fundemental’ monoid), and their monoid instance looks as follows:
 
 > instance Monoid2 [a] where
 >
@@ -602,6 +602,24 @@ instances adding the following line
 
 \bbnote{I used this just now to get a Semigroup instance for Compose f g a.}
 
+If, like
+\url{https://www.cse.iitk.ac.in/users/ppk/research/publication/Conference/2016-09-22-How-to-twist-pointers.pdf}
+we wanted to sequential compotision for |IO ()| rather than lifted
+behaviour all we need to do is write an adapter type
+
+> newtype Seq f = Seq (f ())
+> 
+> instance Applicative f => Monoid (Seq f) where
+>   mempty :: Seq f
+>   mempty = Seq (pure ())
+>
+>   mappend :: Seq f -> Seq f -> Seq f
+>   Seq fs `mappend` Seq gs = Seq (fs *> gs)
+
+and derive via
+
+<     via (App IO (String -> Seq IO))
+
 \subsection{Asymptotic improvement}
 
 For representable functors the definitions of |m *> \ _ = m| and |\ _ <* m = m| are \(O(1)\).\footnote{Edward Kmett: \url{https://ghc.haskell.org/trac/ghc/ticket/10892?cversion=0&cnum_hist=4\#comment:4} } This codifies knowledge (on a ``library, not lore'' principle) where the code can be documented and linked to.
@@ -609,9 +627,6 @@ For representable functors the definitions of |m *> \ _ = m| and |\ _ <* m = m| 
 \subsection{Deriving with configuration}
 
 This lets us pass static static value to instance deriving.
-
-
-
 
 \subsection{Capturing theorems / knowledge with instances}
 
