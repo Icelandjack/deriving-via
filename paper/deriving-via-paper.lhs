@@ -618,7 +618,15 @@ behaviour all we need to do is write an adapter type
 
 and derive via
 
-<     via (App IO (String -> Seq IO))
+<     via (IO (String -> Seq IO))
+
+Another example from the same paper can be derived as well:
+
+< data Ptr 
+< 
+< newtype ParseAction a = PA (Ptr -> IO a)
+<   deriving (Functor, Applicative) via
+<     (Compose ((->) Ptr) IO)
 
 \subsection{Asymptotic improvement}
 
