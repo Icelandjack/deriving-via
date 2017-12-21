@@ -1,6 +1,10 @@
-{-# Language ConstraintKinds, TypeInType, RankNTypes, TypeOperators, TypeApplications, ScopedTypeVariables, GADTs, TypeFamilies, AllowAmbiguousTypes, DeriveFunctor, InstanceSigs, ViewPatterns, DerivingStrategies, DeriveGeneric, GeneralizedNewtypeDeriving, MultiParamTypeClasses, FlexibleInstances, UndecidableInstances, StandaloneDeriving #-}
+{-# Language ConstraintKinds, TypeInType, RankNTypes, TypeOperators, TypeApplications, ScopedTypeVariables, GADTs, TypeFamilies, AllowAmbiguousTypes, DeriveFunctor, InstanceSigs, ViewPatterns, DerivingStrategies, DeriveGeneric, GeneralizedNewtypeDeriving, MultiParamTypeClasses, FlexibleInstances, UndecidableInstances, StandaloneDeriving, DeriveAnyClass #-}
 
 module Iso where
+
+-- This can be used to determine the associated type family of a
+-- class:
+-- https://www.reddit.com/r/haskell/comments/7jx8wc/blog_witnessing_monoid_actions_semigroup_monoid/drjys8d/
 
 import Data.Profunctor
 import Data.Kind
@@ -14,6 +18,7 @@ import Data.Distributive
 import qualified Data.Constraint as C
 import qualified Data.Constraint.Forall as Forall
 import qualified GHC.Generics as Generics
+import qualified Generics.SOP as SOP
 
 type f ~> g = forall xx. f xx -> g xx
 
@@ -30,6 +35,7 @@ data FLIP       :: (a -> b -> c)<->(b -> a -> c)
 data ENUM a     :: Int<->a
 data FROM       :: a<->b -> b<->a
 data MAPPING f  :: a<->a' -> f a<->f a'
+data SOP        :: a<->code
 
 class Isomorphism (tag::a<->b) where
   to   :: a -> b
@@ -90,16 +96,14 @@ instance (Functor f, Isomorphism a) => Isomorphism (MAPPING f a) where
   to   = fmap (to   @_ @_ @a)
   from = fmap (from @_ @_ @a)
 
--- data IntroNil :: Cat (<->) a a
+instance (SOP.Generic a, code ~ SOP.Rep a) => Isomorphism (SOP :: a <-> code) where
+  to :: a -> SOP.Rep a
+  to = SOP.from
 
+  from :: SOP.Rep a -> a
+  from = SOP.to
 
--- firsting :: (Bifunctor f, Bifunctor g) => Iso' s a -> Iso' (f s x) (f a x)
-
--- data WRAP :: a<->a
-
--- instance Isomorphism WRAP where
---   from = id 
---   to   = id 
+type ToRepFromRep a a' = ((SOP · SOP) :: a <-> a')
 
 data PairFn :: (a, a)<->(Bool -> a)
 
@@ -213,3 +217,8 @@ data FOO a = FOO a a a deriving stock (Functor, Generics.Generic1)
 data BAR a = BAR a a a deriving stock Generics.Generic1
 
 -- deriving via (StolenVia BAR FOO (FROM1 (GENERICS1 BAR) ·· COERCE1 (Generics.Rep1 BAR) (Generics.Rep1 FOO) ·· GENERICS1 FOO)) instance Functor BAR
+
+data BOOL = FALSE | TRUE
+  deriving stock Generics.Generic
+  deriving anyclass SOP.Generic
+  deriving Eq 

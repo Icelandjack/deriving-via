@@ -13,20 +13,6 @@ import qualified Data.Functor.Product as P
 import Constraint
 import Forall
 
--- -- import Data.Constraint
--- data Dict c where Dict :: c => Dict c
--- newtype a :- b = Sub (a => Dict b)
--- (\\) :: a => (b => r) -> (a :- b) -> r
--- r \\ Sub Dict = r
--- instance Category (:-) where
---   id = Sub Dict 
---   f . g = Sub $ Dict \\ f \\ g
-
--- -- import Data.Constraint.Forall
--- class Forall (p :: k -> Constraint) 
--- inst :: Forall p :- p a
--- inst = undefined 
-
 ----------------------------------------------------------------------
 -- With {-# Language QuantifiedConstraints #-}
 -- 

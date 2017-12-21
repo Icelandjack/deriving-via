@@ -18,7 +18,7 @@ import Data.Kind
 
 import Test.QuickCheck
 
-newtype ArbBounded a = ArbBounded a deriving (Enum, Bounded) via a
+newtype ArbBounded a = ArbBounded a deriving (Enum, Bounded) via (a)
 
 instance (Bounded a, Enum a) => Arbitrary (ArbBounded a) where
   arbitrary :: Gen (ArbBounded a)
@@ -109,7 +109,7 @@ singletons [d|
 -- 
 newtype OrderedList a = OL [a]
   deriving Show via
-    [a]
+    ([a])
 --   deriving Arbitrary via (SuchThat OrderedSym0)
     
 
