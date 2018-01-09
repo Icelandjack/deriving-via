@@ -66,10 +66,12 @@
 %else
 
 > class Monoid2 m where
+> 
 >   mempty2 :: m
 >   mappend2 :: m -> m -> m
 
 > class Monoid3 m where
+> 
 >   mempty3 :: m
 >   mappend3 :: m -> m -> m
 
@@ -179,8 +181,10 @@ thereby capturing the general principle and no longer being forced to provide
 individual instances such as the one for |IO|. Unfortunately, the general
 instance is undesirable for several reasons:
 
-First, the instance overlaps with any other |Monoid| instance for an applied
-type, even if that type is not an applicative functor. Consider
+First, the instance overlaps with any other |Monoid| instance for an
+applied type. Because instance resolution tries to match the instance
+head without considering the context it overlaps with types that are
+not applicative. Consider
 
 > newtype Endo a = MkEndo (a -> a)
 
@@ -188,18 +192,18 @@ type, even if that type is not an applicative functor. Consider
 it admits a perfectly valid monoid instance:
 
 > instance overlapping Monoid2 (Endo a) where
->
 >   mempty2 = MkEndo id
 >   mappend2 (MkEndo f) (MkEndo g) = MkEndo (f . g)
 
-But this instance overlaps with the general instance above, and while we
-can make GHC accept it nevertheless, the presence of overlapping instances
-often leads to undesirable behavior.
-
-\alnote{The original enumeration mentioned another point which I do
-not understand right now, so I omitted it for the time being:
-``Structure of the |f| is often considered more significant that that of |x|.''
-Much of this is stolen from Conor: https://personal.cis.strath.ac.uk/conor.mcbride/so-pigworker.pdf}
+But this instance overlaps with the general instance above, and while
+we can make GHC accept it nevertheless, the presence of overlapping
+instances often leads to undesirable behavior. This instance follows
+the |Monoid| definition for |newtype Join cat a = Join (cat a a)|
+assuming |Category cat|.\alnote{The original enumeration mentioned
+another point which I do not understand right now, so I omitted it for
+the time being: ``Structure of the |f| is often considered more
+significant that that of |x|.''  Much of this is stolen from Conor:
+https://personal.cis.strath.ac.uk/conor.mcbride/so-pigworker.pdf}
 
 Second, even if |f| is an applicative functor, the resulting monoid
 instance may not be the only one that can be defined, or the one we
@@ -207,7 +211,6 @@ want to use.  Most notably, lists are the \emph{free monoid} (the most
 ‘fundemental’ monoid), and their monoid instance looks as follows:
 
 > instance Monoid2 [a] where
->
 >   mempty2   =  []
 >   mappend2  =  (++)
 
@@ -217,7 +220,6 @@ lists are an example of applying a different rule for defining monoids
 based on an |Alternative| instance for the type constructor:
 
 > instance Alternative f => Monoid3 (f a) where
->
 >   mempty3   =  empty
 >   mappend3  =  (<|>)
 
