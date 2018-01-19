@@ -94,6 +94,10 @@
 }
 
 \begin{abstract}
+Introduces a deriving strategy that
+
+Subsumes generalized |newtype| deriving.
+
 We present a new Haskell language extension that miraculously solves
 all problems in generic programming that ever existed.
 \end{abstract}
@@ -157,13 +161,14 @@ in fact determined by the application of a general rule. For example, in the
 >   mappend2 :: IO a -> IO a -> IO a
 >   mappend2 = liftA2 mappend
 
-While the definition as given is specific to |IO|, the principle is not:
-we can always lift a monoid |a| over a type constructor |f| as long as
-|f| is an applicative functor. This is the case for |IO|, but it is also
-true for all the other applicative functors out there.
-\alnote{There was a reference to Conor McBride here, mentioning ``routine
-programming'' and \url{http://strictlypositive.org/Idiom.pdf}. We might want
-to reinsert this.}
+While the definition as given is specific to |IO|, the principle is
+not: we can always lift a monoid |a| over a type constructor |f| as
+long as |f| is an applicative functor (we can similarly lift with
+|Biapplicative|). This is the case for |IO|, but it is also true for
+all the other applicative functors out there.  \alnote{There was a
+reference to Conor McBride here, mentioning ``routine programming''
+and \url{http://strictlypositive.org/Idiom.pdf}. We might want to
+reinsert this.}
 
 \subsection{The problem: capturing general instance rules}
 
@@ -182,9 +187,9 @@ individual instances such as the one for |IO|. Unfortunately, the general
 instance is undesirable for several reasons:
 
 First, the instance overlaps with any other |Monoid| instance for an
-applied type. Because instance resolution tries to match the instance
-head without considering the context it overlaps with types that are
-not applicative. Consider
+applied type (|f a|). Because instance resolution tries to match the
+instance head without considering the context it overlaps with types
+that are not applicative. Consider
 
 > newtype Endo a = MkEndo (a -> a)
 
@@ -229,18 +234,19 @@ instance head when choosing an instance, and then to commit and never backtrack.
 So even with overlapping instances enabled, we could not define all the rules
 we wanted to in this way.
 
-Currently, the only viable workaround is to define individual instances for
-each datatype in spirit of the |Monoid (IO a)| instance shown in the beginning.
-But as we
-shall see in the remainder of this paper, there are many such rules, and while
-the approach of defining individual instances in a uniform format may be
-somewhat feasible for classes that comprise just one or two methods, it becomes
-extremely tedious for classes with many methods.
+Currently, the only viable workaround is to define individual
+instances for each datatype in spirit of the |Monoid (IO a)| instance
+shown in the beginning. sBut as we shall see in the remainder of this
+paper, there are many such rules, and while the approach of defining
+individual instances in a uniform format may be somewhat feasible for
+classes that consists of just one or two methods, it becomes extremely
+tedious for classes with many methods.
 
 For example, there is a way to lift a |Num| instance through any applicative
 functor (and similarly, there are ways to lift |Floating| and |Fractional|):
 
 > instance (Applicative f, Num a) => Num (f a) where
+> 
 >   (+), (-), (*) :: f a -> f a -> f a
 >   (+) = liftA2 (+)
 >   (-) = liftA2 (-)
@@ -265,10 +271,10 @@ or just describe the situation in words.}
 
 \subsection{Our solution: newtypes and a new form of deriving}
 %if style /= newcode
-%format FromApplicative = "\ty{FromApplicative}"
-%format FromAlternative = "\ty{FromAlternative}"
-%format MkFromApplicative = "\con{FromApplicative}"
-%format MkFromAlternative = "\con{FromAlternative}"
+%format App = "\ty{App}"
+%format Alt = "\ty{Alt}"
+%format MkApp = "\con{App}"
+%format MkAlt = "\con{Alt}"
 %endif
 
 We solve the above problem of capturing general rules for defining
@@ -279,45 +285,40 @@ entirely unproblematic (but not yet useful) one by defining a |newtype|
 and wrapping the instance head in it\alnote{According to Baldur, Conor
 calls these ``adaptors''. Perhaps we should consider this terminology too.}:
 
-> newtype FromApplicative f a = MkFromApplicative (f a)
+> newtype App f a = MkApp (f a)
 >
-> instance (Applicative f, Monoid a) => Monoid (FromApplicative f a) where
+> instance (Applicative f, Monoid a) => Monoid (App f a) where
 >
->   mempty :: FromApplicative f a
->   mempty = MkFromApplicative (pure mempty)
+>   mempty :: App f a
+>   mempty = MkApp (pure mempty)
 >
->   mappend :: FromApplicative f a -> FromApplicative f a -> FromApplicative f a
->   mappend (MkFromApplicative f) (MkFromApplicative g) =
->     MkFromApplicative (liftA2 mappend f g)
+>   mappend :: App f a -> App f a -> App f a
+>   mappend (MkApp f) (MkApp g) = MkApp (liftA2 mappend f g)
 
 Since GHC 8.4, we also need a |Semigroup| instance, because it just became
 a superclass of |Monoid|\footnote{See Section~\ref{sec:superclasses} for
 a more detailed discussion of this aspect.}:
 
-> instance (Applicative f, Semigroup a) => Semigroup (FromApplicative f a) where
+> instance (Applicative f, Semigroup a) => Semigroup (App f a) where
 >
->   (<>) :: FromApplicative f a -> FromApplicative f a -> FromApplicative f a
->   MkFromApplicative f <> MkFromApplicative g =
->     MkFromApplicative (liftA2 (<>) f g)
+>   (<>) :: App f a -> App f a -> App f a
+>   MkApp f <> MkApp g = MkApp (liftA2 (<>) f g)
 
 Such instance definitions can be made more concise by employing the
 existing language extension @GeneralizedNewtypeDeriving@ which allows
 us to make an instance on the underlying type available on the wrapped
 type. This is always possible because a |newtype|-wrapped type is
 guaranteed to have the same representation as the underlying type
-\cite{zero-cost-coercions}\bbnote{|FromAlternative| is
-found in @base@ under the name |Data.Monoid.Alt|.}
-\alnote{Ok, I had not known this. Perhaps I should rename these
-again, then.}
+\cite{zero-cost-coercions}\bbnote{|Alt| is found in |Data.Monoid|.}
 
-> newtype FromAlternative f a = MkFromAlternative (f a)
+> newtype Alt f a = MkAlt (f a)
 >   deriving (Functor, Applicative, Alternative)
 >
-> instance Alternative f => Monoid (FromAlternative f a) where
+> instance Alternative f => Monoid (Alt f a) where
 >   mempty   =  empty
 >   mappend  =  (<|>)
 >
-> instance Alternative f => Semigroup (FromAlternative f a) where
+> instance Alternative f => Semigroup (Alt f a) where
 >   (<>) = mappend
 
 We now introduce a new style of |deriving| that allows us to instruct
@@ -328,16 +329,16 @@ For example, using the @StandaloneDeriving@ language extension, the
 |Monoid| instances for |IO| and |[]| could be written as follows
 \alnote{Both these declarations currenly fail}:
 
-< deriving via (FromApplicative IO a) instance Monoid3 a => Monoid3 (IO a)
-< deriving via (FromAlternative [] a) instance Monoid3 [a]
+< deriving via (App IO a) instance Monoid3 a => Monoid3 (IO a)
+< deriving via (Alt [] a) instance Monoid3 [a]
 
-Here, |via| is a new language construct that explains \emph{how} GHC should
-derive the instance, namely be reusing the instance already available for the
-given type. It should be easy to see why this works: due to the
-use of a |newtype|, |FromApplicative IO a| has the same internal representation
-as |IO a|, and |FromAlternative [] a| has the same representation as |[a]|, and
-any instance available on one type can be made to work on a representationally
-equal type as well.
+Here, |via| is a new language construct that explains \emph{how} GHC
+should derive the instance, namely be reusing the instance already
+available for the given type. It should be easy to see why this works:
+due to the use of a |newtype|, |App IO a| has the same internal
+representation as |IO a|, and |Alt [] a| has the same representation
+as |[a]|, and any instance available on one type can be made to work
+on a representationally equal type as well.
 
 \subsection{Structure of the paper}
 
@@ -648,18 +649,18 @@ For representable functors the definitions of |m *> \ _ = m| and |\ _ <* m = m| 
 
 This lets us pass static static value to instance deriving.
 
-\subsection{Capturing theorems / knowledge with instances}
+> data Person = P { name :: String, age :: Int, addr :: Maybe Address }
+>   deriving (Show, Read, ToJSON, FromJSON)
+>     via (Person `EncodeAs` Config OmitNothing)
 
 Many of these newtypes existed a long time before @-XDerivingVia@ did
 but can be used directly with it which is promising.
-
+ 
 \subsubsection{Every Applicative can be reversed}
 
-Reversed applicative:
-%if style /= newcode
-%format Rev = "\ty{Rev}"
-%format MkRev = "\con{Rev}"
-%endif
+The Haskell ‘wisdom’ that says every |Applicative| can be reversed can
+be codified in the data type |Rev|:\alnote{|Rev| is called |Backwards|
+in @transformers@.}
 
 > newtype Rev f a = MkRev (f a) deriving Functor
 >
@@ -667,8 +668,6 @@ Reversed applicative:
 >   pure = MkRev . pure
 >
 >   MkRev f <*> MkRev x = MkRev (liftA2 (flip ($)) x f)
-
-\alnote{|Rev| is called |Backwards| in @transformers@.}
 
 \subsubsection{Equivalent Applicative definition}
 
@@ -680,7 +679,7 @@ convenient to define and work with\footnote{Functional Pearl:
 \url{http://openaccess.city.ac.uk/13222/1/Applicative-final.pdf}
 Applicative Programming with
 Effects}\footnote{\url{http://openaccess.city.ac.uk/1141/1/Constructors.pdf}
-}
+} 
 %if style /= newcode
 %format Monoidal = "\cl{Monoidal}"
 %format unit = "\id{unit}"
@@ -709,6 +708,9 @@ in these two instances
 
 < instance Monoidal     f => Applicative  (WrapMonoidal     f)
 < instance Applicative  f => Monoidal     (WrapApplicative  f)
+
+This becomes more important (and assist us in transitioning) as we
+move to a more categorical.\footnote{Such as Kmett's |hask|}
 
 \subsubsection{Equivalent Monad definition}
 
