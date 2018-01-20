@@ -979,6 +979,43 @@ quality, given that the error messages are a result of |coerce| failing to
 typecheck. It is likely that investing more effort into making |coerce|'s
 error messages easier to understand would benefit |deriving via| as well.
 
+\subsection{Deriving Multiparameter Type Classes (review this whole subsection)}
+
+> class Triple a b c where triple :: (a, b, c)
+> instance Triple () () () where triple = ((), (), ())
+
+It is sensible to use this instance to derive new instances for types
+representationally equal to unit. Certainly, it works for the final
+parameter:
+
+> newtype A = A ()
+> newtype B = B ()
+> newtype C = C ()
+> 
+> deriving via () instance Triple () () A
+> deriving via () instance Triple () () B
+> deriving via () instance Triple () () C
+
+But can we derive the instance |Triple A B C|? Not readily, the
+instance used is the instance being derived with the |via|-type as the
+last parameter. The following is forced to derive via the instance
+|Triple A B ??|:
+
+> deriving via ?? instance Triple A B C
+
+But we can derive |Triple A B C| via |Triple () () ()| with
+|newtype|ing where /a/, /b/, /c/ will be instantiated to units.
+
+> newtype Via3 a b c = Via3 c
+> 
+> instance (Triple a b c, Coercible (a, b) (a', b')) => Triple a' b' (Via3 a b c) where
+>   triple :: (a', b', Via3 a b c)
+>   triple = coerce (triple @a @b @c)
+> 
+> deriving via (Via3 () () ()) instance Triple A B C
+> deriving via (Via3 () () ()) instance Triple A A A
+> deriving via (Via3 () () ()) instance Triple C B A
+
 \bibliographystyle{includes/ACM-Reference-Format}
 
 \bibliography{refs}
