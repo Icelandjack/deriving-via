@@ -1004,7 +1004,7 @@ last parameter. The following is forced to derive via the instance
 > deriving via ?? instance Triple A B C
 
 But we can derive |Triple A B C| via |Triple () () ()| with
-|newtype|ing where /a/, /b/, /c/ will be instantiated to units.
+|newtype|ing where a, b, c will be instantiated to units.
 
 > newtype Via3 a b c = Via3 c
 > 
@@ -1015,6 +1015,27 @@ But we can derive |Triple A B C| via |Triple () () ()| with
 > deriving via (Via3 () () ()) instance Triple A B C
 > deriving via (Via3 () () ()) instance Triple A A A
 > deriving via (Via3 () () ()) instance Triple C B A
+
+This author (Baldur) believes it impossible to derive instances like
+|Sieve Arr Identity| using the |Sieve (->) Identity| dictionary
+
+> class (Profunctor pro, Functor f) => Sieve pro f | pro -> f where
+>   sieve :: pro a b -> (a -> f b)
+> 
+> instance Sieve (->) Identity where
+>   sieve :: (a -> b) -> (a -> Identity b)
+>   sieve f a = Identity (f a)
+> 
+> newtype Arr a b = Arr (a -> b) deriving newtype Profunctor
+
+|DerivingVia| requires us to derive it via the |Sieve (->) ???|
+ dictionary but due to the functional dependencies (|pro -> f|) |???|
+ must be fully determined by |(->)|.
+
+The author proposes a more general form as future work
+
+> instance Sieve Arr  Identity
+>      via Sieve (->) Identity
 
 \bibliographystyle{includes/ACM-Reference-Format}
 
