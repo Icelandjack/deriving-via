@@ -771,7 +771,7 @@ Refinement Reflection:
 Parallel Legacy Languages as Theorem Provers (deriving
 
 \subsection{Traversal order}
-Discuss ideas here https://www.reddit.com/r/haskell/comments/6udl0i/representable_functors_parameterised_by/
+\url{Discuss ideas here https://www.reddit.com/r/haskell/comments/6udl0i/representable_functors_parameterised_by/}
 
 \subsection{Enhancing @DefaultSignatures@}\label{sec:defaultsignatures}
 
