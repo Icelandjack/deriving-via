@@ -770,6 +770,9 @@ inference Haskell will synthesize the code for us:
 Refinement Reflection:
 Parallel Legacy Languages as Theorem Provers (deriving
 
+\subsection{Traversal order}
+Discuss ideas here https://www.reddit.com/r/haskell/comments/6udl0i/representable_functors_parameterised_by/
+
 \subsection{Enhancing @DefaultSignatures@}\label{sec:defaultsignatures}
 
 In \ref{sec:gnd}, we observed that |deriving via| can fully replace the
