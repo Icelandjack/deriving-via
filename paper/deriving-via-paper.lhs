@@ -1040,6 +1040,15 @@ The author proposes a more general form as future work
 > instance Sieve Arr  Identity
 >      via Sieve (->) Identity
 
+Another use for this is something like
+
+< class Cons s t a b | s -> a, t -> b, s b -> t, t a -> s where
+<   _Cons :: Prism s t (a,s) (b,t) 
+< 
+< instance Cons [a] [b] a b
+
+and deriving an instnace for |Cons (ZipList a) (ZipList b) a b|.
+
 \bibliographystyle{includes/ACM-Reference-Format}
 
 \bibliography{refs}
