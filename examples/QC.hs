@@ -1,10 +1,10 @@
 {-# LANGUAGE TypeOperators, TypeInType, GADTs, MultiParamTypeClasses,
              AllowAmbiguousTypes, TypeFamilies, ScopedTypeVariables,
              RebindableSyntax, ConstraintKinds,
-             FlexibleContexts, LambdaCase, EmptyCase, FlexibleInstances, 
+             FlexibleContexts, LambdaCase, EmptyCase, FlexibleInstances,
 
-             TemplateHaskell, TypeApplications, UndecidableInstances, 
-             InstanceSigs, DerivingStrategies #-}
+             TemplateHaskell, TypeApplications, UndecidableInstances,
+             InstanceSigs, DerivingStrategies, DerivingVia #-}
 
 module QC where
 
@@ -55,7 +55,7 @@ type Good a = (Demote a ~ a, SingKind a)
 
 instance (Arbitrary a, Good a, SingI predicate) => Arbitrary (SuchThat (predicate::a ~> Bool)) where
   arbitrary :: Gen (SuchThat predicate)
-  arbitrary = SuchThat <$> suchThat arbitrary 
+  arbitrary = SuchThat <$> suchThat arbitrary
     (fromSing (sing :: Sing predicate))
 
 -- >>> sample (arbitrary @Weekend)
@@ -70,9 +70,9 @@ instance (Arbitrary a, Good a, SingI predicate) => Arbitrary (SuchThat (predicat
 -- Sun
 -- Sat
 -- Sun
-newtype Weekend = Weekend Day 
+newtype Weekend = Weekend Day
   deriving Show via Day
-  deriving (Arbitrary) via 
+  deriving (Arbitrary) via
     (SuchThat IsWeekendSym0)
       -- type IsWeekend = FlipSym2 ElemSym0 '[ 'Sat, 'Sun ]
 
@@ -88,9 +88,9 @@ newtype Weekend = Weekend Day
 -- Wed
 -- Mon
 -- Wed
-newtype Weekday = Weekday Day 
+newtype Weekday = Weekday Day
   deriving Show via Day
-  deriving Arbitrary via 
+  deriving Arbitrary via
     SuchThatWeekday
       -- type IsWeekday = FlipSym2 ElemSym0 '[ 'Mon, 'Tue, 'Wed, 'Thu, 'Fri ]
       -- type IsWeekday = NotSym0 :.$$$ IsWeekendIsWeekdaySym0
@@ -106,12 +106,12 @@ singletons [d|
   |]
 
 -- TODO
--- 
+--
 newtype OrderedList a = OL [a]
   deriving Show via
     ([a])
 --   deriving Arbitrary via (SuchThat OrderedSym0)
-    
+
 
 {-
 newtype OrderedList  a  = OL [a]    deriving Arbitrary via (SuchThat (\xs -> sort xs == xs)

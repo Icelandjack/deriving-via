@@ -1,4 +1,4 @@
-{-# Language GeneralizedNewtypeDeriving, DerivingStrategies, DeriveFunctor, InstanceSigs, StandaloneDeriving, TypeApplications, ScopedTypeVariables, TypeOperators, FlexibleInstances #-}
+{-# Language GeneralizedNewtypeDeriving, DerivingStrategies, DeriveFunctor, InstanceSigs, StandaloneDeriving, TypeApplications, ScopedTypeVariables, TypeOperators, FlexibleInstances, DerivingVia #-}
 
 module SemigroupMonoid where
 
@@ -49,7 +49,7 @@ instance (Applicative f, Floating a) => Floating (f $ a) where
   atanh = fmap atanh
   acosh = fmap acosh
 
--- Works for many types of 
+-- Works for many types of
 --
 -- A Prey But Not Greedy Printer (Functional Pearl)
 --
@@ -57,7 +57,7 @@ instance (Applicative f, Floating a) => Floating (f $ a) where
 -- http://jyp.github.io/pdf/Prettiest.pdf
 
 ----------------------------------------------------------------------
--- Deriving 
+-- Deriving
 ----------------------------------------------------------------------
 
 newtype Foo f = Foo { run :: f () }

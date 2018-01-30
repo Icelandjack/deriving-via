@@ -1,11 +1,11 @@
 {-# LANGUAGE TypeOperators, TypeInType, GADTs, MultiParamTypeClasses,
              AllowAmbiguousTypes, TypeFamilies, ScopedTypeVariables,
              RebindableSyntax, ConstraintKinds,
-             FlexibleContexts, LambdaCase, EmptyCase, FlexibleInstances, 
+             FlexibleContexts, LambdaCase, EmptyCase, FlexibleInstances,
 
-             TemplateHaskell, TypeApplications, UndecidableInstances, 
-             InstanceSigs, DerivingStrategies, RankNTypes, DeriveFunctor, 
-             PatternSynonyms, GeneralizedNewtypeDeriving #-}
+             TemplateHaskell, TypeApplications, UndecidableInstances,
+             InstanceSigs, DerivingStrategies, RankNTypes, DeriveFunctor,
+             PatternSynonyms, GeneralizedNewtypeDeriving, DerivingVia #-}
 
 module ApplicativeSum where
 
@@ -35,14 +35,14 @@ import Control.Concurrent.STM.TVar
 -- It is hard to give a context to =Applicative (Sum f g)=.
 --
 -- "We can construct sums in special cases, such as adding the
--- identity functor to another lax monoidal functor", 
--- 
+-- identity functor to another lax monoidal functor",
+--
 --   type Lift = Sum Identity
--- 
+--
 -- also known as 'Lift' from 'Control.Applicative.Lift':
 --
 --   data Lift f a = Return a | Other (f a)
--- 
+--
 -- http://hackage.haskell.org/package/transformers-0.5.2.0/docs/Control-Applicative-Lift.html#Lift
 
 type f ~> g = forall xx. f xx -> g xx
@@ -94,14 +94,14 @@ instance (Applicative f, Applicative g) => AppHom (Snd::Product f g .~> g) where
   appHom :: Product f g ~> g
   appHom (Pair _ ga) = ga
 
-instance (AppHom f, AppHom g) 
-  => 
+instance (AppHom f, AppHom g)
+  =>
   AppHom (Comp (f::a .~> b) (g::b .~> c)::a .~> c) where
   appHom :: a ~> c
   appHom = appHom @_ @_ @g . appHom @_ @_ @f
 
-instance (AppHom one, AppHom two) 
-  => 
+instance (AppHom one, AppHom two)
+  =>
   AppHom (Bimap (one::f .~> f') (two::g .~> g')::Product f g .~> Product f' g') where
   appHom :: Product f g ~> Product f' g'
   appHom (Pair fa ga) = Pair
@@ -138,7 +138,7 @@ instance AppHom (Atomic::STM .~> IO) where
   appHom :: STM ~> IO
   appHom = atomically
 
--- Let's define 
+-- Let's define
 newtype SUM (tag::g .~> f) a = SUM (Sum f g a)
   deriving stock Functor
 
@@ -162,7 +162,7 @@ newtype Lift f a = Lift (Sum f Identity a)
   deriving newtype Functor
 
   -- TODO
-  -- 
+  --
   -- deriving Applicative via
   --   (SUM (InitHom :: Identity .~> f))
 
@@ -205,12 +205,12 @@ newtype STM_IO a = STM_IO (Sum IO STM a)
 
   deriving Applicative via
     (SUM Atomic)
--- 
+--
 -- this is equivalent to
--- 
+--
 --   instance Applicative STM_IO where
 --     pure = AsSTM . pure
--- 
+--
 --     AsSTM f <*> AsSTM s = AsSTM            (f <*>            s)
 --     AsSTM f <*> AsIO  s = AsIO  (atomically f <*>            s)
 --     AsIO  f <*> AsSTM s = AsIO             (f <*> atomically s)

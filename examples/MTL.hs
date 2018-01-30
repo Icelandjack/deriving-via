@@ -1,7 +1,7 @@
-{-# Language DeriveFunctor, TypeOperators, InstanceSigs, GeneralizedNewtypeDeriving, RankNTypes, DerivingStrategies, PolyKinds, FlexibleInstances, MultiParamTypeClasses, UndecidableInstances, GADTs #-}
+{-# Language DeriveFunctor, TypeOperators, InstanceSigs, GeneralizedNewtypeDeriving, RankNTypes, DerivingStrategies, PolyKinds, FlexibleInstances, MultiParamTypeClasses, UndecidableInstances, GADTs, DerivingVia #-}
 
 -- We could replace most instances in Control.Monad.State.Class by
--- 
+--
 --   deriving via (W s (ErrorT  e) m) instance (Error e, MonadState s m) => MonadState s (ErrorT e m)
 --   deriving via (W s (ExceptT e) m) instance MonadState s m => MonadState s (ExceptT e m)
 --   deriving via (W s (ContT   r) m) instance MonadState s m => MonadState s (ContT   r m)
@@ -37,9 +37,9 @@ instance (Monad f, Pointed f) => Applicative (WrappedMonad f) where
   pure = point
   ff <*> fx = ff >>= \f -> fx >>= \x -> point (f x)
 
----------------------------------------------------------------------- 
+----------------------------------------------------------------------
 -- Adapter
----------------------------------------------------------------------- 
+----------------------------------------------------------------------
 
 newtype W :: Type -> ((Type -> Type) -> (Type -> Type)) -> ((Type -> Type) -> (Type -> Type)) where
   W :: trans m a -> (W s) trans m a
@@ -71,7 +71,7 @@ instance MonadTrans IdentityT where
   lift = IdentityT
 
 ----------------------------------------------------------------------
--- MaybeT 
+-- MaybeT
 ----------------------------------------------------------------------
 
 -- newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
@@ -82,10 +82,10 @@ instance MonadTrans IdentityT where
 --     (Functor)
 
 -- instance Monad m => Monad (MaybeT m) where
---   return = undefined 
+--   return = undefined
 
 -- instance Applicative m => Monad (MaybeT m) where
---   return = undefined 
+--   return = undefined
 
 -- instance MonadTrans MaybeT where
 --   lift :: Functor f => f ~> MaybeT f
@@ -97,7 +97,7 @@ instance MonadTrans IdentityT where
 -- newtype ListT m a = ListT { runListT :: m [a] }
 
 -- We can maybe derive this as well:
--- 
+--
 -- instance (Error e, MonadCont m)  => MonadCont (ErrorT e m)               where callCC = Error.liftCallCC         callCC
 -- instance MonadCont m             => MonadCont (ExceptT e m)              where callCC = Except.liftCallCC        callCC
 -- instance MonadCont m             => MonadCont (IdentityT m)              where callCC = Identity.liftCallCC      callCC

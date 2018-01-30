@@ -1,4 +1,4 @@
-{-# Language ConstraintKinds, TypeInType, RankNTypes, TypeOperators, TypeApplications, ScopedTypeVariables, GADTs, TypeFamilies, AllowAmbiguousTypes, DeriveFunctor, InstanceSigs, ViewPatterns, DerivingStrategies, DeriveGeneric, GeneralizedNewtypeDeriving, MultiParamTypeClasses, FlexibleInstances, UndecidableInstances, StandaloneDeriving, DeriveAnyClass #-}
+{-# Language ConstraintKinds, TypeInType, RankNTypes, TypeOperators, TypeApplications, ScopedTypeVariables, GADTs, TypeFamilies, AllowAmbiguousTypes, DeriveFunctor, InstanceSigs, ViewPatterns, DerivingStrategies, DeriveGeneric, GeneralizedNewtypeDeriving, MultiParamTypeClasses, FlexibleInstances, UndecidableInstances, StandaloneDeriving, DeriveAnyClass, DerivingVia #-}
 
 module Iso where
 
@@ -24,7 +24,7 @@ type f ~> g = forall xx. f xx -> g xx
 
 type a <-> b = (a, b) -> Type
 
-data ID         :: a<->a 
+data ID         :: a<->a
 data (·)        :: a<->b  -> b<->c -> a<->c
 data BIMAP bif  :: a<->a' -> b<->b' -> bif a b<->bif a' b'
 data COERCE a b :: a<->b
@@ -47,7 +47,7 @@ instance Isomorphism ID where
   from = id
 
 -- (.) :: Iso' a b -> Iso' b c -> Iso' a c
-instance (Isomorphism f, Isomorphism g) => Isomorphism (f · g) where 
+instance (Isomorphism f, Isomorphism g) => Isomorphism (f · g) where
   to   = to   @_ @_ @g . to   @_ @_ @f
   from = from @_ @_ @f . from @_ @_ @g
 
@@ -61,7 +61,7 @@ instance Coercible a b => Isomorphism (COERCE a b) where
   to   = coerce
   from = coerce
 
--- contramapping :: Contravariant f => Iso' a a' -> Iso' (f a) (f a') 
+-- contramapping :: Contravariant f => Iso' a a' -> Iso' (f a) (f a')
 instance (Contravariant f, Isomorphism a) => Isomorphism (CONTRA f a) where
   to   = contramap (from @_ @_ @a)
   from = contramap (to   @_ @_ @a)
@@ -195,7 +195,7 @@ newtype Pair a = P (a, a)
     (StolenVia Pair PAIR (COERCE1 Pair PAIR))
   -- deriving newtype (Generics.Generic1)
 
--- Pair -> REP Pair -> REP PAIR -> PAIR -> Product Id Id -> 
+-- Pair -> REP Pair -> REP PAIR -> PAIR -> Product Id Id ->
 
 instance Distributive Pair where
   distribute = distributeRep
@@ -212,7 +212,7 @@ instance Representable Pair where
 
 par :: Pair Char
 par = pure @Pair 'a'
- 
+
 data FOO a = FOO a a a deriving stock (Functor, Generics.Generic1)
 data BAR a = BAR a a a deriving stock Generics.Generic1
 
@@ -221,4 +221,4 @@ data BAR a = BAR a a a deriving stock Generics.Generic1
 data BOOL = FALSE | TRUE
   deriving stock Generics.Generic
   deriving anyclass SOP.Generic
-  deriving Eq 
+  deriving Eq

@@ -1,4 +1,4 @@
-{-# LANGUAGE DerivingStrategies, PolyKinds #-}
+{-# LANGUAGE DerivingStrategies, DerivingVia, PolyKinds #-}
 module DeriveFunctor where
 
 import Data.Bifunctor
