@@ -18,7 +18,7 @@ import Data.Distributive
 import qualified Data.Constraint as C
 import qualified Data.Constraint.Forall as Forall
 import qualified GHC.Generics as Generics
-import qualified Generics.SOP as SOP
+-- import qualified Generics.SOP as SOP
 
 type f ~> g = forall xx. f xx -> g xx
 
@@ -96,14 +96,14 @@ instance (Functor f, Isomorphism a) => Isomorphism (MAPPING f a) where
   to   = fmap (to   @_ @_ @a)
   from = fmap (from @_ @_ @a)
 
-instance (SOP.Generic a, code ~ SOP.Rep a) => Isomorphism (SOP :: a <-> code) where
-  to :: a -> SOP.Rep a
-  to = SOP.from
+-- instance (SOP.Generic a, code ~ SOP.Rep a) => Isomorphism (SOP :: a <-> code) where
+--   to :: a -> SOP.Rep a
+--   to = SOP.from
 
-  from :: SOP.Rep a -> a
-  from = SOP.to
+--   from :: SOP.Rep a -> a
+--   from = SOP.to
 
-type ToRepFromRep a a' = ((SOP · SOP) :: a <-> a')
+-- type ToRepFromRep a a' = ((SOP · SOP) :: a <-> a')
 
 data PairFn :: (a, a)<->(Bool -> a)
 
@@ -220,5 +220,5 @@ data BAR a = BAR a a a deriving stock Generics.Generic1
 
 data BOOL = FALSE | TRUE
   deriving stock Generics.Generic
-  deriving anyclass SOP.Generic
+  -- deriving anyclass SOP.Generic
   deriving Eq
