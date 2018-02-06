@@ -149,55 +149,49 @@ https://www.youtube.com/watch?v=3U3lV5VPmOU}
 %format coerce = "\id{coerce}"
 %endif
 
-In Haskell, type classes capture common interfaces. When we declare a datatype
-to be an instance of a type class, we explain how it implements the interface
-by providing implementations of all the methods of the class.
+In Haskell, type classes capture common interfaces. When we declare a
+datatype to be an instance of a type class, we explain how it
+implements the interface by providing implementations of all the
+methods of the class.
 
-Quite often, however, these implementations are not completely ad-hoc, but are
-in fact determined by the application of a general rule. For example, in the
-@base@ package, we can find the following instances for the |Monoid| class:
+Quite often, however, these implementations are not unrelated but the
+application of a common pattern. For example, in the @base@ package,
+we can find the following |Monoid| instances:
 
 \noindent
 \begin{minipage}{.5\linewidth}
 
 > instance Monoid a => Monoid2 (IO a) where
 >
->   mempty2 :: IO a
->   mempty2 = pure mempty
->
->   mappend2 :: IO a -> IO a -> IO a
+>   mempty2  = pure mempty
 >   mappend2 = liftA2 mappend
 
 \end{minipage}
 \begin{minipage}{.5\linewidth}
 
-> instance Monoid b => Monoid2 (a -> b) where
+> instance Monoid a => Monoid2 (ST s a) where
 >
->   mempty2 :: a -> b
->   mempty2 = pure mempty
->
->   mappend2 :: (a -> b) -> (a -> b) -> (a -> b)
+>   mempty2  = pure mempty
 >   mappend2 = liftA2 mappend
 
 \end{minipage}
 
 While the definition as given\alnote{Adapt the following if we keep
-the two monoid instances.
-Also, the instance for functions in base doesn't actually look like
-the above, whereas the one for |IO| does. I had carefully chosen
-|IO| for exactly that reason.}
-is specific to |IO|, the principle is
-not: we can always lift a monoid |a| over a type constructor |f| as
-long as |f| is an applicative functor (we can similarly lift with
-|Biapplicative|). This is the case for |IO|, but it is also true for
-all the other applicative functors out there.  \alnote{There was a
-reference to Conor McBride here, mentioning ``routine programming''
-and \url{http://strictlypositive.org/Idiom.pdf}. We might want to
-reinsert this.}
+the two monoid instances.  Also, the instance for functions in base
+doesn't actually look like the above, whereas the one for |IO| does. I
+had carefully chosen |IO| for exactly that reason.}  is specific to
+|IO|, the principle is not: we can always lift a monoid |a| over a
+type constructor |f| as long as |f| is an applicative (or
+|Biapplicative|) functor. This is the case for |IO|, but it is also
+true for all the other applicative functors out there.  \alnote{There
+was a reference to Conor McBride here, mentioning ``routine
+programming'' and \url{http://strictlypositive.org/Idiom.pdf}. We
+might want to reinsert this.}
 
 \subsection{The problem: capturing general instance rules}
 
-In fact, we might be tempted to define
+It is tempting to avoid this obvious repetition by defining an
+instance for all applicatives, in one fell swoop.
 
 > instance (Applicative f, Monoid a) => Monoid2 (f a) where
 >
@@ -207,38 +201,34 @@ In fact, we might be tempted to define
 >   mappend2 :: f a -> f a -> f a
 >   mappend2 = liftA2 mappend
 
-thereby capturing the general principle and no longer being forced to provide
-individual instances such as the one for |IO|. Unfortunately, the general
-instance is undesirable for several reasons:
+Unfortunately, this general instance is undesirable for several
+reasons:
 
-First, the instance overlaps with any other |Monoid| instance for an
-applied type (|f a|). Because instance resolution tries to match the
-instance head without considering the context it overlaps with types
-that are not applicative. Consider
+First, it overlaps with all other instances that match |Monoid (f
+a)|. Instance resolution will match the instance head before even
+considering the context, even if |f| is not applicative. Consider
 
-> newtype Endo a = MkEndo (a -> a)
+> newtype Endo a = MkEndo (a -> a) -- Data.Monoid
 
-(as defined in |MODULE Data.Monoid|). While |Endo| is not an applicative functor,
-it admits a perfectly valid monoid instance:
+|Endo| is not even a |Functor| yet it admits a perfectly valid monoid
+instance that overlaps with the lifted instance above
 
 > instance overlapping Monoid2 (Endo a) where
 >   mempty2 = MkEndo id
 >   mappend2 (MkEndo f) (MkEndo g) = MkEndo (f . g)
 
-But this instance overlaps with the general instance above, and while
-we can make GHC accept it nevertheless, the presence of overlapping
-instances often leads to undesirable behavior. This instance follows
-the |Monoid| definition for |newtype Join cat a = Join (cat a a)|
-assuming |Category cat|.\alnote{The original enumeration mentioned
-another point which I do not understand right now, so I omitted it for
-the time being: ``Structure of the |f| is often considered more
-significant that that of |x|.''  Much of this is stolen from Conor:
+and while we can make GHC accept it nevertheless, the presence of
+overlapping instances often leads to undesirable behavior.\alnote{The
+original enumeration mentioned another point which I do not understand
+right now, so I omitted it for the time being: ``Structure of the |f|
+is often considered more significant that that of |x|.''  Much of this
+is stolen from Conor:
 https://personal.cis.strath.ac.uk/conor.mcbride/so-pigworker.pdf}
 
-Second, even if |f| is an applicative functor, the resulting monoid
-instance may not be the only one that can be defined, or the one we
-want to use.  Most notably, lists are the \emph{free monoid} (the most
-‘fundemental’ monoid), and their monoid instance looks as follows:
+Second, even if |f| is an applicative functor the lifted monoid
+instance may not be the only one, or the one we want to use.  Most
+notably, lists are the \emph{free monoid} (the most ‘fundemental’
+monoid), and their monoid instance looks as follows:
 
 > instance Monoid2 [a] where
 >   mempty2   =  []
