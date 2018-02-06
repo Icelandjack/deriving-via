@@ -21,6 +21,7 @@ let
       pkgs.aeson
       pkgs.generics-sop
       pkgs.profunctors
+      pkgs.QuickCheck
       pkgs.semigroups
     ]);
 
