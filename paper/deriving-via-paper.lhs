@@ -44,15 +44,18 @@
 > {-# LANGUAGE FlexibleInstances #-}
 > {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 > {-# LANGUAGE InstanceSigs #-}
+> {-# LANGUAGE MultiParamTypeClasses #-}
 > {-# LANGUAGE PolyKinds #-}
+> {-# LANGUAGE ScopedTypeVariables #-}
 > {-# LANGUAGE StandaloneDeriving #-}
+> {-# LANGUAGE TypeApplications #-}
 > {-# LANGUAGE TypeOperators #-}
 > {-# LANGUAGE UndecidableInstances #-}
 >
 > import Control.Applicative
 > import Control.Monad
 > import Data.Coerce
-> import GHC.Generics
+> import GHC.Generics hiding (C)
 
 %endif
 
@@ -1005,9 +1008,12 @@ typecheck. It is likely that investing more effort into making |coerce|'s
 error messages easier to understand would benefit |deriving via| as well.
 
 \subsection{Deriving Multiparameter Type Classes (review this whole subsection)}
+%if style == newcode
+%format Triple = Triple_
+%endif
 
-< class Triple a b c where triple :: (a, b, c)
-< instance Triple () () () where triple = ((), (), ())
+> class Triple a b c where triple :: (a, b, c)
+> instance Triple () () () where triple = ((), (), ())
 
 It is sensible to use this instance to derive new instances for types
 representationally equal to unit. Certainly, it works for the final
@@ -1026,7 +1032,7 @@ instance used is the instance being derived with the |via|-type as the
 last parameter. The following is forced to derive via the instance
 |Triple A B ??|:
 
-> deriving via ?? instance Triple A B C
+< deriving via ?? instance Triple A B C
 
 But we can derive |Triple A B C| via |Triple () () ()| with
 |newtype|ing where a, b, c will be instantiated to units.
@@ -1044,14 +1050,14 @@ But we can derive |Triple A B C| via |Triple () () ()| with
 This author (Baldur) believes it impossible to derive instances like
 |Sieve Arr Identity| using the |Sieve (->) Identity| dictionary
 
-> class (Profunctor pro, Functor f) => Sieve pro f | pro -> f where
->   sieve :: pro a b -> (a -> f b)
->
-> instance Sieve (->) Identity where
->   sieve :: (a -> b) -> (a -> Identity b)
->   sieve f a = Identity (f a)
->
-> newtype Arr a b = Arr (a -> b) deriving newtype Profunctor
+< class (Profunctor pro, Functor f) => Sieve pro f | pro -> f where
+<   sieve :: pro a b -> (a -> f b)
+<
+< instance Sieve (->) Identity where
+<   sieve :: (a -> b) -> (a -> Identity b)
+<   sieve f a = Identity (f a)
+<
+< newtype Arr a b = Arr (a -> b) deriving newtype Profunctor
 
 |DerivingVia| requires us to derive it via the |Sieve (->) ???|
  dictionary but due to the functional dependencies (|pro -> f|) |???|
@@ -1059,8 +1065,8 @@ This author (Baldur) believes it impossible to derive instances like
 
 The author proposes a more general form as future work
 
-> instance Sieve Arr  Identity
->      via Sieve (->) Identity
+< instance Sieve Arr  Identity
+<      via Sieve (->) Identity
 
 Another use for this is something like
 
