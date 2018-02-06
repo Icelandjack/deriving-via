@@ -39,6 +39,7 @@
 > {-# LANGUAGE DefaultSignatures #-}
 > {-# LANGUAGE DeriveGeneric #-}
 > {-# LANGUAGE DerivingStrategies #-}
+> {-# LANGUAGE DerivingVia #-}
 > {-# LANGUAGE FlexibleContexts #-}
 > {-# LANGUAGE FlexibleInstances #-}
 > {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -66,12 +67,12 @@
 %else
 
 > class Monoid2 m where
-> 
+>
 >   mempty2 :: m
 >   mappend2 :: m -> m -> m
 
 > class Monoid3 m where
-> 
+>
 >   mempty3 :: m
 >   mappend3 :: m -> m -> m
 
@@ -267,7 +268,7 @@ For example, there is a way to lift a |Num| instance through any applicative
 functor (and similarly, there are ways to lift |Floating| and |Fractional|):
 
 > instance (Applicative f, Num a) => Num (f a) where
-> 
+>
 >   (+), (-), (*) :: f a -> f a -> f a
 >   (+) = liftA2 (+)
 >   (-) = liftA2 (-)
@@ -649,8 +650,8 @@ and derive via
 
 Another example from the same paper can be derived as well:
 
-< data Ptr 
-< 
+< data Ptr
+<
 < newtype ParseAction a = PA (Ptr -> IO a)
 <   deriving (Functor, Applicative) via
 <     (Compose ((->) Ptr) IO)
@@ -670,13 +671,13 @@ For representable functors the definitions of |m *> \ _ = m| and |\ _ <* m = m| 
 
 This lets us pass static static value to instance deriving.
 
-> data Person = P { name :: String, age :: Int, addr :: Maybe Address }
->   deriving (Show, Read, ToJSON, FromJSON)
->     via (Person `EncodeAs` Config OmitNothing)
+< data Person = P { name :: String, age :: Int, addr :: Maybe Address }
+<   deriving (Show, Read, ToJSON, FromJSON)
+<     via (Person `EncodeAs` Config OmitNothing)
 
 Many of these newtypes existed a long time before @-XDerivingVia@ did
 but can be used directly with it which is promising.
- 
+
 \subsubsection{Every Applicative can be reversed}
 
 The Haskell ‘wisdom’ that says every |Applicative| can be reversed can
@@ -700,7 +701,7 @@ convenient to define and work with\footnote{Functional Pearl:
 \url{http://openaccess.city.ac.uk/13222/1/Applicative-final.pdf}
 Applicative Programming with
 Effects}\footnote{\url{http://openaccess.city.ac.uk/1141/1/Constructors.pdf}
-} 
+}
 %if style /= newcode
 %format Monoidal = "\cl{Monoidal}"
 %format unit = "\id{unit}"
@@ -1005,8 +1006,8 @@ error messages easier to understand would benefit |deriving via| as well.
 
 \subsection{Deriving Multiparameter Type Classes (review this whole subsection)}
 
-> class Triple a b c where triple :: (a, b, c)
-> instance Triple () () () where triple = ((), (), ())
+< class Triple a b c where triple :: (a, b, c)
+< instance Triple () () () where triple = ((), (), ())
 
 It is sensible to use this instance to derive new instances for types
 representationally equal to unit. Certainly, it works for the final
@@ -1015,7 +1016,7 @@ parameter:
 > newtype A = A ()
 > newtype B = B ()
 > newtype C = C ()
-> 
+>
 > deriving via () instance Triple () () A
 > deriving via () instance Triple () () B
 > deriving via () instance Triple () () C
@@ -1031,11 +1032,11 @@ But we can derive |Triple A B C| via |Triple () () ()| with
 |newtype|ing where a, b, c will be instantiated to units.
 
 > newtype Via3 a b c = Via3 c
-> 
+>
 > instance (Triple a b c, Coercible (a, b) (a', b')) => Triple a' b' (Via3 a b c) where
 >   triple :: (a', b', Via3 a b c)
 >   triple = coerce (triple @a @b @c)
-> 
+>
 > deriving via (Via3 () () ()) instance Triple A B C
 > deriving via (Via3 () () ()) instance Triple A A A
 > deriving via (Via3 () () ()) instance Triple C B A
@@ -1045,11 +1046,11 @@ This author (Baldur) believes it impossible to derive instances like
 
 > class (Profunctor pro, Functor f) => Sieve pro f | pro -> f where
 >   sieve :: pro a b -> (a -> f b)
-> 
+>
 > instance Sieve (->) Identity where
 >   sieve :: (a -> b) -> (a -> Identity b)
 >   sieve f a = Identity (f a)
-> 
+>
 > newtype Arr a b = Arr (a -> b) deriving newtype Profunctor
 
 |DerivingVia| requires us to derive it via the |Sieve (->) ???|
@@ -1064,8 +1065,8 @@ The author proposes a more general form as future work
 Another use for this is something like
 
 < class Cons s t a b | s -> a, t -> b, s b -> t, t a -> s where
-<   _Cons :: Prism s t (a,s) (b,t) 
-< 
+<   _Cons :: Prism s t (a,s) (b,t)
+<
 < instance Cons [a] [b] a b
 
 and deriving an instnace for |Cons (ZipList a) (ZipList b) a b|.
