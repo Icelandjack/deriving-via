@@ -42,6 +42,7 @@
 > {-# LANGUAGE DerivingVia #-}
 > {-# LANGUAGE FlexibleContexts #-}
 > {-# LANGUAGE FlexibleInstances #-}
+> {-# LANGUAGE FunctionalDependencies #-}
 > {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 > {-# LANGUAGE InstanceSigs #-}
 > {-# LANGUAGE MultiParamTypeClasses #-}
@@ -54,7 +55,10 @@
 >
 > import Control.Applicative
 > import Control.Monad
+> import Control.Monad.Identity
+> import Control.Monad.ST
 > import Data.Coerce
+> import Data.Profunctor
 > import GHC.Generics hiding (C)
 
 %endif
@@ -1047,14 +1051,14 @@ But we can derive |Triple A B C| via |Triple () () ()| with
 This author (Baldur) believes it impossible to derive instances like
 |Sieve Arr Identity| using the |Sieve (->) Identity| dictionary
 
-< class (Profunctor pro, Functor f) => Sieve pro f | pro -> f where
-<   sieve :: pro a b -> (a -> f b)
-<
-< instance Sieve (->) Identity where
-<   sieve :: (a -> b) -> (a -> Identity b)
-<   sieve f a = Identity (f a)
-<
-< newtype Arr a b = Arr (a -> b) deriving newtype Profunctor
+> class (Profunctor pro, Functor f) => Sieve pro f | pro -> f where
+>   sieve :: pro a b -> (a -> f b)
+>
+> instance Sieve (->) Identity where
+>   sieve :: (a -> b) -> (a -> Identity b)
+>   sieve f a = Identity (f a)
+>
+> newtype Arr a b = Arr (a -> b) deriving newtype Profunctor
 
 @DerivingVia@ requires us to derive it via the |Sieve (->) ???|
  dictionary but due to the functional dependencies (|pro -> f|) |???|
@@ -1072,7 +1076,7 @@ Another use for this is something like
 <
 < instance Cons [a] [b] a b
 
-and deriving an instnace for |Cons (ZipList a) (ZipList b) a b|.
+and deriving an instance for |Cons (ZipList a) (ZipList b) a b|.
 
 \bibliographystyle{includes/ACM-Reference-Format}
 
