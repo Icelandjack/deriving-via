@@ -66,6 +66,9 @@
 %format Monoid3 = Monoid
 %format mempty3 = mempty
 %format mappend3 = mappend
+%format Monoid4 = Monoid
+%format mempty4 = mempty
+%format mappend4 = mappend
 %format overlapping =
 %else
 
@@ -78,6 +81,11 @@
 >
 >   mempty3 :: m
 >   mappend3 :: m -> m -> m
+
+> class Monoid4 m where
+>
+>   mempty4 :: m
+>   mappend4 :: m -> m -> m
 
 %format overlapping = " {-# OVERLAPPING #-} "
 %endif
@@ -312,13 +320,13 @@ calls these ``adaptors''. Perhaps we should consider this terminology too.}:
 
 > newtype App f a = MkApp (f a)
 >
-> instance (Applicative f, Monoid a) => Monoid (App f a) where
+> instance (Applicative f, Monoid4 a) => Monoid4 (App f a) where
 >
->   mempty :: App f a
->   mempty = MkApp (pure mempty)
+>   mempty4 :: App f a
+>   mempty4 = MkApp (pure mempty4)
 >
->   mappend :: App f a -> App f a -> App f a
->   mappend (MkApp f) (MkApp g) = MkApp (liftA2 mappend f g)
+>   mappend4 :: App f a -> App f a -> App f a
+>   mappend4 (MkApp f) (MkApp g) = MkApp (liftA2 mappend4 f g)
 
 Since GHC 8.4, we also need a |Semigroup| instance, because it just became
 a superclass of |Monoid|\footnote{See Section~\ref{sec:superclasses} for
@@ -339,23 +347,22 @@ guaranteed to have the same representation as the underlying type
 > newtype Alt f a = MkAlt (f a)
 >   deriving (Functor, Applicative, Alternative)
 >
-> instance Alternative f => Monoid (Alt f a) where
->   mempty   =  empty
->   mappend  =  (<|>)
+> instance Alternative f => Monoid4 (Alt f a) where
+>   mempty4   =  empty
+>   mappend4  =  (<|>)
 >
 > instance Alternative f => Semigroup (Alt f a) where
->   (<>) = mappend
+>   (<>) = mappend4
 
 We now introduce a new style of |deriving| that allows us to instruct
 the compiler to use such a newtype-derived rule as the basis of a new
 instance definition.
 
 For example, using the @StandaloneDeriving@ language extension, the
-|Monoid| instances for |IO| and |[]| could be written as follows
-\alnote{Both these declarations currenly fail}:
+|Monoid| instances for |IO| and |[]| could be written as follows:
 
-< deriving via (App IO a) instance Monoid3 a => Monoid3 (IO a)
-< deriving via (Alt [] a) instance Monoid3 [a]
+> deriving via (App IO a) instance Monoid4 a => Monoid4 (IO a)
+> deriving via (Alt [] a) instance Monoid4 [a]
 
 Here, |via| is a new language construct that explains \emph{how} GHC
 should derive the instance, namely be reusing the instance already
@@ -1059,7 +1066,7 @@ This author (Baldur) believes it impossible to derive instances like
 <
 < newtype Arr a b = Arr (a -> b) deriving newtype Profunctor
 
-|DerivingVia| requires us to derive it via the |Sieve (->) ???|
+@DerivingVia@ requires us to derive it via the |Sieve (->) ???|
  dictionary but due to the functional dependencies (|pro -> f|) |???|
  must be fully determined by |(->)|.
 
