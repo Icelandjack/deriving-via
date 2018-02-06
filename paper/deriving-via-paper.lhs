@@ -151,7 +151,10 @@ by providing implementations of all the methods of the class.
 
 Quite often, however, these implementations are not completely ad-hoc, but are
 in fact determined by the application of a general rule. For example, in the
-@base@ package, we can find the following instance for the |Monoid| class:
+@base@ package, we can find the following instances for the |Monoid| class:
+
+\noindent
+\begin{minipage}{.5\linewidth}
 
 > instance Monoid a => Monoid2 (IO a) where
 >
@@ -161,7 +164,25 @@ in fact determined by the application of a general rule. For example, in the
 >   mappend2 :: IO a -> IO a -> IO a
 >   mappend2 = liftA2 mappend
 
-While the definition as given is specific to |IO|, the principle is
+\end{minipage}
+\begin{minipage}{.5\linewidth}
+
+> instance Monoid b => Monoid2 (a -> b) where
+>
+>   mempty2 :: a -> b
+>   mempty2 = pure mempty
+>
+>   mappend2 :: (a -> b) -> (a -> b) -> (a -> b)
+>   mappend2 = liftA2 mappend
+
+\end{minipage}
+
+While the definition as given\alnote{Adapt the following if we keep
+the two monoid instances.
+Also, the instance for functions in base doesn't actually look like
+the above, whereas the one for |IO| does. I had carefully chosen
+|IO| for exactly that reason.}
+is specific to |IO|, the principle is
 not: we can always lift a monoid |a| over a type constructor |f| as
 long as |f| is an applicative functor (we can similarly lift with
 |Biapplicative|). This is the case for |IO|, but it is also true for
