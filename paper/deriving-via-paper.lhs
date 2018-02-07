@@ -98,6 +98,7 @@
 
 \title{Deriving-via}
 \author{Baldur Blöndal}
+\authornote{It would be nice to have a title, something that (like "copy-paste") invokes the sense of boilerplate that can be textually substituted}
 \affiliation{
 }
 \author{Andres Löh}
@@ -116,6 +117,8 @@ Subsumes generalized |newtype| deriving.
 
 We present a new Haskell language extension that miraculously solves
 all problems in generic programming that ever existed.
+
+I want to make it very 
 \end{abstract}
 
 % CCSXML to be inserted later:
@@ -682,7 +685,7 @@ This lets us pass static static value to instance deriving.
 Many of these newtypes existed a long time before @-XDerivingVia@ did
 but can be used directly with it which is promising.
 
-\subsubsection{Every Applicative can be reversed}
+\subsection{Every Applicative can be reversed}
 
 The Haskell ‘wisdom’ that says every |Applicative| can be reversed can
 be codified in the data type |Rev|:\alnote{|Rev| is called |Backwards|
@@ -695,7 +698,7 @@ in @transformers@.}
 >
 >   MkRev f <*> MkRev x = MkRev (liftA2 (flip ($)) x f)
 
-\subsubsection{Equivalent Applicative definition}
+\subsection{Equivalent Applicative definition}
 
 There is an equivalent, more symmetric definition of |Applicative|
 arising from category theory (characterizing Applicative as a strong
@@ -738,7 +741,7 @@ in these two instances
 This becomes more important (and assist us in transitioning) as we
 move to a more categorical.\footnote{Such as Kmett's |hask|}
 
-\subsubsection{Equivalent Monad definition}
+\subsection{Equivalent Monad definition}
 
 \footnote{Name taken from \url{http://www.fceia.unr.edu.ar/~mauro/pubs/Notions_of_Computation_as_Monoids.pdf}}
 %if style /= newcode
