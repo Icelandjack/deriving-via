@@ -664,8 +664,11 @@ a newtype at each element.
 
 Luckily, there is a convenient solution to this problem: the |coerce| function from
 \cite{zero-cost-coercions}:
+%if style /= newcode
+%format Coercible = "\protect\cl{Coercible}"
+%endif
 
-> coerce :: Coercible a b => a -> b
+< coerce :: Coercible a b => a -> b
 
 Operationally, |coerce| can be thought of as behaving like its wily cousin, |unsafeCoerce|,
 which takes a value of one type as casts it to a value at a another type. Unlike |unsafeCoerce|,
@@ -678,10 +681,10 @@ casted to type |b|.
 Armed with |coerce|, we can show what code @GeneralizedNewtypeDeriving@ would actually
 generate for the |Enum Age| instance above:
 
-> instance Enum Age where
->   toEnum = coerce (toEnum :: Int -> Int) :: Int -> Age
->   fromEnum = coerce (fromEnum :: Int -> Int) :: Age -> Int
->   enumFrom = coerce (enumFrom :: Int -> [Int]) :: Age -> [Age]
+< instance Enum Age where
+<   toEnum = coerce (toEnum :: Int -> Int) :: Int -> Age
+<   fromEnum = coerce (fromEnum :: Int -> Int) :: Age -> Int
+<   enumFrom = coerce (enumFrom :: Int -> [Int]) :: Age -> [Age]
 
 Now we have a strong guarantee that the |Enum| instance for |Age| has exactly the same
 runtime characteristics as the instance for |Int|. As an added benefit, the code ends up
@@ -702,15 +705,15 @@ As mentioned in the previous section, a newtype can be safely cast to and from i
 representation type, so GHC treats them as inter-|Coercible|. Continuing our earlier example,
 this would mean that GHC would be able to conclude that:
 
-> instance Coercible Age Int
-> instance Coercible Int Age
+< instance Coercible Age Int
+< instance Coercible Int Age
 
 But this is not all that |Coercible| is capable of. A key property is that GHC's constraint
 solver can look inside of other type constructors when determining if two types are
 inter-|Coercible|. For instance, both of these statements hold:
 
-> instance Coercible (Age -> [Age]) (Int -> [Int])
-> instance Coercible (Int -> [Int]) (Age -> [Age])
+< instance Coercible (Age -> [Age]) (Int -> [Int])
+< instance Coercible (Int -> [Int]) (Age -> [Age])
 
 This demonstrates the ability to cast through the function and list type constructors. This
 ability is important, as our derived |enumFrom| instance would not typecheck otherwise!
