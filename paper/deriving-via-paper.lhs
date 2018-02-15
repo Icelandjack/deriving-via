@@ -118,7 +118,7 @@ Subsumes generalized |newtype| deriving.
 We present a new Haskell language extension that miraculously solves
 all problems in generic programming that ever existed.
 
-I want to make it very 
+I want to make it very
 \end{abstract}
 
 % CCSXML to be inserted later:
@@ -378,8 +378,9 @@ instance rules that can be captured and applied using |newtype|s. In
 particular, we will see that our new language extension subsumes
 @GeneralizedNewtypeDeriving@.
 %
-In Section~\ref{sec:formalism}, we explain how the language extension works
-formally and how it fits into the existing framework of @DerivingStrategies@.
+In Section~\ref{sec:typechecking}, we explain how the language extension works
+from a typechecking perspective and how it fits into the existing framework of
+@DerivingStrategies@.
 %
 Section~\ref{sec:advanced} shows some further uses cases that are more advanced and perhaps
 somewhat surprising.
@@ -517,7 +518,7 @@ This would generate the exact same code as if we were using
 @GeneralizedNewtypeDeriving@. To put it more succintly, |deriving via| is
 generalized @GeneralizedNewtypeDeriving@.
 
-\section{Formalism}\label{sec:formalism}
+\section{Typechecking}\label{sec:typechecking}
 
 Seeing enough examples of |deriving via| can give the impression that it is
 a somewhat magical extension. In this section, we aim to explain the "magic"
