@@ -458,66 +458,6 @@ identical to |fmap| and |(<*>)|, respectively.
 
 \subsection{QuickCheck}\label{sec:quickcheck}
 
-% \subsection{Subsuming @GeneralizedNewtypeDeriving@}\label{sec:gnd}
-%
-% \rsnote{The prose in this section assumes that we have introduced the ideas and
-% underlying concepts behind @GeneralizedNewtypeDeriving@ beforehand. When doing
-% another pass over this section in the future, we should verify that that is
-% indeed the case.}
-%
-% An interesting property of |deriving via| is that it completely subsumes the
-% capabilities of the @GeneralizedNewtypeDeriving@ extension. Recall that
-% @GeneralizedNewtypeDeriving@ is used to derive an instance for a |newtype| by
-% reusing the instance of its underlying representation type. For instance:
-% %if style /= newcode
-% %format Age = "\ty{Age}"
-% %format MkAge = "\con{MkAge}"
-% %endif
-%
-% > newtype Age = MkAge Int
-% >   deriving Num
-%
-% This code would generate the instance:
-% %if style == newcode
-% %format Age = Age2
-% %format MkAge = MkAge2
-%
-% > newtype Age = MkAge Int
-%
-% %endif
-%
-% > instance Num Age where
-% >   negate  =  coerce (negate  ::  Int -> Int)
-% >   abs     =  coerce (abs     ::  Int -> Int)
-% >   -- etc.
-%
-% %if style == newcode
-%
-% >   (+) = undefined
-% >   (*) = undefined
-% >   signum = undefined
-% >   fromInteger = undefined
-%
-% %endif
-%
-% \rsnote{Should we introduce |coerce| here?}
-%
-% That is, one can implement an |Num| instance for |Age| by reusing the |Num|
-% instance for |Int|. But observe that this is simply a special case of
-% |deriving via|! If we use the |newtype|'s representation type as the |via|
-% type, then we can just as well derive the instance above like so:
-% %if style == newcode
-% %format Age = Age3
-% %format MkAge = MkAge3
-% %endif
-%
-% > newtype Age = MkAge Int
-% >  deriving Num via Int
-%
-% This would generate the exact same code as if we were using
-% @GeneralizedNewtypeDeriving@. To put it more succintly, |deriving via| is
-% generalized @GeneralizedNewtypeDeriving@.
-
 \section{Typechecking}\label{sec:typechecking}
 
 Seeing enough examples of |deriving via| can give the impression that it is
@@ -689,6 +629,65 @@ the @GeneralizedNewtypeDeriving@ takes, so it is informative to first explain ho
 @GeneralizedNewtypeDeriving@ works. From there, |deriving via| is a straightforward
 generalization---so much so that |deriving via| could be thought of as
 "generalized @GeneralizedNewtypeDeriving@".
+
+Our running example in this section will be the newtype |Age|, which is a simple
+wrapper around |Int| (which we will call the \textit{representation type}):
+
+%if style /= newcode
+%format Age = "\ty{Age}"
+%format MkAge = "\con{MkAge}"
+%endif
+
+> newtype Age = MkAge Int
+>   deriving Enum
+
+A na{\"i}ve way to generate code would be to manually wrap and unwrap the |MkAge| constructor
+wherever necessary, such as in the code below:
+
+< instance Enum Age where
+<   toEnum i = MkAge (toEnum i)
+<   fromEnum (MkAge x) = fromEnum x
+<   enumFrom (MkAge x) = map MkAge (enumFrom x)
+
+This works, but is somewhat unsatisying. After all, a newtype is intended to be a zero-cost
+abstraction that acts identically to its representation type at runtime. Accordingly, any
+function that mentions a newtype in its type signature should be able to be converted to
+a new function with all occurrences of the newtype in the type signature replaced with the
+representation type, and moreover, that new function should behave identically to the old one
+at runtime.
+
+Unfortunately, the implementation of |enumFrom| may not uphold this guarantee. While wrapping
+and unwrapping the |MkAge| constructor is certain to be a no-op, the |map| function is
+definitely \textit{not} a no-op, as it must walk the length of a list. But the fact that we
+need to call |map| in the first place feels rather silly, as all we are doing is wrapping
+a newtype at each element.
+
+Luckily, there is a convenient solution to this problem: the |coerce| function from
+\cite{zero-cost-coercions}:
+
+> coerce :: Coercible a b => a -> b
+
+Operationally, |coerce| can be thought of as behaving like its wily cousin, |unsafeCoerce|,
+which takes a value of one type as casts it to a value at a another type. Unlike |unsafeCoerce|,
+which can break programs if used carelessly, |coerce| is completely type-safe due to its
+use of the |Coercible| constraint. We will explain |Coercible| in more detail later, but for now,
+it suffices to say that a |Coercible a b| constraint witnesses the fact that two types |a|
+and |b| have the same representation at runtime, and thus any value of type |a| can be
+casted to type |b| (and vice versa).
+
+Armed with |coerce|, we can show what code @GeneralizedNewtypeDeriving@ would actually
+generate for the |Enum Age| instance above:
+
+> instance Enum Age where
+>   toEnum = coerce (toEnum :: Int -> Int) :: Int -> Age
+>   fromEnum = coerce (fromEnum :: Int -> Int) :: Age -> Int
+>   enumFrom = coerce (enumFrom :: Int -> [Int]) :: Age -> [Age]
+
+Now we have a strong guarantee that the |Enum| instance for |Age| has exactly the same
+runtime characteristics as the instance for |Int|. As an added benefit, the code ends up
+being simpler, as every method can be implemented as a straightforward application of
+|coerce|. The only interesting part is generating the two type signatures: one for the
+representation type, and one for the newtype.
 
 \subsection{|deriving via| is opt-in}
 
