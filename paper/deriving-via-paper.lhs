@@ -571,6 +571,8 @@ implementation of these ideas in GHC does so.
 
 \subsection{Type variable scoping}
 
+\subsubsection{Binding sites}
+
 Consider the following example:
 %if style /= newcode
 %format Bar = "\cl{Bar}"
@@ -578,9 +580,9 @@ Consider the following example:
 %endif
 
 < data Foo a = DOTS
-<   deriving (Bar a b) via (Baz a b c)
+<   deriving (Bar a b) via (Baz a b)
 
-Where is each type variable quantified in this example? The answers are:
+Where is each type variable quantified?
 
 \begin{itemize}
  \item |a| is bound by |Foo| itself in the declaration |data Foo a|.
@@ -590,11 +592,10 @@ Where is each type variable quantified in this example? The answers are:
  \item |b| is bound by the derived class, |Bar a b|. However, |b| is
        \emph{implicitly} quantified, whereas |a| is \emph{explicitly}
        quantified. |b| scopes over the |via| type as well.
- \item |c| is not bound anywhere, and is a free variable.
 \end{itemize}
 
-In the example above, |b| was implicitly quantified, but it is in fact
-possible to explicitly quantify it using explicit |forall| syntax:
+In the example above, |b| was implicitly quantified, but we could imagine that it
+was explicitly quantified by using |forall| syntax:
 
 < data Foo a = DOTS
 <   deriving (forall b. Bar a) via (Baz a b c)
@@ -618,6 +619,63 @@ the |deriving| clause, the |a| within |Y a| is distinct from the |a| in |X a|.
 And since the binding site for the |a| in |Y a| occurs deeper than the binding
 site for the |a| in |X a|, the |a| in |Z a| refers to the same |a| as in
 |Y a|.
+
+\subsubsection{Multiple binding sites?}
+
+One slight wrinkle in this story is that |deriving| clauses can specify \textit{multiple}
+classes to derive per data type, e.g.,
+
+< data Bar
+<   deriving (C1 a, C2 a)
+
+How should this behave when combined with |deriving via|? Suppose we augmented the previous
+example with a |via| type, and to make the issue more evident, let's explicitly quantify the
+type variables in the |deriving| clause:
+
+< data Bar
+<   deriving (forall a. C1 a, forall a. C2 a) via (T a)
+
+Where is the |a| in |T a| bound? There are two equally valid options: the |a| from
+|forall a. C1 a|, or the |a| from |forall a. C2 a|. Moreover, we cannot combine the binding
+sites for these |a| variables in general, as it is possible that the |a| in |C1 a| has a
+different kind than the |a| in |C2 a|.
+
+We avoid this thorny issue as follows: whenever we have a |deriving via| clause with
+two or more classes, we desugar it to a series of single-class |deriving via| clauses.
+For instance, we would desugar our earlier example:
+
+< data Bar
+<   deriving (forall a. C1 a, forall a. C2 a) via (T a)
+
+Into this:
+
+< data Bar
+<   deriving (forall a. C1 a) via (T a)
+<   deriving (forall a. C2 a) via (T a)
+
+Now, the quantification has become unambiguous.
+
+A tricky corner case to consider is that |deriving| clauses can also derive \textit{zero}
+classes to derive. Combined with |deriving via|, this can lead to the following example:
+
+< data Bar
+<   deriving () via S
+
+To deal with this, we opt to desugar this declaration to a datatype with no |deriving|
+clauses whatsoever:
+
+< data Bar
+
+This is a bit strange, since the |S| type is never actually used post-desugaring, but doing
+so keeps the rules fairly consistent. Some care is needed here, however, because we must
+also reject an example like this:
+
+< data Bar
+<   deriving () via (T a)
+
+Where the |a| in |T a| has no binding site.
+
+\subsection{Code generation}
 
 \subsection{|deriving via| is opt-in}
 
