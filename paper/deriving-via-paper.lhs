@@ -521,16 +521,14 @@ generalized @GeneralizedNewtypeDeriving@.
 \section{Typechecking}\label{sec:typechecking}
 
 Seeing enough examples of |deriving via| can give the impression that it is
-a somewhat magical extension. In this section, we aim to explain the "magic"
-underlying |deriving via| by giving a precise, algorithmic description of
+a somewhat magical feature. In this section, we aim to explain the magic
+underlying |deriving via| by giving a more precise description of:
 
 \begin{itemize}
  \item How |deriving via| clauses are typechecked
  \item What code |deriving via| generates behind the scenes
 \end{itemize}
 
-Throughout this section, we will refer to two groups of examples. One example,
-shown below, is intended to be as general as possible:
 %if style /= newcode
 %format (sub (x) (i)) = x "_{" i "}"
 %format D = "\ty{D}"
@@ -543,30 +541,29 @@ shown below, is intended to be as general as possible:
 %format C = "\cl{C}"
 %endif
 
-< data D (sub x 1) DOTS (sub x d) = DOTS
-<   deriving (C (sub y 1) DOTS (sub y (c - 1)))
-<            via (V (sub z 1) DOTS (sub z v))
-<
-< class C (sub y 1) DOTS (sub y (c-1)) (sub y c) where
-<   type T1 (sub t1 1) DOTS (sub y c) DOTS (sub t1 m)
-<   DOTS
-<   type Ts (sub ts 1) DOTS (sub y c) DOTS (sub ts n)
-<
-<   m1 :: (sub mty1 1) DOTS (sub y c) DOTS (sub mty1 o)
-<   DOTS
-<   mf :: (sub mtyf 1) DOTS (sub y c) DOTS (sub mtyf p)
-
-In other words, |D| is a data type with |d| type parameters, |C| is a type
-class with |c| type parameters, and |V| is some type with |v| type parameters.
-Moreover, |C| has |s| associated type families and |f| class methods, each
-with different kinds and types, but all of which mentioning the last type
-parameter of |C|, |sub y c|.
-
-Because it is sometimes difficult to communicate ideas by showing them in
-their full generality with |D|, |C|, and |V|, we will also occasionally make
-reference to the following simpler examples:
-
-TODO RGS: Put stuff here
+% RGS: Commented out, since this is likely more confusing than not.
+%
+% Throughout this section, we will refer to two groups of examples. One example,
+% shown below, is intended to be as general as possible:
+%
+% < data D (sub x 1) DOTS (sub x d) = DOTS
+% <   deriving (C (sub y 1) DOTS (sub y (c - 1)))
+% <            via (V (sub z 1) DOTS (sub z v))
+% <
+% < class C (sub y 1) DOTS (sub y (c-1)) (sub y c) where
+% <   type T1 (sub t1 1) DOTS (sub y c) DOTS (sub t1 m)
+% <   DOTS
+% <   type Ts (sub ts 1) DOTS (sub y c) DOTS (sub ts n)
+% <
+% <   m1 :: (sub mty1 1) DOTS (sub y c) DOTS (sub mty1 o)
+% <   DOTS
+% <   mf :: (sub mtyf 1) DOTS (sub y c) DOTS (sub mtyf p)
+%
+% In other words, |D| is a data type with |d| type parameters, |C| is a type
+% class with |c| type parameters, and |V| is some type with |v| type parameters.
+% Moreover, |C| has |s| associated type families and |f| class methods, each
+% with different kinds and types, but all of which mentioning the last type
+% parameter of |C|, |sub y c|.
 
 To avoid clutter, we assume that all types have monomorphic kinds. However, it
 is easy to incorporate kind polymorphism~\cite{haskell-promotion}, and our
@@ -621,6 +618,34 @@ the |deriving| clause, the |a| within |Y a| is distinct from the |a| in |X a|.
 And since the binding site for the |a| in |Y a| occurs deeper than the binding
 site for the |a| in |X a|, the |a| in |Z a| refers to the same |a| as in
 |Y a|.
+
+\subsection{|deriving via| is opt-in}
+
+|deriving| can sometimes be slightly ambiguous due to the fact that it can generate completely
+different code for a type class instance depending on the context. For instance,
+consider the following example:
+
+< data T = MkT Int
+<   deriving Ord
+
+In this case, GHC will generate the following instance:
+
+< instance Ord T where
+<   compare (MkT i1) (MkT i2) = compare i1 i2
+
+This is the standard approach for deriving |Ord|. However, if one tweaks the definition of |T|
+slightly:
+
+< newtype T = MkT Int
+<   deriving Ord
+
+Then GHC recognizes the fact that |T| is a newtype and will instead generate code
+using the @GeneralizedNewtypeDeriving@ approach:
+
+< instance Ord T where
+<   compare = coerce (compare :: Int -> Int -> Ordering)
+
+This approach uses an explicit TODO RGS
 
 \section{Advanced uses}\label{sec:advanced}
 
