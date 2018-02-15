@@ -458,65 +458,65 @@ identical to |fmap| and |(<*>)|, respectively.
 
 \subsection{QuickCheck}\label{sec:quickcheck}
 
-\subsection{Subsuming @GeneralizedNewtypeDeriving@}\label{sec:gnd}
-
-\rsnote{The prose in this section assumes that we have introduced the ideas and
-underlying concepts behind @GeneralizedNewtypeDeriving@ beforehand. When doing
-another pass over this section in the future, we should verify that that is
-indeed the case.}
-
-An interesting property of |deriving via| is that it completely subsumes the
-capabilities of the @GeneralizedNewtypeDeriving@ extension. Recall that
-@GeneralizedNewtypeDeriving@ is used to derive an instance for a |newtype| by
-reusing the instance of its underlying representation type. For instance:
-%if style /= newcode
-%format Age = "\ty{Age}"
-%format MkAge = "\con{MkAge}"
-%endif
-
-> newtype Age = MkAge Int
->   deriving Num
-
-This code would generate the instance:
-%if style == newcode
-%format Age = Age2
-%format MkAge = MkAge2
-
-> newtype Age = MkAge Int
-
-%endif
-
-> instance Num Age where
->   negate  =  coerce (negate  ::  Int -> Int)
->   abs     =  coerce (abs     ::  Int -> Int)
->   -- etc.
-
-%if style == newcode
-
->   (+) = undefined
->   (*) = undefined
->   signum = undefined
->   fromInteger = undefined
-
-%endif
-
-\rsnote{Should we introduce |coerce| here?}
-
-That is, one can implement an |Num| instance for |Age| by reusing the |Num|
-instance for |Int|. But observe that this is simply a special case of
-|deriving via|! If we use the |newtype|'s representation type as the |via|
-type, then we can just as well derive the instance above like so:
-%if style == newcode
-%format Age = Age3
-%format MkAge = MkAge3
-%endif
-
-> newtype Age = MkAge Int
->  deriving Num via Int
-
-This would generate the exact same code as if we were using
-@GeneralizedNewtypeDeriving@. To put it more succintly, |deriving via| is
-generalized @GeneralizedNewtypeDeriving@.
+% \subsection{Subsuming @GeneralizedNewtypeDeriving@}\label{sec:gnd}
+%
+% \rsnote{The prose in this section assumes that we have introduced the ideas and
+% underlying concepts behind @GeneralizedNewtypeDeriving@ beforehand. When doing
+% another pass over this section in the future, we should verify that that is
+% indeed the case.}
+%
+% An interesting property of |deriving via| is that it completely subsumes the
+% capabilities of the @GeneralizedNewtypeDeriving@ extension. Recall that
+% @GeneralizedNewtypeDeriving@ is used to derive an instance for a |newtype| by
+% reusing the instance of its underlying representation type. For instance:
+% %if style /= newcode
+% %format Age = "\ty{Age}"
+% %format MkAge = "\con{MkAge}"
+% %endif
+%
+% > newtype Age = MkAge Int
+% >   deriving Num
+%
+% This code would generate the instance:
+% %if style == newcode
+% %format Age = Age2
+% %format MkAge = MkAge2
+%
+% > newtype Age = MkAge Int
+%
+% %endif
+%
+% > instance Num Age where
+% >   negate  =  coerce (negate  ::  Int -> Int)
+% >   abs     =  coerce (abs     ::  Int -> Int)
+% >   -- etc.
+%
+% %if style == newcode
+%
+% >   (+) = undefined
+% >   (*) = undefined
+% >   signum = undefined
+% >   fromInteger = undefined
+%
+% %endif
+%
+% \rsnote{Should we introduce |coerce| here?}
+%
+% That is, one can implement an |Num| instance for |Age| by reusing the |Num|
+% instance for |Int|. But observe that this is simply a special case of
+% |deriving via|! If we use the |newtype|'s representation type as the |via|
+% type, then we can just as well derive the instance above like so:
+% %if style == newcode
+% %format Age = Age3
+% %format MkAge = MkAge3
+% %endif
+%
+% > newtype Age = MkAge Int
+% >  deriving Num via Int
+%
+% This would generate the exact same code as if we were using
+% @GeneralizedNewtypeDeriving@. To put it more succintly, |deriving via| is
+% generalized @GeneralizedNewtypeDeriving@.
 
 \section{Typechecking}\label{sec:typechecking}
 
@@ -676,6 +676,19 @@ also reject an example like this:
 Where the |a| in |T a| has no binding site.
 
 \subsection{Code generation}
+
+Once the typechecker has ascertained that a |via| type is fully compatibly with the data type
+and the class for which an instance is being derived, GHC proceeds with generating the code
+for the instance itself. This generated code is then fed \textit{back} into the typechecker,
+which acts as a final sanity check that GHC is doing the right thing under the hood.
+
+\subsubsection{@GeneralizedNewtypeDeriving@} \label{sec:gnd}
+
+The process by which |deriving via| generates code is heavily based off of the approach that
+the @GeneralizedNewtypeDeriving@ takes, so it is informative to first explain how
+@GeneralizedNewtypeDeriving@ works. From there, |deriving via| is a straightforward
+generalization---so much so that |deriving via| could be thought of as
+"generalized @GeneralizedNewtypeDeriving@".
 
 \subsection{|deriving via| is opt-in}
 
@@ -888,7 +901,7 @@ Parallel Legacy Languages as Theorem Provers (deriving
 
 \subsection{Enhancing @DefaultSignatures@}\label{sec:defaultsignatures}
 
-In \ref{sec:gnd}, we observed that |deriving via| can fully replace the
+In section \ref{sec:gnd}, we observed that |deriving via| can fully replace the
 @GeneralizedNewtypeDeriving@ extension. In fact, that's not the only language
 extension that |deriving via| can be used as a substitute for! There is another
 type class-related extension, @DefaultSignatures@, which is frequently used by
