@@ -673,7 +673,7 @@ which can break programs if used carelessly, |coerce| is completely type-safe du
 use of the |Coercible| constraint. We will explain |Coercible| in more detail later, but for now,
 it suffices to say that a |Coercible a b| constraint witnesses the fact that two types |a|
 and |b| have the same representation at runtime, and thus any value of type |a| can be
-casted to type |b| (and vice versa).
+casted to type |b|.
 
 Armed with |coerce|, we can show what code @GeneralizedNewtypeDeriving@ would actually
 generate for the |Enum Age| instance above:
@@ -688,6 +688,34 @@ runtime characteristics as the instance for |Int|. As an added benefit, the code
 being simpler, as every method can be implemented as a straightforward application of
 |coerce|. The only interesting part is generating the two type signatures: one for the
 representation type, and one for the newtype.
+
+\subsubsection{The |Coercible| constraint}
+
+A |Coercible| constraint can be thought of as evidence that GHC can use to
+cast between two types. |Coercible| is not a type class, so it is impossible to write
+a |Coercible| instance by hand. Instead, GHC can generate and solve |Coercible| constraints
+automatically as part of its built-in constraint solver, much like it can solve equality
+constraints. (Indeed, |Coercible| can be thought of as a broader notion of equality among
+types.)
+
+As mentioned in the previous section, a newtype can be safely cast to and from its
+representation type, so GHC treats them as inter-|Coercible|. Continuing our earlier example,
+this would mean that GHC would be able to conclude that:
+
+> instance Coercible Age Int
+> instance Coercible Int Age
+
+But this is not all that |Coercible| is capable of. A key property is that GHC's constraint
+solver can look inside of other type constructors when determining if two types are
+inter-|Coercible|. For instance, both of these statements hold:
+
+> instance Coercible (Age -> [Age]) (Int -> [Int])
+> instance Coercible (Int -> [Int]) (Age -> [Age])
+
+This demonstrates the ability to cast through the function and list type constructors. This
+ability is important, as our derived |enumFrom| instance would not typecheck otherwise!
+
+TODO RGS
 
 \subsection{|deriving via| is opt-in}
 
