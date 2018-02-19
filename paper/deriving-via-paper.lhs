@@ -615,6 +615,65 @@ also reject an example like this:
 
 Where the |a| in |T a| has no binding site.
 
+\subsection{Well typed uses of |deriving via|}
+
+|deriving via| grants the programmer the ability to put extra types in her programs,
+but the flip side to this is that it's possible for her to accidentally put total nonsense
+into a |deriving via| clause, such as:
+
+< newtype S = S Char
+<   deriving Eq via Maybe
+
+In this section, we will describe a general algorithm for when a |deriving via| clause should
+typecheck, which will allow us to reject ill-formed examples like the one above.
+
+\subsubsection{Aligning kinds}
+
+Suppose we are deriving the following instance:
+
+%if style /= newcode
+%format (sub (x) (i)) = x "_{" i "}"
+%format D = "\ty{D}"
+%format y_1
+%format DOTS = "\textrm{\dots} "
+%format T1 = "\ty{T1}"
+%format Ts = "\ty{Ts}"
+%format m1 = "\id{m1}"
+%format mf = "\id{mf}"
+%format C = "\cl{C}"
+%endif
+
+< data D (sub d 1) DOTS (sub d m)
+<   deriving (C (sub c 1) DOTS (sub c n)) via (V (sub v 1) DOTS (sub v p))
+
+In order for this declaration to typecheck, we must check the \textit{kinds} of each type.
+In particular, the following conditions must hold:
+
+\begin{enumerate}
+ \item
+   |C (sub c 1) DOTS (sub c n)| must have kind |(k -> Constraint)| for some kind |k|.
+   This because the instance we must generate:
+
+< instance C (sub c 1) DOTS (sub c n) (D (sub d 1) DOTS (sub d i)) where DOTS
+
+   Requires that we apply |C (sub c 1) DOTS (sub c n)| to another type
+   |D (sub d 1) DOTS (sub d i)| (more on what
+   |(sub d i)| is in a moment).
+   Therefore, it would be nonsense to try to derive an instance of |C (sub c 1) DOTS (sub c n)|
+   if it had kind, say, |Constraint|.
+
+ \item
+   The kinds of |C (sub c 1) DOTS (sub c n)|,
+   |V (sub v 1) DOTS (sub v n)|, and |D (sub d 1) ... (sub d i)| must all unify.
+   This check would rule out the earlier example of |deriving Eq via Maybe|, as it does
+   not even make sense to talk about
+   reusing the |Eq| instance for |Maybe|---which is of kind |(* -> *)|---as |Eq| instances
+   only make sense for types of kind |*|.
+\end{enumerate}
+
+Note that we are referring to |D (sub d 1) DOTS (sub d i)|, instead of
+|D (sub d 1) DOTS (sub d m)|. TODO RGS
+
 \subsection{Code generation}
 
 Once the typechecker has ascertained that a |via| type is fully compatibly with the data type
