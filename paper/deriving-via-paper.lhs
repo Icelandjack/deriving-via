@@ -700,9 +700,13 @@ we must examine the kind of
 |(sub k 1), DOTS, (sub k r)|. Then the number of variables to eta-reduce is simply $r$,
 so to compute the $i$ in |D (sub d 1) DOTS (sub d i)|, we take $i = m - r$.
 
-This is better explained by example, so in the following two scenarios:
+This is better explained by example, so consider the following two scenarios,
+both of which typecheck:
 
-< data A a
+< newtype A a = A a deriving Eq      via (Identity a)
+< newtype B a = B a deriving Functor via Identity
+
+In the derived |Eq| instance, TODO RGS
 
 \subsection{Code generation}
 
