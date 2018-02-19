@@ -141,7 +141,7 @@ https://www.youtube.com/watch?v=3U3lV5VPmOU}
 %if style /= newcode
 %format via = "\keyw{via}"
 %format Foo = "\ty{Foo}"
-%format MkFoo = "\con{Foo}"
+%format MkFoo = "\con{MkFoo}"
 %format Flip = "\ty{Flip}"
 %format Monoid = "\cl{Monoid}"
 %format Semigroup = "\cl{Semigroup}"
@@ -154,13 +154,13 @@ https://www.youtube.com/watch?v=3U3lV5VPmOU}
 %format Wrap = "\ty{Wrap}"
 %format Wrap1 = "\ty{Wrap1}"
 %format MkWrap = "\con{Wrap}"
-%format MkWrap1 = "\con{Wrap}"
+%format MkWrap1 = "\con{MkWrap}"
 %format App = "\ty{App}"
 %format Alt = "\ty{Alt}"
-%format MkApp = "\con{App}"
-%format MkAlt = "\con{Alt}"
+%format MkApp = "\con{MkApp}"
+%format MkAlt = "\con{MkAlt}"
 %format Endo = "\ty{Endo}"
-%format MkEndo = "\con{Endo}"
+%format MkEndo = "\con{MkEndo}"
 %format coerce = "\id{coerce}"
 %format ap = "\id{ap}"
 %endif
@@ -676,8 +676,27 @@ In particular, the following conditions must hold:
    only make sense for types of kind |*|.
 \end{enumerate}
 
-Note that we are referring to |D (sub d 1) DOTS (sub d i)|, instead of
-|D (sub d 1) DOTS (sub d m)|. TODO RGS
+\subsubsection{Eta-reducing the data type}
+
+Note that the conditions above, |D (sub d 1) DOTS (sub d i)| (for some |i|), instead of
+|D (sub d 1) DOTS (sub d m)|. That is because in general, the kind of
+|C (sub c 1) DOTS (sub c n)| is allowed to be different from the kind of
+|D (sub d 1) DOTS (sub d m)|! For instance, the following example is perfectly legitimate:
+
+< class Functor (f :: * -> *) where ...
+<
+< data Foo a = MkFoo a a
+<   deriving Functor
+
+Despite the fact that |Foo a| has kind |*| and |Functor| has kind |(* -> *)|. This is
+because the code that actually gets generated has the following shape:
+
+< instance Functor Foo where ...
+
+To put it different, we have \textit{eta-reduced} away the |a| in |Foo a| before applying
+|Functor| to it.
+
+TODO RGS
 
 \subsection{Code generation}
 
