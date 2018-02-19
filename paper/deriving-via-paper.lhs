@@ -47,6 +47,7 @@
 > {-# LANGUAGE InstanceSigs #-}
 > {-# LANGUAGE MultiParamTypeClasses #-}
 > {-# LANGUAGE PolyKinds #-}
+> {-# LANGUAGE RankNTypes #-}
 > {-# LANGUAGE ScopedTypeVariables #-}
 > {-# LANGUAGE StandaloneDeriving #-}
 > {-# LANGUAGE TypeApplications #-}
@@ -532,11 +533,18 @@ Consider the following example:
 %if style /= newcode
 %format Bar = "\cl{Bar}"
 %format Baz = "\cl{Baz}"
+%format MkFoo = DOTS
 %endif
 
-< data Foo a = DOTS
-<   deriving (Bar a b) via (Baz a b)
+> data Foo a = MkFoo
+>   deriving (Bar a b) via (Baz a b)
 
+%if style == newcode
+
+> class Bar a b c
+> data Baz a b
+
+%endif
 Where is each type variable quantified?
 
 \begin{itemize}
@@ -554,9 +562,16 @@ Where is each type variable quantified?
 
 In the example above, |b| was implicitly quantified, but we could imagine that it
 was explicitly quantified by using |forall| syntax:
+%if style == newcode
+%format Foo = Foo3
+%format MkFoo = MkFoo3
+%format PARENS (x) = ((x))
+%else
+%format PARENS (x) = (x)
+%endif
 
-< data Foo a = DOTS
-<   deriving (forall b. Bar a b) via (Baz a b)
+> data Foo a = MkFoo
+>   deriving PARENS (forall b. Bar a b) via (Baz a b)
 
 This declaration of |Foo| is wholly equivalent to the earlier one, but the use
 of |forall| makes it clear where |b|'s binding site is\alnote{%
