@@ -533,7 +533,7 @@ Where is each type variable quantified?
  \item |a| is bound by |Foo| itself in the declaration |data Foo a|.
        These type variable binders are the outermost ones, and as a result, it
        scopes over both the derived class, |Bar a b|, as well as the |via|
-       type, |Baz a b c|.
+       type, |Baz a b|.
  \item |b| is bound by the derived class, |Bar a b|. However, |b| is
        \emph{implicitly} quantified, whereas |a| is \emph{explicitly}
        quantified. |b| scopes over the |via| type as well.
@@ -543,7 +543,7 @@ In the example above, |b| was implicitly quantified, but we could imagine that i
 was explicitly quantified by using |forall| syntax:
 
 < data Foo a = DOTS
-<   deriving (forall b. Bar a) via (Baz a b c)
+<   deriving (forall b. Bar a b) via (Baz a b)
 
 This declaration of |Foo| is wholly equivalent to the earlier one, but the use
 of |forall| makes it clear where |b|'s binding site is. The possibility for
@@ -656,7 +656,9 @@ In particular, the following conditions must hold:
 
 \begin{enumerate}
  \item
-   |C (sub c 1) DOTS (sub c n)| must have kind |(k -> Constraint)| for some kind |k|.
+   |C (sub c 1) DOTS (sub c n)| must have kind
+   |(((sub k 1) -> ... -> (sub k r) -> *) -> Constraint)| for some kinds
+   |(sub k 1), DOTS, (sub k r)|.
    This because the instance we must generate:
 
 < instance C (sub c 1) DOTS (sub c n) (D (sub d 1) DOTS (sub d i)) where DOTS
@@ -693,10 +695,20 @@ because the code that actually gets generated has the following shape:
 
 < instance Functor Foo where ...
 
-To put it different, we have \textit{eta-reduced} away the |a| in |Foo a| before applying
-|Functor| to it.
+To put it differently, we have \textit{eta-reduced} away the |a| in |Foo a| before applying
+|Functor| to it. The power to eta-reduce variables from the data types is part of what
+makes |deriving| clauses so flexible.
 
-TODO RGS
+To determine how many variables to eta-reduce,
+we must examine the kind of
+|C (sub c 1) DOTS (sub c n)|, which by constraint (1) is of the form
+|(((sub k 1) -> ... -> (sub k r) -> *) -> Constraint)| for some kinds
+|(sub k 1), DOTS, (sub k r)|. Then the number of variables to eta-reduce is simply $r$,
+so to compute the $i$ in |D (sub d 1) DOTS (sub d i)|, we take $i = m - r$.
+
+This is better explained by example, so in the following two scenarios:
+
+< data A a
 
 \subsection{Code generation}
 
