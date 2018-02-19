@@ -718,7 +718,24 @@ inter-|Coercible|. For instance, both of these statements hold:
 This demonstrates the ability to cast through the function and list type constructors. This
 ability is important, as our derived |enumFrom| instance would not typecheck otherwise!
 
-TODO RGS
+Another crucial fact about |Coercible| that we rely on is that it is transitive: if
+|Coercible a b| and |Coercible b c| hold, then |Coercible a c| also holds. This is perhaps
+unsurprising if one views |Coercible| as an equivalence relation, but it a fact that is worth
+highlighting, as the transitivity of |Coercible| is what allows us to |coerce|
+\textit{between newtypes}. For instance, if we have these two newtypes:
+
+> newtype A a = A [a]
+> newtype B = B [Int]
+
+Then GHC is able to conclude that |Coercible (A Int) B| holds, because we have the following
+|Coercible| rules:
+
+< instance Coercible (A Int) [Int]
+< instance Coercible [Int] B
+
+Therefore, by the transitivity of |Coercible|, we have |Coercible (A Int) B|. |deriving via|
+in particular makes heavy use of the transitivity of |Coercible|, as we will
+see momentarily.
 
 \subsection{|deriving via| is opt-in}
 
