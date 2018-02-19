@@ -162,6 +162,7 @@ https://www.youtube.com/watch?v=3U3lV5VPmOU}
 %format Endo = "\ty{Endo}"
 %format MkEndo = "\con{Endo}"
 %format coerce = "\id{coerce}"
+%format ap = "\id{ap}"
 %endif
 
 In Haskell, type classes capture common interfaces. When we declare a
@@ -408,10 +409,10 @@ already.}
 When the ``Applicative Monad Proposal'' was introduced and turned |Monad|
 from a plain type class into one that has |Applicative| as a superclass
 (which in turn has |Functor| as a superclass), one counter-argument against
-the change was that someone who wants to primarily wants to declare a
-|Monad| instance is now required two extra instances for |Functor| and
-|Applicative| -- both of which are usually boilerplate, because they can
-be defined from the |Monad| instance.
+the change was that someone who wants to primarily wants to declare a~|Monad|
+instance is now required to define two extra instances for~|Functor|
+and~|Applicative| -- both of which are usually boilerplate, because they can
+be defined from the~|Monad| instance.
 
 We can capture these rules as follows:
 
@@ -425,8 +426,13 @@ We can capture these rules as follows:
 >   pure   =  return
 >   (<*>)  =  ap
 
+The wrapper type |FromMonad| serves the purpose of giving a name
+to the patterns. The two instance make it precise what it means
+to define the |Functor| and |Applicative| instances in terms of
+the monad instance.
+
 If we now have a datatype with a monad instance, we can simply derive
-the |Functor| and |Applicative| instances:
+the |Functor| and |Applicative| instances by referring to |FromMonad|:
 
 > data Stream a b = Done b | Yield a (Stream a b)
 >   deriving (Functor, Applicative)
