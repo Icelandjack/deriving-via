@@ -162,6 +162,7 @@ https://www.youtube.com/watch?v=3U3lV5VPmOU}
 %format Endo = "\ty{Endo}"
 %format MkEndo = "\con{MkEndo}"
 %format coerce = "\id{coerce}"
+%format ap = "\id{ap}"
 %endif
 
 In Haskell, type classes capture common interfaces. When we declare a
@@ -408,10 +409,10 @@ already.}
 When the ``Applicative Monad Proposal'' was introduced and turned |Monad|
 from a plain type class into one that has |Applicative| as a superclass
 (which in turn has |Functor| as a superclass), one counter-argument against
-the change was that someone who wants to primarily wants to declare a
-|Monad| instance is now required two extra instances for |Functor| and
-|Applicative| -- both of which are usually boilerplate, because they can
-be defined from the |Monad| instance.
+the change was that someone who wants to primarily wants to declare a~|Monad|
+instance is now required to define two extra instances for~|Functor|
+and~|Applicative| -- both of which are usually boilerplate, because they can
+be defined from the~|Monad| instance.
 
 We can capture these rules as follows:
 
@@ -425,8 +426,13 @@ We can capture these rules as follows:
 >   pure   =  return
 >   (<*>)  =  ap
 
+The wrapper type |FromMonad| serves the purpose of giving a name
+to the patterns. The two instance make it precise what it means
+to define the |Functor| and |Applicative| instances in terms of
+the monad instance.
+
 If we now have a datatype with a monad instance, we can simply derive
-the |Functor| and |Applicative| instances:
+the |Functor| and |Applicative| instances by referring to |FromMonad|:
 
 > data Stream a b = Done b | Yield a (Stream a b)
 >   deriving (Functor, Applicative)
@@ -462,10 +468,9 @@ identical to |fmap| and |(<*>)|, respectively.
 Seeing enough examples of |deriving via| can give the impression that it is
 a somewhat magical feature. In this section, we aim to explain the magic
 underlying |deriving via| by giving a more precise description of:
-
 \begin{itemize}
- \item How |deriving via| clauses are typechecked
- \item What code |deriving via| generates behind the scenes
+ \item how |deriving via| clauses are typechecked, and
+ \item what code |deriving via| generates behind the scenes.
 \end{itemize}
 
 %if style /= newcode
@@ -508,6 +513,17 @@ To avoid clutter, we assume that all types have monomorphic kinds. However, it
 is easy to incorporate kind polymorphism~\cite{haskell-promotion}, and our
 implementation of these ideas in GHC does so.
 
+\alnote{While I agree with removing the ``formal'' syntax with all its confusing
+ellipses, I still think that the discussion of the Type variable scoping problem
+now comes a bit sudden. We should probably start with discussing at least the
+general form of a deriving-via clause before jumping into the details of semantics.
+Also, I wonder if it isn't possible (and perhaps better) to give the translation
+scheme first. I think it's best to put the reader in a position where they are
+equipped to reason themselves about the problem at hand, and understand what we
+would want and why there is a problem. I think this is a bit difficult without
+having specified what kind of translation we are looking for. There may be vicious
+circles though.}
+
 \subsection{Type variable scoping}
 
 \subsubsection{Binding sites}
@@ -531,6 +547,9 @@ Where is each type variable quantified?
  \item |b| is bound by the derived class, |Bar a b|. However, |b| is
        \emph{implicitly} quantified, whereas |a| is \emph{explicitly}
        quantified. |b| scopes over the |via| type as well.
+       \alnote{Are you defining or observing the notions of ``explicit'' and
+       ``implicit'' here? Because I don't actually see a quantifier, so it
+       sounds like this is a definition? If so, perhaps that should be clarified?}
 \end{itemize}
 
 In the example above, |b| was implicitly quantified, but we could imagine that it
@@ -540,7 +559,8 @@ was explicitly quantified by using |forall| syntax:
 <   deriving (forall b. Bar a b) via (Baz a b)
 
 This declaration of |Foo| is wholly equivalent to the earlier one, but the use
-of |forall| makes it clear where |b|'s binding site is. The possibility for
+of |forall| makes it clear where |b|'s binding site is\alnote{%
+\dots at the price of obfuscating what |b| scopes over \dots}. The possibility for
 explicit quantification of class type variables raises an interesting question:
 how is the following data type treated?
 %if style /= newcode
@@ -558,6 +578,10 @@ the |deriving| clause, the |a| within |Y a| is distinct from the |a| in |X a|.
 And since the binding site for the |a| in |Y a| occurs deeper than the binding
 site for the |a| in |X a|, the |a| in |Z a| refers to the same |a| as in
 |Y a|.
+
+\alnote{What if the via-clause refers to a variable that does not occur in the
+datatype or before the via? Can this ever be correct (I think so)? Can we still
+explicitly quantify over it, even if it looks totally silly?}
 
 \subsubsection{Multiple binding sites?}
 
@@ -838,8 +862,8 @@ technique slightly to give us a way to generate code for |deriving via|.
 
 Recall that the following instance, which is derived through @GeneralizedNewtypeDeriving@:
 
-> newtype Age = MkAge Int
->   deriving Enum
+< newtype Age = MkAge Int
+<   deriving Enum
 
 Generates the following code for |enumFrom|:
 
@@ -1304,6 +1328,16 @@ error messages easier to understand would benefit |deriving via| as well.
 \subsection{Deriving Multiparameter Type Classes (review this whole subsection)}
 %if style == newcode
 %format Triple = Triple_
+%format A = A2
+%format B = B2
+%format C = C2
+%else
+%format A = "\ty{A}"
+%format B = "\ty{B}"
+%format C = "\ty{C}"
+%format MkA = "\con{A}"
+%format MkB = "\con{B}"
+%format MkC = "\con{C}"
 %endif
 
 > class Triple a b c where triple :: (a, b, c)
@@ -1313,9 +1347,9 @@ It is sensible to use this instance to derive new instances for types
 representationally equal to unit. Certainly, it works for the final
 parameter:
 
-> newtype A = A ()
-> newtype B = B ()
-> newtype C = C ()
+> newtype A = MkA ()
+> newtype B = MkB ()
+> newtype C = MkC ()
 >
 > deriving via () instance Triple () () A
 > deriving via () instance Triple () () B
