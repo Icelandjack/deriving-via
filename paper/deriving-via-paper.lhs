@@ -650,7 +650,9 @@ In particular, the following conditions must hold:
 
 \begin{enumerate}
  \item
-   |C (sub c 1) DOTS (sub c n)| must have kind |(k -> Constraint)| for some kind |k|.
+   |C (sub c 1) DOTS (sub c n)| must have kind
+   |(((sub k 1) -> ... -> (sub k r) -> *) -> Constraint)| for some kinds
+   |(sub k 1), DOTS, (sub k r)|.
    This because the instance we must generate:
 
 < instance C (sub c 1) DOTS (sub c n) (D (sub d 1) DOTS (sub d i)) where DOTS
@@ -687,8 +689,21 @@ because the code that actually gets generated has the following shape:
 
 < instance Functor Foo where ...
 
-To put it different, we have \textit{eta-reduced} away the |a| in |Foo a| before applying
-|Functor| to it.
+To put it differently, we have \textit{eta-reduced} away the |a| in |Foo a| before applying
+|Functor| to it. The power to eta-reduce variables from the data types is part of what
+makes |deriving| clauses so flexible.
+
+To determine how many variables to eta-reduce,
+we must examine the kind of
+|C (sub c 1) DOTS (sub c n)|, which by constraint (1) is of the form
+|(((sub k 1) -> ... -> (sub k r) -> *) -> Constraint)| for some kinds
+|(sub k 1), DOTS, (sub k r)|. Then the number of variables to eta-reduce is simply $r$,
+so to compute the $i$ in |D (sub d 1) DOTS (sub d i)|, we take $i = m - r$.
+
+This is better explained by example, so in the following two scenarios:
+
+TODO RGS
+
 
 TODO RGS
 
