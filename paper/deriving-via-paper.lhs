@@ -379,8 +379,7 @@ particular, we will see that our new language extension subsumes
 @GeneralizedNewtypeDeriving@.
 %
 In Section~\ref{sec:typechecking}, we explain how the language extension works
-from a typechecking perspective and how it fits into the existing framework of
-@DerivingStrategies@.
+from a typechecking perspective and analyze the code that it generates.
 %
 Section~\ref{sec:advanced} shows some further uses cases that are more advanced and perhaps
 somewhat surprising.
@@ -849,33 +848,33 @@ Could equivalently have been written using |deriving via| like so:
 < newtype Age = MkAge Int
 <   deriving Enum via Int
 
-\subsection{|deriving via| is opt-in}
-
-|deriving| can sometimes be slightly ambiguous due to the fact that it can generate completely
-different code for a type class instance depending on the context. For instance,
-consider the following example:
-
-< data T = MkT Int
-<   deriving Ord
-
-In this case, GHC will generate the following instance:
-
-< instance Ord T where
-<   compare (MkT i1) (MkT i2) = compare i1 i2
-
-This is the standard approach for deriving |Ord|. However, if one tweaks the definition of |T|
-slightly:
-
-< newtype T = MkT Int
-<   deriving Ord
-
-Then GHC recognizes the fact that |T| is a newtype and will instead generate code
-using the @GeneralizedNewtypeDeriving@ approach:
-
-< instance Ord T where
-<   compare = coerce (compare :: Int -> Int -> Ordering)
-
-This approach uses an explicit TODO RGS
+% \subsection{|deriving via| is opt-in}
+%
+% |deriving| can sometimes be slightly ambiguous due to the fact that it can generate completely
+% different code for a type class instance depending on the context. For instance,
+% consider the following example:
+%
+% < data T = MkT Int
+% <   deriving Ord
+%
+% In this case, GHC will generate the following instance:
+%
+% < instance Ord T where
+% <   compare (MkT i1) (MkT i2) = compare i1 i2
+%
+% This is the standard approach for deriving |Ord|. However, if one tweaks the definition of |T|
+% slightly:
+%
+% < newtype T = MkT Int
+% <   deriving Ord
+%
+% Then GHC recognizes the fact that |T| is a newtype and will instead generate code
+% using the @GeneralizedNewtypeDeriving@ approach:
+%
+% < instance Ord T where
+% <   compare = coerce (compare :: Int -> Int -> Ordering)
+%
+% This approach uses an explicit TODO RGS
 
 \section{Advanced uses}\label{sec:advanced}
 
