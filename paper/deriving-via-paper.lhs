@@ -527,7 +527,7 @@ Where is each type variable quantified?
  \item |a| is bound by |Foo| itself in the declaration |data Foo a|.
        These type variable binders are the outermost ones, and as a result, it
        scopes over both the derived class, |Bar a b|, as well as the |via|
-       type, |Baz a b c|.
+       type, |Baz a b|.
  \item |b| is bound by the derived class, |Bar a b|. However, |b| is
        \emph{implicitly} quantified, whereas |a| is \emph{explicitly}
        quantified. |b| scopes over the |via| type as well.
@@ -537,7 +537,7 @@ In the example above, |b| was implicitly quantified, but we could imagine that i
 was explicitly quantified by using |forall| syntax:
 
 < data Foo a = DOTS
-<   deriving (forall b. Bar a) via (Baz a b c)
+<   deriving (forall b. Bar a b) via (Baz a b)
 
 This declaration of |Foo| is wholly equivalent to the earlier one, but the use
 of |forall| makes it clear where |b|'s binding site is. The possibility for
@@ -702,10 +702,7 @@ so to compute the $i$ in |D (sub d 1) DOTS (sub d i)|, we take $i = m - r$.
 
 This is better explained by example, so in the following two scenarios:
 
-TODO RGS
-
-
-TODO RGS
+< data A a
 
 \subsection{Code generation}
 
