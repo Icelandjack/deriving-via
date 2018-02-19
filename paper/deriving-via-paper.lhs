@@ -1,6 +1,6 @@
 \documentclass[%
-  format=acmsmall,% 1-column format used by PACMPL
-  %format=sigplan,% 2-column format used by other SIGPLAN conferences
+  %format=acmsmall,% 1-column format used by PACMPL
+  format=sigplan,% 2-column format used by other SIGPLAN conferences
   review=true,% review mode / enables line numbers
   anonymous=false,% enable to remove author names
   timestamp=true,% adds timestamps to the pages
