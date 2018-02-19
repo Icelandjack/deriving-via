@@ -692,7 +692,7 @@ being simpler, as every method can be implemented as a straightforward applicati
 |coerce|. The only interesting part is generating the two type signatures: one for the
 representation type, and one for the newtype.
 
-\subsubsection{The |Coercible| constraint}
+\subsubsection{The |Coercible| constraint} \label{sec:coercible}
 
 A |Coercible| constraint can be thought of as evidence that GHC can use to
 cast between two types. |Coercible| is not a type class, so it is impossible to write
@@ -736,6 +736,59 @@ Then GHC is able to conclude that |Coercible (A Int) B| holds, because we have t
 Therefore, by the transitivity of |Coercible|, we have |Coercible (A Int) B|. |deriving via|
 in particular makes heavy use of the transitivity of |Coercible|, as we will
 see momentarily.
+
+\subsubsection{From @GeneralizedNewtypeDeriving@ to |deriving via|}
+
+As we saw in section \ref{sec:gnd}, the code which @GeneralizedNewtypeDeriving@ generates
+relies on |coerce| to do the heavy lifting. In this section, we will generalize this
+technique slightly to give us a way to generate code for |deriving via|.
+
+Recall that the following instance, which is derived through @GeneralizedNewtypeDeriving@:
+
+> newtype Age = MkAge Int
+>   deriving Enum
+
+Generates the following code for |enumFrom|:
+
+< instance Enum Age where
+<   enumFrom = coerce (enumFrom :: Int -> [Int]) :: Age -> [Age]
+
+Here, there are two crucially important types: the representation type, |Int|, and the
+original newtype itself, |Age|. The implementation of |enumFrom| simply sets up an
+invocation of |coerce enumFrom|, with explicit type annotations to indicate that we should
+reuse the existing |enumFrom| implementation for |Int| and reappropriate it for |Age.|
+
+The only difference in the code that @GeneralizedNewtypeDeriving@ and |deriving via| generate
+is that in the former strategy, GHC always picks the representation type for you, but in
+|deriving via|, the \textit{user} has the power to choose this type. For example,
+if a programmer had written this instead:
+
+< newtype T = T Int
+< instance Enum T where DOTS
+<
+< newtype Age = MkAge Int
+<   deriving Enum via T
+
+Then the following code would be generated:
+
+< instance Enum Age where
+<   enumFrom = coerce (enumFrom :: T -> [T]) :: Age -> [Age]
+
+This time, GHC |coerce|s from an |enumFrom| implementation for |T| (the |via| type) to
+an implementation for |Age|. (Recall from section \ref{sec:coercible} that this is
+possible since we can |coerce| transitivity from |T| to |Int| to |Age|).
+
+Now we can see why the instances that |deriving via| can generate are a strict superset of
+those that @GeneralizedNewtypeDeriving@ can generate. For instance, our earlier
+@GeneralizedNewtypeDeriving@ example:
+
+< newtype Age = MkAge Int
+<   deriving Enum
+
+Could equivalently have been written using |deriving via| like so:
+
+< newtype Age = MkAge Int
+<   deriving Enum via Int
 
 \subsection{|deriving via| is opt-in}
 
