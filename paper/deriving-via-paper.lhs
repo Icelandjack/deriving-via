@@ -781,7 +781,7 @@ wherever necessary, such as in the code below:
 <   fromEnum (MkAge x) = fromEnum x
 <   enumFrom (MkAge x) = map MkAge (enumFrom x)
 
-This works, but is somewhat unsatisying. After all, a newtype is intended to be a zero-cost
+This works, but is somewhat unsatisfying. After all, a newtype is intended to be a zero-cost
 abstraction that acts identically to its representation type at runtime. Accordingly, any
 function that mentions a newtype in its type signature should be able to be converted to
 a new function with all occurrences of the newtype in the type signature replaced with the
