@@ -723,7 +723,8 @@ Note that the conditions above, |D (sub d 1) DOTS (sub d i)| (for some |i|), ins
 < data Foo a = MkFoo a a
 <   deriving Functor
 
-Despite the fact that |Foo a| has kind |*| and |Functor| has kind |(* -> *)|. This is
+Despite the fact that |Foo a| has kind |*| and the argument to |Functor|
+has kind |(* -> *)|. This is
 because the code that actually gets generated has the following shape:
 
 < instance Functor Foo where ...
@@ -743,9 +744,15 @@ This is better explained by example, so consider the following two scenarios,
 both of which typecheck:
 
 < newtype A a = A a deriving Eq      via (Identity a)
-< newtype B a = B a deriving Functor via Identity
+< newtype B b = B b deriving Functor via Identity
 
-In the derived |Eq| instance, TODO RGS
+In the first example, we have the class |Eq|, which is of kind |* -> Constraint|. The argument
+to |Eq|, which is of kind |*|, does not require that we eta-reduce any variables. As a result,
+we check that |A a| is of kind |*|, which is the case.
+
+In the second example, we have the class |Functor|, which is of kind |(* -> *) -> Constraint|.
+The argument to |Functor| is of kind |(* -> *)|, which requires that we eta-reduce one variable
+from |B b| to obtain |B|. We then check that |B| is kind of |(* -> *)|, which is true.
 
 \subsection{Code generation}
 
