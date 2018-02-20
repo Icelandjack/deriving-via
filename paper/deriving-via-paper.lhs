@@ -202,7 +202,7 @@ type constructor |f| as long as |f| is an applicative (or
 |Biapplicative|) functor. This is the case for |IO|, but it is also
 true for all the other applicative functors out there.  \alnote{There
 was a reference to Conor McBride here, mentioning ``routine
-programming'' and \url{http://strictlypositive.org/Idiom.pdf}. We
+programming'' and \cite{applicative-programming-with-effects}. We
 might want to reinsert this.}
 
 \subsection{The problem: capturing general instance rules}
@@ -1031,13 +1031,10 @@ in @transformers@.}
 
 There is an equivalent, more symmetric definition of |Applicative|
 arising from category theory (characterizing Applicative as a strong
-lax monoidal functor)\footnote{
-\url{https://arxiv.org/pdf/1406.4823.pdf} } that can be more
-convenient to define and work with\footnote{Functional Pearl:
-\url{http://openaccess.city.ac.uk/13222/1/Applicative-final.pdf}
-Applicative Programming with
-Effects}\footnote{\url{http://openaccess.city.ac.uk/1141/1/Constructors.pdf}
-}
+lax monoidal functor)~\cite{computations-as-monoids} that can be more
+convenient to define and work with
+~\cite{applicative-programming-with-effects}
+~\cite{constructing-applicative-functors}
 %if style /= newcode
 %format Monoidal = "\cl{Monoidal}"
 %format unit = "\id{unit}"
@@ -1072,7 +1069,7 @@ move to a more categorical.\footnote{Such as Kmett's |hask|}
 
 \subsection{Equivalent Monad definition}
 
-\footnote{Name taken from \url{http://www.fceia.unr.edu.ar/~mauro/pubs/Notions_of_Computation_as_Monoids.pdf}}
+\cite{computations-as-monoids}
 %if style /= newcode
 %format Triple = "\cl{Triple}"
 %format eta = "\id{eta}"
