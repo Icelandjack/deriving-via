@@ -268,7 +268,7 @@ we wanted to in this way.
 
 Currently, the only viable workaround is to define individual
 instances for each datatype in spirit of the |Monoid (IO a)| instance
-shown in the beginning. sBut as we shall see in the remainder of this
+shown in the beginning. But as we shall see in the remainder of this
 paper, there are many such rules, and while the approach of defining
 individual instances in a uniform format may be somewhat feasible for
 classes that consists of just one or two methods, it becomes extremely
