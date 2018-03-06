@@ -119,8 +119,10 @@ Subsumes generalized |newtype| deriving.
 We present a new Haskell language extension that miraculously solves
 all problems in generic programming that ever existed.
 
-I want to make it very
-\end{abstract}
+I want to make it very clear that this works perfectly for |data|, not
+limited to |newtype|.
+
+  \end{abstract}
 
 % CCSXML to be inserted later:
 %
@@ -175,35 +177,24 @@ Quite often, however, these implementations are not unrelated but the
 application of a common pattern. For example, in the @base@ package,
 we can find the following |Monoid| instances:
 
-\noindent
-\begin{minipage}{.5\linewidth}
-
 > instance Monoid a => Monoid2 (IO a) where
 >
 >   mempty2  = pure mempty
 >   mappend2 = liftA2 mappend
-
-\end{minipage}
-\begin{minipage}{.5\linewidth}
 
 > instance Monoid a => Monoid2 (ST s a) where
 >
 >   mempty2  = pure mempty
 >   mappend2 = liftA2 mappend
 
-\end{minipage}
-
-While the definition as given\alnote{Adapt the following if we keep
-the two monoid instances.  Also, the instance for functions in base
-doesn't actually look like the above, whereas the one for |IO| does. I
-had carefully chosen |IO| for exactly that reason.}  is specific to
-|IO|, the principle is not: we can always lift a monoid |a| over a
-type constructor |f| as long as |f| is an applicative (or
-|Biapplicative|) functor. This is the case for |IO|, but it is also
-true for all the other applicative functors out there.  \alnote{There
-was a reference to Conor McBride here, mentioning ``routine
-programming'' and \cite{applicative-programming-with-effects}. We
-might want to reinsert this.}
+While the definition as given is specific to |IO a| and |ST s a|, the
+principle is not: we can always lift a monoid |a| over a type
+constructor |f| as long as |f| is an applicative (or |Biapplicative|)
+functor. This is the case for |IO|, but it is also true for all the
+other applicative functors out there.  \alnote{There was a reference
+to Conor McBride here, mentioning ``routine programming'' and
+\cite{applicative-programming-with-effects}. We might want to reinsert
+this.}
 
 \subsection{The problem: capturing general instance rules}
 
@@ -463,6 +454,42 @@ weaker, argument applies to suggested changes to relax the constraints of
 identical to |fmap| and |(<*>)|, respectively.
 
 \subsection{QuickCheck}\label{sec:quickcheck}
+
+QuickCheck, a famous testing library for Haskell, provides |Arbitrary|
+for types whose values it can generate (and shrink). |Gen a| generates
+values of type |a|
+
+< class Arbitrary a where
+<   gen    :: Gen a
+<   shrink :: a -> [a]
+
+Staying clear of the merits of 
+
+Writing these instance by hand and keeping them synced with a changing
+type is tedious, fortunately we
+
+< arbitraryBoundedRandom :: (Bounded a, Random a) => Gen a
+
+
+on but we can rely on more structure to
+
+< arbitrarySizedBoundedIntegral :: (Bounded a, Integral a) => Gen a
+
+There is no default definition for |gen| but there are so many ways to
+choose from. All the |Word| and |Int| instances have the exact same
+instance body
+
+< instance Arbitrary Int8 where
+<   arbitrary = arbitrarySizedBoundedIntegral
+<   shrink    = shrinkIntegral
+
+so they 
+
+|Word|s and |Int|s of all size
+
+There is no generic @arbitrary@ implementation included because we don't know how to make a high-quality one.
+
+
 
 \section{Typechecking}\label{sec:typechecking}
 
