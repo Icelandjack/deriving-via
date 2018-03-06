@@ -1,0 +1,12 @@
+A GHC Proposal is a document describing a proposed change to the
+compiler, the GHC/Haskell language, or the libraries in the GHC.*
+module namespace. These include,
+
+    A syntactic change to GHC/Haskell (e.g. the various ShortImports
+    proposals, do expressions without $) A major change to the
+    user-visible behaviour of the compiler (e.g. the recent change in
+    super-class solving, and -Wall behavior) The addition of major
+    features to the compiler (e.g. -XTypeInType, GHCi commands,
+    type-indexed Typeable representations)
+
+Changes to the GHC API or the plugin API are not automatically within the scope of the committee, and can be contributed following

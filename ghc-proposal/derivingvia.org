@@ -1,13 +1,28 @@
 * DerivingVia
 
-Here you should write a short abstract motivating and briefly summarizing the proposed change.
+Derive instances for a datatype through instances for any other type
+of the same representation. It adds the =via= deriving strategy that
+allows listing classes to derive and then the type (=ViaType=) whose
+instances to use.
 
+: data ...
+:   deriving (Cls1, Cls2)
+:     via ViaType
+
+Here you should write a short abstract motivating and briefly
+summarizing the proposed change.
 
 * Motivation
+Today many instances are literally copy-pasted for each type or solved
+with a preprocessor, this extension allows describing this pattern
+once and for all and extending GHC's deriving mechanism to use
+=deriving= rather than some external tool
+
+
+
 Give a strong reason for why the community needs this change. Describe
 the use case as clearly as possible and give an example. Explain how
 the status quo is insufficient or not ideal.
-
 
 * Proposed Change Specification
 Specify the change in precise, comprehensive yet concise
