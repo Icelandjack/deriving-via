@@ -1,4 +1,5 @@
 {-# Language RankNTypes, DerivingStrategies, DeriveFunctor, InstanceSigs, ScopedTypeVariables, DerivingVia #-}
+module Codensity where
 
 -- import Data.Kind
 import Data.Functor.Compose
@@ -40,7 +41,7 @@ instance MonadTrans Codensity where
   lift m = Codensity bind
 
     where
-    bind :: forall xx. (a -> m xx) -> m xx 
+    bind :: forall xx. (a -> m xx) -> m xx
     bind = (m >>=)
 
 ----------------------------------------------------------------------
@@ -59,7 +60,7 @@ newtype ContT f m a = ContT (forall xx. (a -> m (f xx)) -> m (f xx))
 --   lift m = ContT @_ @m @a (bind @(f _))
 
 --     where
---     bind :: forall xx. (a -> m xx) -> m xx 
+--     bind :: forall xx. (a -> m xx) -> m xx
 --     bind = (m >>=)
 
 -- type Run t = forall n b. Monad n => t n b -> n (StT t b)
