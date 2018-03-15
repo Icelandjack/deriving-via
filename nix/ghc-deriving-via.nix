@@ -77,8 +77,8 @@ in
             origin = "git://git.haskell.org/ghc.git"; # primary repo
             url    = "git://github.com/ryanglscott/ghc.git"; # our fork
             ref    = "refs/heads/deriving-via"; # branch we want
-            commit = "15a907c4f5d54c32735fb1bac7bed82046723e2b"; # commit we want
-            sha256 = "1aaghi7ky3lzpqfjwjxc2hq90wzwq9s6lh3b2zwkd8gdihv632f9";
+            commit = "26b019112d5eba0b4f4c7cba68b218fcd7774f6a"; # commit we want
+            sha256 = "0dgd5qwam6nizh2l31pg4sm46009hajhlzbncmih94w5ywai1iwm";
           };
 
           # # Set build flavour to devel2.

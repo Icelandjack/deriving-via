@@ -10,8 +10,8 @@ let
         doCheck = false;
         jailbreak = true;
       });
-      primitive = super.primitive_0_6_3_0;
-      profunctors = super.profunctors_5_2_2;
+      # primitive = super.primitive_0_6_3_0;
+      # profunctors = super.profunctors_5_2_2;
       text = super.text_1_2_3_0;
       unordered-containers = appendPatch super.unordered-containers ./patches/unordered-containers-0.2.8.0.patch;
     };
