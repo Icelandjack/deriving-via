@@ -455,7 +455,8 @@ identical to |fmap| and |(<*>)|, respectively.
 
 \subsection{QuickCheck}\label{sec:quickcheck}
 
-QuickCheck, a famous testing library for Haskell, provides |Arbitrary|
+QuickCheck, a famous testing library for Haskell
+~\cite{quickcheck}, provides |Arbitrary|
 for types whose values it can generate (and shrink). |Gen a| generates
 values of type |a|
 
@@ -1001,7 +1002,7 @@ instances adding the following line
 \bbnote{I used this just now to get a Semigroup instance for Compose f g a.}
 
 If, like \cite{twist-pointers}
-we wanted to sequential composition for |IO ()| rather than lifted
+we wanted to sequential composion for |IO ()| rather than lifted
 behaviour all we need to do is write an adapter type
 
 > newtype Seq f = Seq (f ())
