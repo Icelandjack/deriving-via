@@ -463,7 +463,7 @@ values of type |a|
 <   gen    :: Gen a
 <   shrink :: a -> [a]
 
-Staying clear of the merits of 
+Staying clear of the merits of
 
 Writing these instance by hand and keeping them synced with a changing
 type is tedious, fortunately we
@@ -483,7 +483,7 @@ instance body
 <   arbitrary = arbitrarySizedBoundedIntegral
 <   shrink    = shrinkIntegral
 
-so they 
+so they
 
 |Word|s and |Int|s of all size
 
@@ -1000,9 +1000,8 @@ instances adding the following line
 
 \bbnote{I used this just now to get a Semigroup instance for Compose f g a.}
 
-If, like
-\url{https://www.cse.iitk.ac.in/users/ppk/research/publication/Conference/2016-09-22-How-to-twist-pointers.pdf}
-we wanted to sequential compotision for |IO ()| rather than lifted
+If, like \cite{twist-pointers}
+we wanted to sequential composition for |IO ()| rather than lifted
 behaviour all we need to do is write an adapter type
 
 > newtype Seq f = Seq (f ())
