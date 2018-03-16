@@ -693,7 +693,7 @@ into a |deriving via| clause, such as:
 In this section, we will describe a general algorithm for when a |deriving via| clause should
 typecheck, which will allow us to reject ill-formed examples like the one above.
 
-\subsubsection{Aligning kinds}
+\subsubsection{Aligning kinds} \label{sec:kinds}
 
 Suppose we are deriving the following instance:
 
@@ -1410,7 +1410,19 @@ quality, given that the error messages are a result of |coerce| failing to
 typecheck. It is likely that investing more effort into making |coerce|'s
 error messages easier to understand would benefit |deriving via| as well.
 
-\subsection{Deriving Multiparameter Type Classes (review this whole subsection)}
+\subsection{Multi-Parameter Type Classes}
+
+GHC extends Haskell by permitting type classes with more than one parameter.
+Multi-parameter type classes are extremely common in modern Haskell, to the
+point where we assumed the existence of them in Section \ref{sec:kinds}
+without further mention. However, multi-parameter type classes pose an
+intriguing design question when combined with @deriving via@ and
+@StandaloneDeriving@, another GHC feature which allows one to write
+@deriving@ declarations independently of a data type.
+
+For example, one can write the following instance using
+@StandaloneDeriving@:
+
 %if style == newcode
 %format Triple = Triple_
 %format A = A2
@@ -1425,70 +1437,114 @@ error messages easier to understand would benefit |deriving via| as well.
 %format MkC = "\con{C}"
 %endif
 
-> class Triple a b c where triple :: (a, b, c)
-> instance Triple () () () where triple = ((), (), ())
-
-It is sensible to use this instance to derive new instances for types
-representationally equal to unit. Certainly, it works for the final
-parameter:
-
+> class Triple a b c where
+>   triple :: (a, b, c)
+>
+> instance Triple () () () where
+>   triple = ((), (), ())
+>
 > newtype A = MkA ()
 > newtype B = MkB ()
 > newtype C = MkC ()
 >
-> deriving via () instance Triple () () A
-> deriving via () instance Triple () () B
-> deriving via () instance Triple () () C
+> deriving via () instance Triple A B C
 
-But can we derive the instance |Triple A B C|? Not readily, the
-instance used is the instance being derived with the |via|-type as the
-last parameter. The following is forced to derive via the instance
-|Triple A B ??|:
+However, the code it generates is somewhat surprising. Instead of reusing
+the |Triple () () ()| instance in the derived instance, it will attempt
+to reuse an instance for |Triple A B ()|. This is because, by convention,
+@StandaloneDeriving@ will only ever coerce through the \textit{last}
+argument of a class. That is because the standalone instance above would be
+the same as if a user had written:
 
-< deriving via ?? instance Triple A B C
+< newtype C = MkC ()
+<   deriving (Triple A B) via ()
 
-But we can derive |Triple A B C| via |Triple () () ()| with
-|newtype|ing where a, b, c will be instantiated to units.
+This consistency is perhaps a bit limiting in this context, where we have
+multiple arguments to |C| that one could ``derive through''. But it is not
+immediately clear how GHC would figure out which of these arguments to |C|
+should be derived through, as there seven different combinations it could
+choose! It is possible that another syntax would need to be devised to
+allow users to specify which arguments should be coerced to avoid this
+ambiguity.
 
-> newtype Via3 a b c = Via3 c
->
-> instance (Triple a b c, Coercible (a, b) (a', b')) => Triple a' b' (Via3 a b c) where
->   triple :: (a', b', Via3 a b c)
->   triple = coerce (triple @a @b @c)
->
-> deriving via (Via3 () () ()) instance Triple A B C
-> deriving via (Via3 () () ()) instance Triple A A A
-> deriving via (Via3 () () ()) instance Triple C B A
-
-This author (Baldur) believes it impossible to derive instances like
-|Sieve Arr Identity| using the |Sieve (->) Identity| dictionary
-
-> class (Profunctor pro, Functor f) => Sieve pro f | pro -> f where
->   sieve :: pro a b -> (a -> f b)
->
-> instance Sieve (->) Identity where
->   sieve :: (a -> b) -> (a -> Identity b)
->   sieve f a = Identity (f a)
->
-> newtype Arr a b = Arr (a -> b) deriving newtype Profunctor
-
-@DerivingVia@ requires us to derive it via the |Sieve (->) ???|
- dictionary but due to the functional dependencies (|pro -> f|) |???|
- must be fully determined by |(->)|.
-
-The author proposes a more general form as future work
-
-< instance Sieve Arr  Identity
-<      via Sieve (->) Identity
-
-Another use for this is something like
-
-< class Cons s t a b | s -> a, t -> b, s b -> t, t a -> s where
-<   _Cons :: Prism s t (a,s) (b,t)
-<
-< instance Cons [a] [b] a b
-
-and deriving an instance for |Cons (ZipList a) (ZipList b) a b|.
+% %if style == newcode
+% %format Triple = Triple_
+% %format A = A2
+% %format B = B2
+% %format C = C2
+% %else
+% %format A = "\ty{A}"
+% %format B = "\ty{B}"
+% %format C = "\ty{C}"
+% %format MkA = "\con{A}"
+% %format MkB = "\con{B}"
+% %format MkC = "\con{C}"
+% %endif
+%
+% > class Triple a b c where triple :: (a, b, c)
+% > instance Triple () () () where triple = ((), (), ())
+%
+% It is sensible to use this instance to derive new instances for types
+% representationally equal to unit. Certainly, it works for the final
+% parameter:
+%
+% > newtype A = MkA ()
+% > newtype B = MkB ()
+% > newtype C = MkC ()
+% >
+% > deriving via () instance Triple () () A
+% > deriving via () instance Triple () () B
+% > deriving via () instance Triple () () C
+%
+% But can we derive the instance |Triple A B C|? Not readily, the
+% instance used is the instance being derived with the |via|-type as the
+% last parameter. The following is forced to derive via the instance
+% |Triple A B ??|:
+%
+% < deriving via ?? instance Triple A B C
+%
+% But we can derive |Triple A B C| via |Triple () () ()| with
+% |newtype|ing where a, b, c will be instantiated to units.
+%
+% > newtype Via3 a b c = Via3 c
+% >
+% > instance (Triple a b c, Coercible (a, b) (a', b')) => Triple a' b' (Via3 a b c) where
+% >   triple :: (a', b', Via3 a b c)
+% >   triple = coerce (triple @a @b @c)
+% >
+% > deriving via (Via3 () () ()) instance Triple A B C
+% > deriving via (Via3 () () ()) instance Triple A A A
+% > deriving via (Via3 () () ()) instance Triple C B A
+%
+% This author (Baldur) believes it impossible to derive instances like
+% |Sieve Arr Identity| using the |Sieve (->) Identity| dictionary
+%
+% > class (Profunctor pro, Functor f) => Sieve pro f | pro -> f where
+% >   sieve :: pro a b -> (a -> f b)
+% >
+% > instance Sieve (->) Identity where
+% >   sieve :: (a -> b) -> (a -> Identity b)
+% >   sieve f a = Identity (f a)
+% >
+% > newtype Arr a b = Arr (a -> b) deriving newtype Profunctor
+%
+% @DerivingVia@ requires us to derive it via the |Sieve (->) ???|
+%  dictionary but due to the functional dependencies (|pro -> f|) |???|
+%  must be fully determined by |(->)|.
+%
+% The author proposes a more general form as future work
+%
+% < instance Sieve Arr  Identity
+% <      via Sieve (->) Identity
+%
+% Another use for this is something like
+%
+% < class Cons s t a b | s -> a, t -> b, s b -> t, t a -> s where
+% <   _Cons :: Prism s t (a,s) (b,t)
+% <
+% < instance Cons [a] [b] a b
+%
+% and deriving an instance for |Cons (ZipList a) (ZipList b) a b|.
 
 \bibliographystyle{includes/ACM-Reference-Format}
 
