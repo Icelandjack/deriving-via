@@ -498,8 +498,9 @@ Seeing enough examples of |deriving via| can give the impression that it is
 a somewhat magical feature. In this section, we aim to explain the magic
 underlying |deriving via| by giving a more precise description of:
 \begin{itemize}
- \item how |deriving via| clauses are typechecked, and
- \item what code |deriving via| generates behind the scenes.
+ \item How |deriving via| clauses are typechecked
+ \item What code |deriving via| generates behind the scenes
+ \item How to determine the scoping of type variables in |deriving via| clauses
 \end{itemize}
 
 %if style /= newcode
@@ -1316,7 +1317,7 @@ TODO: Something about ML functors?
 
 \subsection{Explicit dictionary passing}
 
-The power and flexibility of @deriving via@ is largely due to GHC's ability
+The power and flexibility of |deriving via| is largely due to GHC's ability
 to take a class method of a particular type and massage it into a method
 of a different type. This process is almost completely abstracted away from
 the user, however. A user only needs to specify the types involved, and GHC
@@ -1325,27 +1326,27 @@ will handle the rest behind the scenes.
 An alternative approach, which would put more power into the hands of the
 programmer, is to permit the ability to explicitly construct and pass the
 normally implicit dictionary arguments corresponding to type class instances
-~\cite{implicit-params-explicit}. Unlike in @deriving via@, where going between
+~\cite{implicit-params-explicit}. Unlike in |deriving via|, where going between
 class instances is a process that is carefully guided by the compiler,
 permitting explicit dictionary arguments would allow users to actually
 @coerce@ concrete instance values and pass them around as first-class objects.
 In this sense, explicit dictionary arguments could be thought of as a further
-generalization of the technique that @deriving via@ uses.
+generalization of the technique that |deriving via| uses.
 
 However, explicit dictionary arguments do come with some costs. They
 require significantly enhancing Haskell's type system to support, and
 they break principle typing. Moreover, we feel as if explicit
 dictionary passing to too large a hammer for the nail we are trying to hit.
-@deriving via@ works by means of a simple desugaring of code with some
+|deriving via| works by means of a simple desugaring of code with some
 light typechecking on top, which makes it much simpler to describe and
 implement. Finally, the problem which explicit dictionaries aims to
 solve---resolving ambiguity in implicit arguments---almost never arises
-in @deriving via@, as the programmer must specify all the types involved
+in |deriving via|, as the programmer must specify all the types involved
 in the process.
 
 \section{Limitations and Future Work}\label{sec:conclusions}
 
-We have implemented @deriving via@ within the GHC.
+We have implemented |deriving via| within the GHC.
 Our implementation also interacts well with other GHC features that were
 not covered in this paper, such as kind polymorphism ~\cite{haskell-promotion},
 @StandaloneDeriving@ \rsnote{Is this true? Double-check.},
@@ -1406,9 +1407,9 @@ GHC extends Haskell by permitting type classes with more than one parameter.
 Multi-parameter type classes are extremely common in modern Haskell, to the
 point where we assumed the existence of them in Section \ref{sec:kinds}
 without further mention. However, multi-parameter type classes pose an
-intriguing design question when combined with @deriving via@ and
+intriguing design question when combined with |deriving via| and
 @StandaloneDeriving@, another GHC feature which allows one to write
-@deriving@ declarations independently of a data type.
+|deriving| declarations independently of a data type.
 
 For example, one can write the following instance using
 @StandaloneDeriving@:
