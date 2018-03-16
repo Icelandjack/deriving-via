@@ -1355,6 +1355,14 @@ in the process.
 
 \section{Limitations and Future Work}\label{sec:conclusions}
 
+We have implemented @deriving via@ within the GHC.
+Our implementation also interacts well with other GHC features that were
+not covered in this paper, such as kind polymorphism ~\cite{haskell-promotion},
+@StandaloneDeriving@ \rsnote{Is this true? Double-check.},
+and type classes with associated type families ~\cite{associated-type-synonyms}.
+However, there are still challenges remaining, which we will describe
+in this section.
+
 \subsection{Quality of error messages}
 
 The nice thing about |deriving| is that when it works, it tends to work
