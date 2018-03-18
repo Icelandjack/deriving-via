@@ -455,7 +455,8 @@ identical to |fmap| and |(<*>)|, respectively.
 
 \subsection{QuickCheck}\label{sec:quickcheck}
 
-QuickCheck, a famous testing library for Haskell, provides |Arbitrary|
+QuickCheck, a famous testing library for Haskell
+~\cite{quickcheck}, provides |Arbitrary|
 for types whose values it can generate (and shrink). |Gen a| generates
 values of type |a|
 
@@ -463,7 +464,7 @@ values of type |a|
 <   gen    :: Gen a
 <   shrink :: a -> [a]
 
-Staying clear of the merits of 
+Staying clear of the merits of
 
 Writing these instance by hand and keeping them synced with a changing
 type is tedious, fortunately we
@@ -483,7 +484,7 @@ instance body
 <   arbitrary = arbitrarySizedBoundedIntegral
 <   shrink    = shrinkIntegral
 
-so they 
+so they
 
 |Word|s and |Int|s of all size
 
@@ -497,8 +498,9 @@ Seeing enough examples of |deriving via| can give the impression that it is
 a somewhat magical feature. In this section, we aim to explain the magic
 underlying |deriving via| by giving a more precise description of:
 \begin{itemize}
- \item how |deriving via| clauses are typechecked, and
- \item what code |deriving via| generates behind the scenes.
+ \item How |deriving via| clauses are typechecked
+ \item What code |deriving via| generates behind the scenes
+ \item How to determine the scoping of type variables in |deriving via| clauses
 \end{itemize}
 
 %if style /= newcode
@@ -541,145 +543,6 @@ To avoid clutter, we assume that all types have monomorphic kinds. However, it
 is easy to incorporate kind polymorphism~\cite{haskell-promotion}, and our
 implementation of these ideas in GHC does so.
 
-\alnote{While I agree with removing the ``formal'' syntax with all its confusing
-ellipses, I still think that the discussion of the Type variable scoping problem
-now comes a bit sudden. We should probably start with discussing at least the
-general form of a deriving-via clause before jumping into the details of semantics.
-Also, I wonder if it isn't possible (and perhaps better) to give the translation
-scheme first. I think it's best to put the reader in a position where they are
-equipped to reason themselves about the problem at hand, and understand what we
-would want and why there is a problem. I think this is a bit difficult without
-having specified what kind of translation we are looking for. There may be vicious
-circles though.}
-
-\subsection{Type variable scoping}
-
-\subsubsection{Binding sites}
-
-Consider the following example:
-%if style /= newcode
-%format Bar = "\cl{Bar}"
-%format Baz = "\cl{Baz}"
-%format MkFoo = DOTS
-%endif
-
-> data Foo a = MkFoo
->   deriving (Bar a b) via (Baz a b)
-
-%if style == newcode
-
-> class Bar a b c
-> data Baz a b
-
-%endif
-Where is each type variable quantified?
-
-\begin{itemize}
- \item |a| is bound by |Foo| itself in the declaration |data Foo a|.
-       These type variable binders are the outermost ones, and as a result, it
-       scopes over both the derived class, |Bar a b|, as well as the |via|
-       type, |Baz a b|.
- \item |b| is bound by the derived class, |Bar a b|. However, |b| is
-       \emph{implicitly} quantified, whereas |a| is \emph{explicitly}
-       quantified. |b| scopes over the |via| type as well.
-       \alnote{Are you defining or observing the notions of ``explicit'' and
-       ``implicit'' here? Because I don't actually see a quantifier, so it
-       sounds like this is a definition? If so, perhaps that should be clarified?}
-\end{itemize}
-
-In the example above, |b| was implicitly quantified, but we could imagine that it
-was explicitly quantified by using |forall| syntax:
-%if style == newcode
-%format Foo = Foo3
-%format MkFoo = MkFoo3
-%format PARENS (x) = ((x))
-%else
-%format PARENS (x) = (x)
-%endif
-
-> data Foo a = MkFoo
->   deriving PARENS (forall b. Bar a b) via (Baz a b)
-
-This declaration of |Foo| is wholly equivalent to the earlier one, but the use
-of |forall| makes it clear where |b|'s binding site is\alnote{%
-\dots at the price of obfuscating what |b| scopes over \dots}. The possibility for
-explicit quantification of class type variables raises an interesting question:
-how is the following data type treated?
-%if style /= newcode
-%format X = "\ty{X}"
-%format Y = "\cl{Y}"
-%format Z = "\cl{Z}"
-%endif
-
-< data X a = DOTS
-<   deriving (forall a. Y a) via (Z a)
-
-First, recall that the data type variable binders are the outermost ones.
-Moreover, because |Y| explicitly binds its own type variable named |a| within
-the |deriving| clause, the |a| within |Y a| is distinct from the |a| in |X a|.
-And since the binding site for the |a| in |Y a| occurs deeper than the binding
-site for the |a| in |X a|, the |a| in |Z a| refers to the same |a| as in
-|Y a|.
-
-\alnote{What if the via-clause refers to a variable that does not occur in the
-datatype or before the via? Can this ever be correct (I think so)? Can we still
-explicitly quantify over it, even if it looks totally silly?}
-
-\subsubsection{Multiple binding sites?}
-
-One slight wrinkle in this story is that |deriving| clauses can specify \textit{multiple}
-classes to derive per data type, e.g.,
-
-< data Bar
-<   deriving (C1 a, C2 a)
-
-How should this behave when combined with |deriving via|? Suppose we augmented the previous
-example with a |via| type, and to make the issue more evident, let's explicitly quantify the
-type variables in the |deriving| clause:
-
-< data Bar
-<   deriving (forall a. C1 a, forall a. C2 a) via (T a)
-
-Where is the |a| in |T a| bound? There are two equally valid options: the |a| from
-|forall a. C1 a|, or the |a| from |forall a. C2 a|. Moreover, we cannot combine the binding
-sites for these |a| variables in general, as it is possible that the |a| in |C1 a| has a
-different kind than the |a| in |C2 a|.
-
-We avoid this thorny issue as follows: whenever we have a |deriving via| clause with
-two or more classes, we desugar it to a series of single-class |deriving via| clauses.
-For instance, we would desugar our earlier example:
-
-< data Bar
-<   deriving (forall a. C1 a, forall a. C2 a) via (T a)
-
-Into this:
-
-< data Bar
-<   deriving (forall a. C1 a) via (T a)
-<   deriving (forall a. C2 a) via (T a)
-
-Now, the quantification has become unambiguous.
-
-A tricky corner case to consider is that |deriving| clauses can also derive \textit{zero}
-classes to derive. Combined with |deriving via|, this can lead to the following example:
-
-< data Bar
-<   deriving () via S
-
-To deal with this, we opt to desugar this declaration to a datatype with no |deriving|
-clauses whatsoever:
-
-< data Bar
-
-This is a bit strange, since the |S| type is never actually used post-desugaring, but doing
-so keeps the rules fairly consistent. Some care is needed here, however, because we must
-also reject an example like this:
-
-< data Bar
-<   deriving () via (T a)
-
-Where the |a| in |T a| has no binding site.
-
 \subsection{Well typed uses of |deriving via|}
 
 |deriving via| grants the programmer the ability to put extra types in her programs,
@@ -692,7 +555,7 @@ into a |deriving via| clause, such as:
 In this section, we will describe a general algorithm for when a |deriving via| clause should
 typecheck, which will allow us to reject ill-formed examples like the one above.
 
-\subsubsection{Aligning kinds}
+\subsubsection{Aligning kinds} \label{sec:kinds}
 
 Suppose we are deriving the following instance:
 
@@ -956,6 +819,135 @@ Could equivalently have been written using |deriving via| like so:
 < newtype Age = MkAge Int
 <   deriving Enum via Int
 
+\subsection{Type variable scoping}
+
+\subsubsection{Binding sites}
+
+Consider the following example:
+%if style /= newcode
+%format Bar = "\cl{Bar}"
+%format Baz = "\cl{Baz}"
+%format MkFoo = DOTS
+%endif
+
+> data Foo a = MkFoo
+>   deriving (Bar a b) via (Baz a b)
+
+%if style == newcode
+
+> class Bar a b c
+> data Baz a b
+
+%endif
+Where is each type variable quantified?
+
+\begin{itemize}
+ \item |a| is bound by |Foo| itself in the declaration |data Foo a|.
+       These type variable binders are the outermost ones, and as a result, it
+       scopes over both the derived class, |Bar a b|, as well as the |via|
+       type, |Baz a b|.
+ \item |b| is bound by the derived class, |Bar a b|. However, |b| is
+       \emph{implicitly} quantified, whereas |a| is \emph{explicitly}
+       quantified. |b| scopes over the |via| type as well.
+       \alnote{Are you defining or observing the notions of ``explicit'' and
+       ``implicit'' here? Because I don't actually see a quantifier, so it
+       sounds like this is a definition? If so, perhaps that should be clarified?}
+\end{itemize}
+
+In the example above, |b| was implicitly quantified, but we could imagine that it
+was explicitly quantified by using |forall| syntax:
+%if style == newcode
+%format Foo = Foo3
+%format MkFoo = MkFoo3
+%format PARENS (x) = ((x))
+%else
+%format PARENS (x) = (x)
+%endif
+
+> data Foo a = MkFoo
+>   deriving PARENS (forall b. Bar a b) via (Baz a b)
+
+This declaration of |Foo| is wholly equivalent to the earlier one, but the use
+of |forall| makes it clear where |b|'s binding site is\alnote{%
+\dots at the price of obfuscating what |b| scopes over \dots}. The possibility for
+explicit quantification of class type variables raises an interesting question:
+how is the following data type treated?
+%if style /= newcode
+%format X = "\ty{X}"
+%format Y = "\cl{Y}"
+%format Z = "\cl{Z}"
+%endif
+
+< data X a = DOTS
+<   deriving (forall a. Y a) via (Z a)
+
+First, recall that the data type variable binders are the outermost ones.
+Moreover, because |Y| explicitly binds its own type variable named |a| within
+the |deriving| clause, the |a| within |Y a| is distinct from the |a| in |X a|.
+And since the binding site for the |a| in |Y a| occurs deeper than the binding
+site for the |a| in |X a|, the |a| in |Z a| refers to the same |a| as in
+|Y a|.
+
+\alnote{What if the via-clause refers to a variable that does not occur in the
+datatype or before the via? Can this ever be correct (I think so)? Can we still
+explicitly quantify over it, even if it looks totally silly?}
+
+\subsubsection{Multiple binding sites?}
+
+One slight wrinkle in this story is that |deriving| clauses can specify \textit{multiple}
+classes to derive per data type, e.g.,
+
+< data Bar
+<   deriving (C1 a, C2 a)
+
+How should this behave when combined with |deriving via|? Suppose we augmented the previous
+example with a |via| type, and to make the issue more evident, let's explicitly quantify the
+type variables in the |deriving| clause:
+
+< data Bar
+<   deriving (forall a. C1 a, forall a. C2 a) via (T a)
+
+Where is the |a| in |T a| bound? There are two equally valid options: the |a| from
+|forall a. C1 a|, or the |a| from |forall a. C2 a|. Moreover, we cannot combine the binding
+sites for these |a| variables in general, as it is possible that the |a| in |C1 a| has a
+different kind than the |a| in |C2 a|.
+
+We avoid this thorny issue as follows: whenever we have a |deriving via| clause with
+two or more classes, we desugar it to a series of single-class |deriving via| clauses.
+For instance, we would desugar our earlier example:
+
+< data Bar
+<   deriving (forall a. C1 a, forall a. C2 a) via (T a)
+
+Into this:
+
+< data Bar
+<   deriving (forall a. C1 a) via (T a)
+<   deriving (forall a. C2 a) via (T a)
+
+Now, the quantification has become unambiguous.
+
+A tricky corner case to consider is that |deriving| clauses can also derive \textit{zero}
+classes to derive. Combined with |deriving via|, this can lead to the following example:
+
+< data Bar
+<   deriving () via S
+
+To deal with this, we opt to desugar this declaration to a datatype with no |deriving|
+clauses whatsoever:
+
+< data Bar
+
+This is a bit strange, since the |S| type is never actually used post-desugaring, but doing
+so keeps the rules fairly consistent. Some care is needed here, however, because we must
+also reject an example like this:
+
+< data Bar
+<   deriving () via (T a)
+
+Where the |a| in |T a| has no binding site.
+
+
 % \subsection{|deriving via| is opt-in}
 %
 % |deriving| can sometimes be slightly ambiguous due to the fact that it can generate completely
@@ -1000,9 +992,8 @@ instances adding the following line
 
 \bbnote{I used this just now to get a Semigroup instance for Compose f g a.}
 
-If, like
-\url{https://www.cse.iitk.ac.in/users/ppk/research/publication/Conference/2016-09-22-How-to-twist-pointers.pdf}
-we wanted to sequential compotision for |IO ()| rather than lifted
+If, like \cite{twist-pointers}
+we wanted to sequential composion for |IO ()| rather than lifted
 behaviour all we need to do is write an adapter type
 
 > newtype Seq f = Seq (f ())
@@ -1320,9 +1311,48 @@ a single type:
 > deriving via (GenericPPrint Foo1) instance Pretty Foo1
 > deriving via (ShowPPrint    Foo2) instance Pretty Foo2
 
-\section{Related Work}\label{sec:related}
+\section{Related Ideas}\label{sec:related}
 
-\section{Limitations, Conclusions and Future Work}\label{sec:conclusions}
+TODO: Something about ML functors?
+
+\subsection{Explicit dictionary passing}
+
+The power and flexibility of |deriving via| is largely due to GHC's ability
+to take a class method of a particular type and massage it into a method
+of a different type. This process is almost completely abstracted away from
+the user, however. A user only needs to specify the types involved, and GHC
+will handle the rest behind the scenes.
+
+An alternative approach, which would put more power into the hands of the
+programmer, is to permit the ability to explicitly construct and pass the
+normally implicit dictionary arguments corresponding to type class instances
+~\cite{implicit-params-explicit}. Unlike in |deriving via|, where going between
+class instances is a process that is carefully guided by the compiler,
+permitting explicit dictionary arguments would allow users to actually
+@coerce@ concrete instance values and pass them around as first-class objects.
+In this sense, explicit dictionary arguments could be thought of as a further
+generalization of the technique that |deriving via| uses.
+
+However, explicit dictionary arguments do come with some costs. They
+require significantly enhancing Haskell's type system to support, and
+they break principle typing. Moreover, we feel as if explicit
+dictionary passing to too large a hammer for the nail we are trying to hit.
+|deriving via| works by means of a simple desugaring of code with some
+light typechecking on top, which makes it much simpler to describe and
+implement. Finally, the problem which explicit dictionaries aims to
+solve---resolving ambiguity in implicit arguments---almost never arises
+in |deriving via|, as the programmer must specify all the types involved
+in the process.
+
+\section{Limitations and Future Work}\label{sec:conclusions}
+
+We have implemented |deriving via| within the GHC.
+Our implementation also interacts well with other GHC features that were
+not covered in this paper, such as kind polymorphism ~\cite{haskell-promotion},
+@StandaloneDeriving@ \rsnote{Is this true? Double-check.},
+and type classes with associated type families ~\cite{associated-type-synonyms}.
+However, there are still challenges remaining, which we will describe
+in this section.
 
 \subsection{Quality of error messages}
 
@@ -1371,7 +1401,19 @@ quality, given that the error messages are a result of |coerce| failing to
 typecheck. It is likely that investing more effort into making |coerce|'s
 error messages easier to understand would benefit |deriving via| as well.
 
-\subsection{Deriving Multiparameter Type Classes (review this whole subsection)}
+\subsection{Multi-Parameter Type Classes}
+
+GHC extends Haskell by permitting type classes with more than one parameter.
+Multi-parameter type classes are extremely common in modern Haskell, to the
+point where we assumed the existence of them in Section \ref{sec:kinds}
+without further mention. However, multi-parameter type classes pose an
+intriguing design question when combined with |deriving via| and
+@StandaloneDeriving@, another GHC feature which allows one to write
+|deriving| declarations independently of a data type.
+
+For example, one can write the following instance using
+@StandaloneDeriving@:
+
 %if style == newcode
 %format Triple = Triple_
 %format A = A2
@@ -1386,70 +1428,114 @@ error messages easier to understand would benefit |deriving via| as well.
 %format MkC = "\con{C}"
 %endif
 
-> class Triple a b c where triple :: (a, b, c)
-> instance Triple () () () where triple = ((), (), ())
-
-It is sensible to use this instance to derive new instances for types
-representationally equal to unit. Certainly, it works for the final
-parameter:
-
+> class Triple a b c where
+>   triple :: (a, b, c)
+>
+> instance Triple () () () where
+>   triple = ((), (), ())
+>
 > newtype A = MkA ()
 > newtype B = MkB ()
 > newtype C = MkC ()
 >
-> deriving via () instance Triple () () A
-> deriving via () instance Triple () () B
-> deriving via () instance Triple () () C
+> deriving via () instance Triple A B C
 
-But can we derive the instance |Triple A B C|? Not readily, the
-instance used is the instance being derived with the |via|-type as the
-last parameter. The following is forced to derive via the instance
-|Triple A B ??|:
+However, the code it generates is somewhat surprising. Instead of reusing
+the |Triple () () ()| instance in the derived instance, it will attempt
+to reuse an instance for |Triple A B ()|. This is because, by convention,
+@StandaloneDeriving@ will only ever coerce through the \textit{last}
+argument of a class. That is because the standalone instance above would be
+the same as if a user had written:
 
-< deriving via ?? instance Triple A B C
+< newtype C = MkC ()
+<   deriving (Triple A B) via ()
 
-But we can derive |Triple A B C| via |Triple () () ()| with
-|newtype|ing where a, b, c will be instantiated to units.
+This consistency is perhaps a bit limiting in this context, where we have
+multiple arguments to |C| that one could ``derive through''. But it is not
+immediately clear how GHC would figure out which of these arguments to |C|
+should be derived through, as there seven different combinations it could
+choose! It is possible that another syntax would need to be devised to
+allow users to specify which arguments should be coerced to avoid this
+ambiguity.
 
-> newtype Via3 a b c = Via3 c
->
-> instance (Triple a b c, Coercible (a, b) (a', b')) => Triple a' b' (Via3 a b c) where
->   triple :: (a', b', Via3 a b c)
->   triple = coerce (triple @a @b @c)
->
-> deriving via (Via3 () () ()) instance Triple A B C
-> deriving via (Via3 () () ()) instance Triple A A A
-> deriving via (Via3 () () ()) instance Triple C B A
-
-This author (Baldur) believes it impossible to derive instances like
-|Sieve Arr Identity| using the |Sieve (->) Identity| dictionary
-
-> class (Profunctor pro, Functor f) => Sieve pro f | pro -> f where
->   sieve :: pro a b -> (a -> f b)
->
-> instance Sieve (->) Identity where
->   sieve :: (a -> b) -> (a -> Identity b)
->   sieve f a = Identity (f a)
->
-> newtype Arr a b = Arr (a -> b) deriving newtype Profunctor
-
-@DerivingVia@ requires us to derive it via the |Sieve (->) ???|
- dictionary but due to the functional dependencies (|pro -> f|) |???|
- must be fully determined by |(->)|.
-
-The author proposes a more general form as future work
-
-< instance Sieve Arr  Identity
-<      via Sieve (->) Identity
-
-Another use for this is something like
-
-< class Cons s t a b | s -> a, t -> b, s b -> t, t a -> s where
-<   _Cons :: Prism s t (a,s) (b,t)
-<
-< instance Cons [a] [b] a b
-
-and deriving an instance for |Cons (ZipList a) (ZipList b) a b|.
+% %if style == newcode
+% %format Triple = Triple_
+% %format A = A2
+% %format B = B2
+% %format C = C2
+% %else
+% %format A = "\ty{A}"
+% %format B = "\ty{B}"
+% %format C = "\ty{C}"
+% %format MkA = "\con{A}"
+% %format MkB = "\con{B}"
+% %format MkC = "\con{C}"
+% %endif
+%
+% > class Triple a b c where triple :: (a, b, c)
+% > instance Triple () () () where triple = ((), (), ())
+%
+% It is sensible to use this instance to derive new instances for types
+% representationally equal to unit. Certainly, it works for the final
+% parameter:
+%
+% > newtype A = MkA ()
+% > newtype B = MkB ()
+% > newtype C = MkC ()
+% >
+% > deriving via () instance Triple () () A
+% > deriving via () instance Triple () () B
+% > deriving via () instance Triple () () C
+%
+% But can we derive the instance |Triple A B C|? Not readily, the
+% instance used is the instance being derived with the |via|-type as the
+% last parameter. The following is forced to derive via the instance
+% |Triple A B ??|:
+%
+% < deriving via ?? instance Triple A B C
+%
+% But we can derive |Triple A B C| via |Triple () () ()| with
+% |newtype|ing where a, b, c will be instantiated to units.
+%
+% > newtype Via3 a b c = Via3 c
+% >
+% > instance (Triple a b c, Coercible (a, b) (a', b')) => Triple a' b' (Via3 a b c) where
+% >   triple :: (a', b', Via3 a b c)
+% >   triple = coerce (triple @a @b @c)
+% >
+% > deriving via (Via3 () () ()) instance Triple A B C
+% > deriving via (Via3 () () ()) instance Triple A A A
+% > deriving via (Via3 () () ()) instance Triple C B A
+%
+% This author (Baldur) believes it impossible to derive instances like
+% |Sieve Arr Identity| using the |Sieve (->) Identity| dictionary
+%
+% > class (Profunctor pro, Functor f) => Sieve pro f | pro -> f where
+% >   sieve :: pro a b -> (a -> f b)
+% >
+% > instance Sieve (->) Identity where
+% >   sieve :: (a -> b) -> (a -> Identity b)
+% >   sieve f a = Identity (f a)
+% >
+% > newtype Arr a b = Arr (a -> b) deriving newtype Profunctor
+%
+% @DerivingVia@ requires us to derive it via the |Sieve (->) ???|
+%  dictionary but due to the functional dependencies (|pro -> f|) |???|
+%  must be fully determined by |(->)|.
+%
+% The author proposes a more general form as future work
+%
+% < instance Sieve Arr  Identity
+% <      via Sieve (->) Identity
+%
+% Another use for this is something like
+%
+% < class Cons s t a b | s -> a, t -> b, s b -> t, t a -> s where
+% <   _Cons :: Prism s t (a,s) (b,t)
+% <
+% < instance Cons [a] [b] a b
+%
+% and deriving an instance for |Cons (ZipList a) (ZipList b) a b|.
 
 \bibliographystyle{includes/ACM-Reference-Format}
 
