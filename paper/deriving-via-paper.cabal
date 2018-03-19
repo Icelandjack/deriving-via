@@ -1,0 +1,16 @@
+name: deriving-via-paper
+version: 0.1
+build-type: Simple
+cabal-version: >= 1.23
+
+executable deriving-via-paper
+  hs-source-dirs: .
+  main-is: deriving-via-paper.lhs
+  ghc-options:
+    -pgmL "lhs2TeX" -optL-P./includes: -optL--pre
+  default-language: Haskell2010
+  build-depends:
+    base,
+    mtl,
+    profunctors
+

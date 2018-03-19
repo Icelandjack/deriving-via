@@ -29,6 +29,7 @@ let
       pkgs.generic-lens
       pkgs.generics-sop
       pkgs.lens
+      pkgs.mtl
       pkgs.profunctors
       pkgs.QuickCheck
       pkgs.semigroups

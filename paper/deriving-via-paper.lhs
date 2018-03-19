@@ -62,6 +62,9 @@
 > import Data.Profunctor
 > import GHC.Generics hiding (C)
 
+> main :: IO ()
+> main = return ()
+
 %endif
 
 %if style /= newcode
@@ -864,8 +867,8 @@ was explicitly quantified by using |forall| syntax:
 %format PARENS (x) = (x)
 %endif
 
-> data Foo a = MkFoo
->   deriving PARENS (forall b. Bar a b) via (Baz a b)
+< data Foo a = MkFoo
+<   deriving PARENS (forall b. Bar a b) via (Baz a b)
 
 This declaration of |Foo| is wholly equivalent to the earlier one, but the use
 of |forall| makes it clear where |b|'s binding site is\alnote{%
@@ -1419,6 +1422,10 @@ For example, one can write the following instance using
 %format A = A2
 %format B = B2
 %format C = C2
+
+> instance Triple A B () where
+>   triple = undefined
+
 %else
 %format A = "\ty{A}"
 %format B = "\ty{B}"
@@ -1446,9 +1453,13 @@ to reuse an instance for |Triple A B ()|. This is because, by convention,
 @StandaloneDeriving@ will only ever coerce through the \textit{last}
 argument of a class. That is because the standalone instance above would be
 the same as if a user had written:
+%if style == newcode
+%format C = C3
+%format MkC = MkC3
+%endif
 
-< newtype C = MkC ()
-<   deriving (Triple A B) via ()
+> newtype C = MkC ()
+>   deriving (Triple A B) via ()
 
 This consistency is perhaps a bit limiting in this context, where we have
 multiple arguments to |C| that one could ``derive through''. But it is not
