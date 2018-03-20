@@ -36,6 +36,7 @@
 
 %if style == newcode
 
+> {-# LANGUAGE DataKinds #-}
 > {-# LANGUAGE DefaultSignatures #-}
 > {-# LANGUAGE DeriveGeneric #-}
 > {-# LANGUAGE DerivingStrategies #-}
@@ -60,7 +61,14 @@
 > import Control.Monad.ST
 > import Data.Coerce
 > import Data.Profunctor
+> import Data.Proxy
 > import GHC.Generics hiding (C)
+> import GHC.TypeLits
+> import Test.QuickCheck hiding (NonNegative, Large)
+> import qualified Test.QuickCheck as QC
+
+> main :: IO ()
+> main = return ()
 
 %endif
 
@@ -267,6 +275,27 @@ tedious for classes with many methods.
 
 For example, there is a way to lift a |Num| instance through any applicative
 functor (and similarly, there are ways to lift |Floating| and |Fractional|):
+%{
+%if style == newcode
+%format Num = Num2
+%format + = .+
+%format - = .-
+%format * = .*
+%format negate = negate2
+%format abs = abs2
+%format signum = signum2
+%format fromInteger = fromInteger2
+
+> class Num a where
+>   (+) :: a -> a -> a
+>   (-) :: a -> a -> a
+>   (*) :: a -> a -> a
+>   negate :: a -> a
+>   abs :: a -> a
+>   signum :: a -> a
+>   fromInteger :: Integer -> a
+
+%endif
 
 > instance (Applicative f, Num a) => Num (f a) where
 >
@@ -283,6 +312,7 @@ functor (and similarly, there are ways to lift |Floating| and |Fractional|):
 >   fromInteger :: Integer -> f a
 >   fromInteger = pure . fromInteger
 
+%}
 Defining such a boilerplate instance manually for a concrete type constructor
 is so annoying that Conal Elliott has introduced a preprocessor for this particular
 use case several years ago.\footnote{https://hackage.haskell.org/package/applicative-numbers}
@@ -454,40 +484,241 @@ weaker, argument applies to suggested changes to relax the constraints of
 identical to |fmap| and |(<*>)|, respectively.
 
 \subsection{QuickCheck}\label{sec:quickcheck}
+%if style /= newcode
+%format Arbitrary = "\cl{Arbitrary}"
+%format arbitrary = "\id{arbitrary}"
+%format shrink = "\id{shrink}"
+%endif
 
-QuickCheck, a famous testing library for Haskell
-~\cite{quickcheck}, provides |Arbitrary|
-for types whose values it can generate (and shrink). |Gen a| generates
-values of type |a|
+QuickCheck~\cite{quickcheck} is a well-known Haskell library for randomized
+property-based testing.  At the core of QuickCheck's test case generation
+functionality is the |Arbitrary| class. Its primary method |arbitrary|
+describes how to generate suitable random values of a given size and type. It
+also has a method |shrink| that is being used to try to shrink failing
+counterexamples of test properties.
 
-< class Arbitrary a where
-<   gen    :: Gen a
-<   shrink :: a -> [a]
+Many standard Haskell types such as |Int| or lists are already an instance of
+|Arbitrary|. This is sometimes very convenient, because many properties
+involving these types can be quick-checked without any extra work.
 
-Staying clear of the merits of
+On the other hand, sometimes there are additional constraints imposed on the
+actual values of a type that are not sufficiently expressed in their types.
+Depending on the context and the situation, we might want to guarantee positive
+integers, or non-empty lists, or even sorted lists.
 
-Writing these instance by hand and keeping them synced with a changing
-type is tedious, fortunately we
+The library provides a mechanism of newtype-based \emph{modifiers} for this
+purpose. For example,
+%if style /= newcode
+%format Positive = "\ty{Positive}"
+%format NonNegative = "\ty{NonNegative}"
+%format MkNonNegative = "\con{NonNegative}"
+%format getNonNegative = "\id{getNonNegative}"
+%format Age = "\ty{Age}"
+%format Duration = "\ty{Duration}"
+%format MkDuration = "\con{Duration}"
+%endif
 
-< arbitraryBoundedRandom :: (Bounded a, Random a) => Gen a
+> newtype NonNegative a =
+>   MkNonNegative { getNonNegative :: a }
 
-on but we can rely on more structure to
+comes with a predefined instance of the form
 
-< arbitrarySizedBoundedIntegral :: (Bounded a, Integral a) => Gen a
+> instance (Num a, Ord a, Arbitrary a)
+>   => Arbitrary (NonNegative a)
 
-There is no default definition for |gen| but there are so many ways to
-choose from. All the |Word| and |Int| instances have the exact same
-instance body
+%if style == newcode
 
-< instance Arbitrary Int8 where
-<   arbitrary = arbitrarySizedBoundedIntegral
-<   shrink    = shrinkIntegral
+>   where
+>   arbitrary = coerce @(Gen (QC.NonNegative a)) @(Gen (NonNegative a)) arbitrary
 
-so they
+%endif
+that explains how to generate and shrink non-negative numbers. A user who wants
+a non-negative integer can now use |NonNegative Int| rather than |Int| to make this
+obvious.
 
-|Word|s and |Int|s of all size
+This approach, however, has a drastic disadvantage: we have to wrap each value
+in an extra constructor, and the type and constructor come from a specific library.
+An implementation detail (the choice of testing library) leaks into the data model
+of an application. While we might be willing to use domain-specific newtypes for
+added type safety, such as |Age| or |Duration|, we might not be happy to add
+QuickCheck modifiers everywhere. And what if we wanted more than one modifier?
+And what if other libraries export their own set of modifiers as well? We certainly
+do not want to change the actual definition of our datatypes (and corresponding
+code) whenever we start using a new library.
 
-There is no generic @arbitrary@ implementation included because we don't know how to make a high-quality one.
+With |deriving via|, we have the option to reuse the existing infrastructure of
+modifiers without paying the price of cluttering up our datatype definitions.
+We can choose an actual domain-specific newtype such as
+
+> newtype Duration = MkDuration Int -- in seconds
+
+and now specify exactly how we want to derive |Arbitrary| for this. The simplest
+option is to derive via |Int| itself:
+
+>   deriving Arbitrary via Int
+
+This declaration has exactly the same effect as using the
+@GeneralizedNewtypeDeriving@ extension to derive the instance: because
+|Int| and |Duration| have the same run-time representation, we can reuse
+the instance for |Int|, but this allows negative durations.
+
+If we want to restrict ourselves to non-negative durations, we replace this by
+%if style == newcode
+%format Duration = Duration2
+%format MkDuration = MkDuration2
+
+> newtype Duration = MkDuration Int
+
+%endif
+
+>   deriving Arbitrary via (NonNegative Int)
+
+and now we get the |Arbitrary| instance for non-negative integers. Only the
+|deriving| clause changes, not the datatype itself. If we later decide we want
+only positive integers as durations, we replace |NonNegative| with |Positive|
+in the |deriving| clause. Again, the datatype itself is unaffected. In particular,
+we do not have to change any constructor names anywhere in our code.
+
+\subsection{Composition}
+%if style /= newcode
+%format Large = "\ty{Large}"
+%format MkLarge = "\con{Large}"
+%format getLarge = "\id{getLarge}"
+%endif
+
+Multiple modifiers can be combined. For example, there is another modifier
+called |Large| that will scale up integral values being produced by a generator
+in size. It is defined as
+
+> newtype Large a = MkLarge { getLarge :: a }
+
+%if style == newcode
+
+>   deriving (Eq, Ord, Num) via a
+
+%endif
+with an instance
+
+> instance (Integral a, Bounded a) => Arbitrary (Large a)
+
+%if style == newcode
+
+>   where
+>   arbitrary = coerce @(Gen (QC.Large a)) @(Gen (Large a)) arbitrary
+
+%endif
+For our |Duration| type, we can easily write
+%if style == newcode
+%format Duration = Duration3
+%format MkDuration = MkDuration3
+
+> newtype Duration = MkDuration Int
+
+%endif
+
+>   deriving Arbitrary via (NonNegative (Large Int))
+
+The types |NonNegative (Large Int)| and |Duration| still share
+the same run-time representation (namely that of~|Int|), so
+the instance can be reused.
+
+\subsection{Adding new modifiers}
+
+Of course, we can add add our own modifiers if the set of predefined modifiers
+is not sufficient. For example, it is difficult to provide a completely generic
+|Arbitrary| instance that works for all datatypes, simply because there are too
+many assumptions about what makes good test data that need to be taken into account.
+
+But for certain subclasses of datatypes, there are quite reasonable strategies of
+coming up with a generic instance. For example, for enumeration type, one reasonable
+strategy is to simply desire a uniform distribution of the finite set of values.
+
+QuickCheck even offers such a generator, but it does not expose it as a |newtype|
+modifier:
+%if style /= newcode
+%format arbitraryBoundedEnum2 = arbitraryBoundedEnum
+%format arbitraryBoundedEnum = "\id{arbitraryBoundedEnum}"
+%format BoundedEnum = "\ty{BoundedEnum}"
+%format MkBoundedEnum = "\con{BoundedEnum}"
+%endif
+
+> arbitraryBoundedEnum2 :: (Bounded a, Enum a) => Gen a
+
+%if style == newcode
+
+> arbitraryBoundedEnum2 = arbitraryBoundedEnum
+
+%endif
+But from this, we can easily define our own:
+
+> newtype BoundedEnum a = MkBoundedEnum a
+>
+> instance (Bounded a, Enum a)
+>   => Arbitrary (BoundedEnum a) where
+>   arbitrary = MkBoundedEnum <$> arbitraryBoundedEnum
+
+We can then use this functionality to derive |Arbitrary| for a new
+enumeration type:
+%if style /= newcode
+%format Weekday = "\ty{Weekday}"
+%format Mo = "\con{Mo}"
+%format Tu = "\con{Tu}"
+%format We = "\con{We}"
+%format Th = "\con{Th}"
+%format Fr = "\con{Fr}"
+%format Sa = "\con{Sa}"
+%format Su = "\con{Su}"
+%endif
+
+> data Weekday = Mo | Tu | We | Th | Fr | Sa | Su
+>   deriving (Enum, Bounded)
+>   deriving Arbitrary via (BoundedEnum Weekday)
+
+\subsection{Parameterized modifiers}
+
+Sometimes, we might want to parameterize a generator with extra data.
+We can do so by using a modifier that has extra arguments, and using
+the extra arguments in the associated |Arbitrary| instance.
+
+An extreme case that also makes use from type-level programming features
+in GHC is a modifier that allows us to specify a lower and an upper bound
+of a generated natural number.
+%if style /= newcode
+%format Between = "\ty{Between}"
+%format MkBetween = "\con{Between}"
+%format KnownNat = "\cl{KnownNat}"
+%format choose = "\id{choose}"
+%format natVal = "\id{natVal}"
+%format MkProxy = "\con{Proxy}"
+%format (TYAPP t) = "\texttt{@}" t
+%format Year = "\ty{Year}"
+%format MkYear = "\con{Year}"
+%format Nat = "\ki{Nat}"
+%else
+%format (TYAPP t) = "@" t
+%format MkProxy = Proxy
+%endif
+
+> newtype Between (l :: Nat) (u :: Nat) = MkBetween Int
+>
+> instance (KnownNat l, KnownNat u)
+>   => Arbitrary (Between l u) where
+>   arbitrary =  MkBetween <$> choose
+>                  (  fromIntegral (natVal (MkProxy (TYAPP l)))
+>                  ,  fromIntegral (natVal (MkProxy (TYAPP u))))
+
+We can then equip an application-specific type for years with
+a generator implementing respecting a plausible range:
+
+> newtype Year = MkYear Int
+>   deriving Show
+>   deriving Arbitrary via (Between 1900 2100)
+
+%if style == newcode
+
+> deriving instance Show (Between l u)
+
+%endif
 
 \section{Typechecking}\label{sec:typechecking}
 
@@ -861,8 +1092,8 @@ was explicitly quantified by using |forall| syntax:
 %format PARENS (x) = (x)
 %endif
 
-> data Foo a = MkFoo
->   deriving PARENS (forall b. Bar a b) via (Baz a b)
+< data Foo a = MkFoo
+<   deriving PARENS (forall b. Bar a b) via (Baz a b)
 
 This declaration of |Foo| is wholly equivalent to the earlier one, but the use
 of |forall| makes it clear where |b|'s binding site is\alnote{%
@@ -1023,7 +1254,38 @@ Another example from the same paper can be derived as well:
 
 \subsection{Asymptotic improvement}
 
+The |Applicative| operators |(*>)| and |(<*)| always have a default
+definition in terms of |liftA2|
 
+< (<*) = liftA2 (\a _ -> a)
+< (*>) = liftA2 (\_ b -> b)
+
+It is well known that functions are |Applicative| which unfolds (TODO:
+right word?) gives us constant time (TODO: O(1)) definitions that drop
+one of their arguments
+
+< instance Applicative (a ->) where
+<   pure :: b -> (a -> b)
+<   pure = const
+<
+<   liftA2 :: (b1 -> b2 -> b3) -> ((a -> b1) -> (a -> b2) -> (a -> b3))
+<   liftA2 q f g a = q (f a) (g a)
+<
+<   f <* _ = f
+<   _ *> g = g
+
+This definition is actually valid for a subset of functors that is
+isomorphic to functions, called |Representable|
+
+> class Functor f => Representable f where
+>   type Rep f :: Type
+>   index    :: f a -> (Rep f -> a)
+>   tabulate :: (Rep f -> a) -> f a
+
+so for each |Representable| we get these constant-time operations
+
+< f <* _ = f
+< _ <* g = g
 
 For representable functors the definitions of |m *> _ = m| and |_ <* m
 = m| are \(O(1)\).\footnote{Edward Kmett:
@@ -1422,6 +1684,10 @@ For example, one can write the following instance using
 %format A = A2
 %format B = B2
 %format C = C2
+
+> instance Triple A B () where
+>   triple = undefined
+
 %else
 %format A = "\ty{A}"
 %format B = "\ty{B}"
@@ -1449,9 +1715,13 @@ to reuse an instance for |Triple A B ()|. This is because, by convention,
 @StandaloneDeriving@ will only ever coerce through the \textit{last}
 argument of a class. That is because the standalone instance above would be
 the same as if a user had written:
+%if style == newcode
+%format C = C3
+%format MkC = MkC3
+%endif
 
-< newtype C = MkC ()
-<   deriving (Triple A B) via ()
+> newtype C = MkC ()
+>   deriving (Triple A B) via ()
 
 This consistency is perhaps a bit limiting in this context, where we have
 multiple arguments to |C| that one could ``derive through''. But it is not
