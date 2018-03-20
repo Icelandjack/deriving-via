@@ -13,5 +13,5 @@ executable deriving-via-paper
     base,
     mtl,
     profunctors,
-    QuickCheck
-
+    QuickCheck,
+    transformers-compat < 0.6
