@@ -15,12 +15,19 @@
 \usepackage{hyperref}
 
 % comments
+%let comments = True
+%if comments
 \colorlet{bbnote}{blue}
 \colorlet{alnote}{orange}
 \colorlet{rsnote}{red}
 \newcommand\bbnote[1]{\footnote{\color{bbnote}[BB: #1]}}
 \newcommand\alnote[1]{\footnote{\color{alnote}[AL: #1]}}
 \newcommand\rsnote[1]{\footnote{\color{rsnote}[RS: #1]}}
+%else
+\newcommand\bbnote[1]{}%
+\newcommand\alnote[1]{}%
+\newcommand\rsnote[1]{}%
+%endif
 
 %include general.fmt
 
