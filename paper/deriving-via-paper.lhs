@@ -62,7 +62,7 @@
 > import Data.Coerce
 > import Data.Profunctor
 > import Data.Proxy
-> import GHC.Generics hiding (C)
+> import GHC.Generics hiding (C, C1)
 > import GHC.TypeLits
 > import Test.QuickCheck hiding (NonNegative, Large)
 > import qualified Test.QuickCheck as QC
@@ -1098,8 +1098,16 @@ instead. However, this choice introduces additional complications that are
 tricky to resolve. For instance, consider a scenario where one attempts to
 derive multiple classes at once with a single |via| type:
 
-> data Bar
+> data D
 >   deriving (C1 a, C2 a) via (T a)
+
+%if style == newcode
+
+> class C1 a b
+> class C2 a b
+> data T a
+
+%endif
 
 Suppose we first quantified the variables in the derived classes and
 \textit{then} the variables in the |via| type. Because each derived class
@@ -1713,9 +1721,9 @@ For example, one can write the following instance using
 
 %if style == newcode
 %format Triple = Triple_
-%format A = A2
-%format B = B2
-%format C = C2
+%format A = A3
+%format B = B3
+%format C = C3
 
 > instance Triple A B () where
 >   triple = undefined
@@ -1748,8 +1756,8 @@ to reuse an instance for |Triple A B ()|. This is because, by convention,
 argument of a class. That is because the standalone instance above would be
 the same as if a user had written:
 %if style == newcode
-%format C = C3
-%format MkC = MkC3
+%format C = C4
+%format MkC = MkC4
 %endif
 
 > newtype C = MkC ()
@@ -1765,9 +1773,9 @@ ambiguity.
 
 % %if style == newcode
 % %format Triple = Triple_
-% %format A = A2
-% %format B = B2
-% %format C = C2
+% %format A = A3
+% %format B = B3
+% %format C = C3
 % %else
 % %format A = "\ty{A}"
 % %format B = "\ty{B}"
