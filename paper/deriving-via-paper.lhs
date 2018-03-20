@@ -494,7 +494,7 @@ QuickCheck~\cite{quickcheck} is a well-known Haskell library for randomized
 property-based testing.  At the core of QuickCheck's test case generation
 functionality is the |Arbitrary| class. Its primary method |arbitrary|
 describes how to generate suitable random values of a given size and type. It
-also has a method |shrink| that is being used to try to shrink failing
+also has a method |shrink| that is used to try to shrink failing
 counterexamples of test properties.
 
 Many standard Haskell types such as |Int| or lists are already an instance of
@@ -506,8 +506,8 @@ actual values of a type that are not sufficiently expressed in their types.
 Depending on the context and the situation, we might want to guarantee positive
 integers, or non-empty lists, or even sorted lists.
 
-The library provides a mechanism of newtype-based \emph{modifiers} for this
-purpose. For example,
+The QuickCheck library provides a mechanism of newtype-based \emph{modifiers}
+for this purpose. For example, QuickCheck provides:
 %if style /= newcode
 %format Positive = "\ty{Positive}"
 %format NonNegative = "\ty{NonNegative}"
@@ -521,7 +521,7 @@ purpose. For example,
 > newtype NonNegative a =
 >   MkNonNegative { getNonNegative :: a }
 
-comes with a predefined instance of the form
+which comes with a predefined instance of the form
 
 > instance (Num a, Ord a, Arbitrary a)
 >   => Arbitrary (NonNegative a)
