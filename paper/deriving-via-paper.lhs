@@ -471,7 +471,6 @@ type is tedious, fortunately we
 
 < arbitraryBoundedRandom :: (Bounded a, Random a) => Gen a
 
-
 on but we can rely on more structure to
 
 < arbitrarySizedBoundedIntegral :: (Bounded a, Integral a) => Gen a
@@ -489,8 +488,6 @@ so they
 |Word|s and |Int|s of all size
 
 There is no generic @arbitrary@ implementation included because we don't know how to make a high-quality one.
-
-
 
 \section{Typechecking}\label{sec:typechecking}
 
@@ -1026,7 +1023,13 @@ Another example from the same paper can be derived as well:
 
 \subsection{Asymptotic improvement}
 
-For representable functors the definitions of |m *> \ _ = m| and |\ _ <* m = m| are \(O(1)\).\footnote{Edward Kmett: \url{https://ghc.haskell.org/trac/ghc/ticket/10892?cversion=0&cnum_hist=4\#comment:4} } This codifies knowledge (on a ``library, not lore'' principle) where the code can be documented and linked to.
+
+
+For representable functors the definitions of |m *> _ = m| and |_ <* m
+= m| are \(O(1)\).\footnote{Edward Kmett:
+\url{https://ghc.haskell.org/trac/ghc/ticket/10892?cversion=0&cnum_hist=4\#comment:4}
+} This codifies knowledge (on a ``library, not lore'' principle) where
+the code can be documented and linked to.
 
 \subsection{Deriving with configuration}
 
