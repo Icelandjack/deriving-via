@@ -1613,8 +1613,8 @@ implementing |pPrint| as follows:
 With these |newtype|s in hand, picking between them is as simple as changing
 a single type:
 
-< deriving via (GenericPPrint Foo1) instance Pretty Foo1
-< deriving via (ShowPPrint    Foo2) instance Pretty Foo2
+< deriving Pretty via (GenericPPrint DataType1)
+< deriving Pretty via (ShowPPrint    DataType2)
 
 \section{Related Ideas}\label{sec:related}
 
