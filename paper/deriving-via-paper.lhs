@@ -105,7 +105,8 @@
 
 \begin{document}
 
-\title{Deriving-via}
+\title{Deriving Via}
+\subtitle{or, How to turn hand-written instances into an anti-pattern}
 \author{Baldur Blöndal}
 \authornote{It would be nice to have a title, something that (like "copy-paste") invokes the sense of boilerplate that can be textually substituted}
 \affiliation{
