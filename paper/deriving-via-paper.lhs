@@ -1049,6 +1049,12 @@ Could equivalently have been written using |deriving via| like so:
 
 \subsection{Type variable scoping}
 
+In the remainder of this section, we will present an overview of how type
+variables are bound in |deriving via| clauses, and over what types they scope.
+|deriving via| introduces a new place where types can go, and more importantly,
+it introduces a new place where type variables can be \textit{quantified}, so
+it takes some amount of care to devise a consistent treatment for it.
+
 \subsubsection{Binding sites}
 
 Consider the following example:
@@ -1059,121 +1065,184 @@ Consider the following example:
 %endif
 
 > data Foo a = MkFoo
->   deriving (Bar a b) via (Baz a b)
+>   deriving (Baz a b c) via (Bar a b)
 
 %if style == newcode
 
-> class Bar a b c
-> data Baz a b
+> data Bar a b
+> class Baz a b c d
 
 %endif
 Where is each type variable quantified?
 
 \begin{itemize}
  \item |a| is bound by |Foo| itself in the declaration |data Foo a|.
-       These type variable binders are the outermost ones, and as a result, it
-       scopes over both the derived class, |Bar a b|, as well as the |via|
-       type, |Baz a b|.
- \item |b| is bound by the derived class, |Bar a b|. However, |b| is
-       \emph{implicitly} quantified, whereas |a| is \emph{explicitly}
-       quantified. |b| scopes over the |via| type as well.
-       \alnote{Are you defining or observing the notions of ``explicit'' and
-       ``implicit'' here? Because I don't actually see a quantifier, so it
-       sounds like this is a definition? If so, perhaps that should be clarified?}
+       These type variable binders scope over both the derived class,
+       |Baz a b c|, as well as the |via| type, |Bar a b|.
+ \item |b| is bound by the |via| type, |Bar a b|. Note that |b| is
+       bound here but |a| is not, as it was bound earlier by the |data|
+       declaration. |b| scopes over the derived class type, |Baz a b c|,
+       as well.
+ \item |c| is bound by the derived class, |Baz a b c|, as it was not bound
+       elsewhere. (|a| and |b| were bound earlier.)
 \end{itemize}
 
-In the example above, |b| was implicitly quantified, but we could imagine that it
-was explicitly quantified by using |forall| syntax:
-%if style == newcode
-%format Foo = Foo3
-%format MkFoo = MkFoo3
-%format PARENS (x) = ((x))
-%else
-%format PARENS (x) = (x)
-%endif
+In other words, the order of scoping starts at the |data| declaration, then the
+|via| type, and then the derived classes associated with that |via| type.
 
-< data Foo a = MkFoo
-<   deriving PARENS (forall b. Bar a b) via (Baz a b)
+\subsubsection{Establishing order}
 
-This declaration of |Foo| is wholly equivalent to the earlier one, but the use
-of |forall| makes it clear where |b|'s binding site is\alnote{%
-\dots at the price of obfuscating what |b| scopes over \dots}. The possibility for
-explicit quantification of class type variables raises an interesting question:
-how is the following data type treated?
-%if style /= newcode
-%format X = "\ty{X}"
-%format Y = "\cl{Y}"
-%format Z = "\cl{Z}"
-%endif
+This scoping order may seem somewhat surprising, as one might expect the
+type variables bound by the derived classes to scope over the |via| type
+instead. However, this choice introduces additional complications that are
+tricky to resolve. For instance, consider a scenario where one attempts to
+derive multiple classes at once with a single |via| type:
 
-< data X a = DOTS
-<   deriving (forall a. Y a) via (Z a)
+> data Bar
+>   deriving (C1 a, C2 a) via (T a)
 
-First, recall that the data type variable binders are the outermost ones.
-Moreover, because |Y| explicitly binds its own type variable named |a| within
-the |deriving| clause, the |a| within |Y a| is distinct from the |a| in |X a|.
-And since the binding site for the |a| in |Y a| occurs deeper than the binding
-site for the |a| in |X a|, the |a| in |Z a| refers to the same |a| as in
-|Y a|.
+Suppose we first quantified the variables in the derived classes and
+\textit{then} the variables in the |via| type. Because each derived class
+has its own type variable scope, the |a| in |C1 a| is bound independently from
+the |a| in |C2 a|. In other words, we have something like this (using a
+hypothetical |forall| syntax):
 
-\alnote{What if the via-clause refers to a variable that does not occur in the
-datatype or before the via? Can this ever be correct (I think so)? Can we still
-explicitly quantify over it, even if it looks totally silly?}
+< deriving (forall a. C1 a, forall a. C2 a) via (T a)
 
-\subsubsection{Multiple binding sites?}
+Now we are faced with a thorny question: which |a| is used in the |via| type,
+|T a|? There are multiple choices here, since the |a| variables in
+|C1 a| and |C2 a| are distinct! This is an important choice, since the kinds
+of |C1| and |C2| might differ, so the choice of |a| could affect whether
+|T a| kind-checks or not.
 
-One slight wrinkle in this story is that |deriving| clauses can specify \textit{multiple}
-classes to derive per data type, e.g.,
+On the other hand, if one binds the |a| in |T a| first, then this becomes a
+non-issue. We would instead have this:
 
-< data Bar
-<   deriving (C1 a, C2 a)
+< deriving (C1 a, C2 a) via (forall a. T a)
 
-How should this behave when combined with |deriving via|? Suppose we augmented the previous
-example with a |via| type, and to make the issue more evident, let's explicitly quantify the
-type variables in the |deriving| clause:
+Now, there is no ambiguity regarding |a|, as both |a| variables in the list of
+derived classes were bound in the same place.
 
-< data Bar
-<   deriving (forall a. C1 a, forall a. C2 a) via (T a)
+It might feel strange visually to see a variable being used
+\textit{before} of its binding site (assuming one reads code from left to right).
+However, this is not unprecedented within Haskell, as this is also legal:
 
-Where is the |a| in |T a| bound? There are two equally valid options: the |a| from
-|forall a. C1 a|, or the |a| from |forall a. C2 a|. Moreover, we cannot combine the binding
-sites for these |a| variables in general, as it is possible that the |a| in |C1 a| has a
-different kind than the |a| in |C2 a|.
+> f :: Int
+> f = g + h
+>   where
+>     g = 1
+>     h = 2
 
-We avoid this thorny issue as follows: whenever we have a |deriving via| clause with
-two or more classes, we desugar it to a series of single-class |deriving via| clauses.
-For instance, we would desugar our earlier example:
+In this example, we have another scenario where things are bound (|f| and |g|)
+after their use sites. In this sense, the |via| keyword is continuing a rich
+tradition pioneered by |where| clauses.
 
-< data Bar
-<   deriving (forall a. C1 a, forall a. C2 a) via (T a)
+One alternative idea (which was briefly considered) was to put the |via| type
+\textit{before} the derived classes so as to avoid this ``zigzagging'' scoping.
+However, this would introduce additional ambiguities. Imagine one were to
+take this example:
 
-Into this:
+< deriving Z via X Y
 
-< data Bar
-<   deriving (forall a. C1 a) via (T a)
-<   deriving (forall a. C2 a) via (T a)
+And convert it to a form in which the |via| type came first:
 
-Now, the quantification has become unambiguous.
+< deriving via X Y Z
 
-A tricky corner case to consider is that |deriving| clauses can also derive \textit{zero}
-classes to derive. Combined with |deriving via|, this can lead to the following example:
+Should this be parsed as |(X Y) Z|, or |X (Y Z)|? It's not clear visually, so
+this choice would force programmers to write additional parentheses.
 
-< data Bar
-<   deriving () via S
-
-To deal with this, we opt to desugar this declaration to a datatype with no |deriving|
-clauses whatsoever:
-
-< data Bar
-
-This is a bit strange, since the |S| type is never actually used post-desugaring, but doing
-so keeps the rules fairly consistent. Some care is needed here, however, because we must
-also reject an example like this:
-
-< data Bar
-<   deriving () via (T a)
-
-Where the |a| in |T a| has no binding site.
+% In the example above, |b| was implicitly quantified, but we could imagine that it
+% was explicitly quantified by using |forall| syntax:
+% %if style == newcode
+% %format Foo = Foo3
+% %format MkFoo = MkFoo3
+% %format PARENS (x) = ((x))
+% %else
+% %format PARENS (x) = (x)
+% %endif
+%
+% < data Foo a = MkFoo
+% <   deriving PARENS (forall b. Bar a b) via (Baz a b)
+%
+% This declaration of |Foo| is wholly equivalent to the earlier one, but the use
+% of |forall| makes it clear where |b|'s binding site is\alnote{%
+% \dots at the price of obfuscating what |b| scopes over \dots}. The possibility for
+% explicit quantification of class type variables raises an interesting question:
+% how is the following data type treated?
+% %if style /= newcode
+% %format X = "\ty{X}"
+% %format Y = "\cl{Y}"
+% %format Z = "\cl{Z}"
+% %endif
+%
+% < data X a = DOTS
+% <   deriving (forall a. Y a) via (Z a)
+%
+% First, recall that the data type variable binders are the outermost ones.
+% Moreover, because |Y| explicitly binds its own type variable named |a| within
+% the |deriving| clause, the |a| within |Y a| is distinct from the |a| in |X a|.
+% And since the binding site for the |a| in |Y a| occurs deeper than the binding
+% site for the |a| in |X a|, the |a| in |Z a| refers to the same |a| as in
+% |Y a|.
+%
+% \alnote{What if the via-clause refers to a variable that does not occur in the
+% datatype or before the via? Can this ever be correct (I think so)? Can we still
+% explicitly quantify over it, even if it looks totally silly?}
+%
+% \subsubsection{Multiple binding sites?}
+%
+% One slight wrinkle in this story is that |deriving| clauses can specify \textit{multiple}
+% classes to derive per data type, e.g.,
+%
+% < data Bar
+% <   deriving (C1 a, C2 a)
+%
+% How should this behave when combined with |deriving via|? Suppose we augmented the previous
+% example with a |via| type, and to make the issue more evident, let's explicitly quantify the
+% type variables in the |deriving| clause:
+%
+% < data Bar
+% <   deriving (forall a. C1 a, forall a. C2 a) via (T a)
+%
+% Where is the |a| in |T a| bound? There are two equally valid options: the |a| from
+% |forall a. C1 a|, or the |a| from |forall a. C2 a|. Moreover, we cannot combine the binding
+% sites for these |a| variables in general, as it is possible that the |a| in |C1 a| has a
+% different kind than the |a| in |C2 a|.
+%
+% We avoid this thorny issue as follows: whenever we have a |deriving via| clause with
+% two or more classes, we desugar it to a series of single-class |deriving via| clauses.
+% For instance, we would desugar our earlier example:
+%
+% < data Bar
+% <   deriving (forall a. C1 a, forall a. C2 a) via (T a)
+%
+% Into this:
+%
+% < data Bar
+% <   deriving (forall a. C1 a) via (T a)
+% <   deriving (forall a. C2 a) via (T a)
+%
+% Now, the quantification has become unambiguous.
+%
+% A tricky corner case to consider is that |deriving| clauses can also derive \textit{zero}
+% classes to derive. Combined with |deriving via|, this can lead to the following example:
+%
+% < data Bar
+% <   deriving () via S
+%
+% To deal with this, we opt to desugar this declaration to a datatype with no |deriving|
+% clauses whatsoever:
+%
+% < data Bar
+%
+% This is a bit strange, since the |S| type is never actually used post-desugaring, but doing
+% so keeps the rules fairly consistent. Some care is needed here, however, because we must
+% also reject an example like this:
+%
+% < data Bar
+% <   deriving () via (T a)
+%
+% Where the |a| in |T a| has no binding site.
 
 
 % \subsection{|deriving via| is opt-in}
@@ -1536,8 +1605,8 @@ implementing |pPrint| as follows:
 With these |newtype|s in hand, picking between them is as simple as changing
 a single type:
 
-> deriving via (GenericPPrint Foo1) instance Pretty Foo1
-> deriving via (ShowPPrint    Foo2) instance Pretty Foo2
+< deriving via (GenericPPrint Foo1) instance Pretty Foo1
+< deriving via (ShowPPrint    Foo2) instance Pretty Foo2
 
 \section{Related Ideas}\label{sec:related}
 
