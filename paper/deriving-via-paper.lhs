@@ -1,4 +1,3 @@
-
 \documentclass[%
   %format=acmsmall,% 1-column format used by PACMPL
   format=sigplan,% 2-column format used by other SIGPLAN conferences
@@ -1336,8 +1335,8 @@ Another example from the same paper can be derived as well:
 The |Applicative| operators |(*>)| and |(<*)| always have a default
 definition in terms of |liftA2|
 
-< (<*) = liftA2 (\a _ -> a)
-< (*>) = liftA2 (\_ b -> b)
+< (<*) = liftA2 (\ a _ -> a)
+< (*>) = liftA2 (\ _ b -> b)
 
 It is well known that functions are |Applicative| which unfolds (TODO:
 right word?) gives us constant time (TODO: O(1)) definitions that drop
