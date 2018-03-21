@@ -66,6 +66,7 @@
 > {-# LANGUAGE ScopedTypeVariables #-}
 > {-# LANGUAGE StandaloneDeriving #-}
 > {-# LANGUAGE TypeApplications #-}
+> {-# LANGUAGE TypeFamilies #-}
 > {-# LANGUAGE TypeOperators #-}
 > {-# LANGUAGE UndecidableInstances #-}
 >
@@ -74,9 +75,11 @@
 > import Control.Monad.Identity
 > import Control.Monad.ST
 > import Data.Coerce
+> import Data.Kind
 > import Data.Profunctor
 > import Data.Proxy
-> import GHC.Generics hiding (C, C1)
+> import GHC.Generics hiding (C, C1, Rep)
+> import qualified GHC.Generics as GHC
 > import GHC.TypeLits
 > import Test.QuickCheck hiding (NonNegative, Large)
 > import qualified Test.QuickCheck as QC
@@ -1339,6 +1342,13 @@ Another example from the same paper can be derived as well:
 %endif
 
 \subsection{Asymptotic improvement}
+%if style /= newcode
+%format Rep = "\ty{Rep}"
+%format Type = "\ki{Type}"
+%format index = "\id{index}"
+%format tabulate = "\id{tabulate}"
+%format Representable = "\cl{Representable}"
+%endif
 
 The |Applicative| operators |(*>)| and |(<*)| always have a default
 definition in terms of |liftA2|
@@ -1414,6 +1424,7 @@ convenient to define and work with
 %if style /= newcode
 %format Monoidal = "\cl{Monoidal}"
 %format unit = "\id{unit}"
+%format mult = "\id{mult}"
 %format WrapMonoidal = "\ty{WrapMonoidal}"
 %format WrapApplicative = "\ty{WrapApplicative}"
 %format WM = "\con{WM}"
@@ -1422,7 +1433,7 @@ convenient to define and work with
 
 > class Functor f => Monoidal f where
 >   unit  ::  f ()
->   (⋆)   ::  f a -> f b -> f (a, b)
+>   mult  ::  f a -> f b -> f (a, b)
 
 Allowing us to derive |Applicative| from a |Monoidal| instance, allow
 us to use whatever formulation we prefer
@@ -1432,7 +1443,7 @@ us to use whatever formulation we prefer
 >
 > instance Monoidal f => Applicative (WrapMonoidal f) where
 >   pure a    = a <$ unit
->   mf <*> mx = fmap (\(f, x) -> f x) (mf ⋆ mx)
+>   mf <*> mx = fmap (\(f, x) -> f x) (mf `mult` mx)
 
 We can then define the opposite direction, codifying the equivalence
 in these two instances
@@ -1505,6 +1516,9 @@ Parallel Legacy Languages as Theorem Provers (deriving
 \url{Discuss ideas here https://www.reddit.com/r/haskell/comments/6udl0i/representable_functors_parameterised_by/}
 
 \subsection{Enhancing @DefaultSignatures@}\label{sec:defaultsignatures}
+%if style == newcode
+%format Rep = "GHC.Rep"
+%endif
 
 In section \ref{sec:gnd}, we observed that |deriving via| can fully replace the
 @GeneralizedNewtypeDeriving@ extension. In fact, that's not the only language
