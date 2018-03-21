@@ -102,7 +102,7 @@
 %format Monoid4 = Monoid
 %format mempty4 = mempty
 %format mappend4 = mappend
-%format overlapping =
+%format overlapping (x) = x
 %else
 
 > class Monoid2 m where
@@ -120,7 +120,7 @@
 >   mempty4 :: m
 >   mappend4 :: m -> m -> m
 
-%format overlapping = " {-# OVERLAPPING #-} "
+%format overlapping (x) = " {-# OVERLAPPING #-} " x
 %endif
 
 \begin{document}
@@ -128,7 +128,6 @@
 \title{Deriving Via}
 \subtitle{or, How to Turn Hand-Written Instances into an Anti-Pattern}
 \author{Baldur Blöndal}
-\authornote{It would be nice to have a title, something that (like "copy-paste") invokes the sense of boilerplate that can be textually substituted}
 \affiliation{
 }
 \author{Andres Löh}
@@ -141,17 +140,28 @@
 }
 
 \begin{abstract}
-Introduces a deriving strategy that
+Haskell instance declarations fall into one of two categories:
+either we can use the |deriving| construct and get the instance
+generated for us for free, or we have to write the instance by
+hand, providing explicit implementations of the class methods.
+There is nothing in between.
 
-Subsumes generalized |newtype| deriving.
+Many instances, however, can be defined for a reason, and that
+reason can be captured as a program. There might be a general
+rule that if a type is an instance of some classes, it can be
+made an instance of another class. Or there might be a rule that
+says that if we can define a class instance in a particular way,
+we can also define an instance of the same class in a slightly
+different way.
 
-We present a new Haskell language extension that miraculously solves
-all problems in generic programming that ever existed.
-
-I want to make it very clear that this works perfectly for |data|, not
-limited to |newtype|.
-
-  \end{abstract}
+In this paper, we introduce \DerivingVia, a language extension
+that allows to capture such rules and use |deriving| on any
+instance that can be constructed using a rule. In this way, we
+can vastly increase the fraction of type classes for which we
+can use |deriving|. This not only saves work, but also explains
+the intention behind the code better, as we can give names to
+recurring patterns.
+\end{abstract}
 
 % CCSXML to be inserted later:
 %
@@ -164,10 +174,10 @@ limited to |newtype|.
 
 \maketitle
 
-``These types we write down they're not just names for data
-representations in memory, they're tags that queue in mathematical
-structures that we exploit.''\footnote{Taken from unknown position:
-https://www.youtube.com/watch?v=3U3lV5VPmOU}
+% ``These types we write down they're not just names for data
+% representations in memory, they're tags that queue in mathematical
+% structures that we exploit.''\footnote{Taken from unknown position:
+% https://www.youtube.com/watch?v=3U3lV5VPmOU}
 
 \section{Introduction}
 %if style /= newcode
@@ -195,75 +205,100 @@ https://www.youtube.com/watch?v=3U3lV5VPmOU}
 %format MkEndo = "\con{MkEndo}"
 %format coerce = "\id{coerce}"
 %format ap = "\id{ap}"
+%format ST = "\ty{ST}"
 %endif
 
-In Haskell, type classes capture common interfaces. When we declare a
-datatype to be an instance of a type class, we explain how it
-implements the interface by providing implementations of all the
-methods of the class.
+In Haskell, type classes capture common interfaces. When we are in
+the situation that we want to declare a datatype to be an instance
+of a type class, we end up in one of two possible situations:
 
-Quite often, however, these implementations are not unrelated but the
-application of a common pattern. For example, in the @base@ package,
+We might be lucky, and the type class we are deriving is in the subset
+of classes that \GHC\ can derive automatically, or for which a generic
+program~\cite{gdmh} already exists, or it is a newtype, and the
+underlying type already supports this instance~\cite{zero-cost-coercions}.
+In these cases, we can use a deriving clause, and with nearly no work,
+we get the compiler to generate the instance for us.
+
+However, if the above conditions are not met, or if the instance that
+would be generated when using deriving is not the instance we want, we
+have no other choice but to write the instance by hand.
+This means that we have to provide explicit implementations of at
+least a minimal subset of the class methods.
+
+The difference between the two can be quite drastic. Especially if the
+class has many methods, it is extremely appealing if we can somehow
+derive the instance. But what if we want a variant of the class that
+would be derived automatically, rather than exactly the default? What
+if we know that there is a systematic way to explain how the instance
+can be built, but it's not the one corresponding to one of the existing
+deriving mechanisms? Then we are out of luck, and we still have to define
+the instance by hand.
+
+In this paper, we introduce a new language extension that
+bridges this gap: \DerivingVia. With \DerivingVia, we can vastly
+increase the fraction of type class instances that we can derive, in
+that we no longer rely on a few (if any at all) essentially
+pre-defined ways to define a particular class instance, but rather
+allow to teach the compiler new rules for deriving classes, and select
+the one we want using a high-level description.
+
+Our extension is light-weight in the sense that it is easy to
+impement and builds on concepts that are already in the language
+such as deriving strategies, newtypes, and safe coercions. It furthermore
+naturally generalizes a number of language extensions such as
+generalized newtype deriving and default signatures.
+
+But before we explain our approach in more detail, let's first
+look at a concrete example.
+
+\subsection{Example: Lifting monoids}
+
+If we look at the \GHC\ @base@ package,
 we can find the following |Monoid| instances:
 
 > instance Monoid a => Monoid2 (IO a) where
->
->   mempty2  = pure mempty
->   mappend2 = liftA2 mappend
+>   mempty2   =  pure mempty
+>   mappend2  =  liftA2 mappend
 
 > instance Monoid a => Monoid2 (ST s a) where
->
->   mempty2  = pure mempty
->   mappend2 = liftA2 mappend
+>   mempty2   =  pure mempty
+>   mappend2  =  liftA2 mappend
 
-While the definition as given is specific to |IO a| and |ST s a|, the
-principle is not: we can always lift a monoid |a| over a type
-constructor |f| as long as |f| is an applicative (or |Biapplicative|)
-functor. This is the case for |IO|, but it is also true for all the
-other applicative functors out there.  \alnote{There was a reference
-to Conor McBride here, mentioning ``routine programming'' and
-\cite{applicative-programming-with-effects}. We might want to reinsert
-this.}
-
-\subsection{The problem: capturing general instance rules}
+While the definitions as given are specific to |IO| and |ST|, the
+principle is not: we can always lift a monoid~|a| over a type
+constructor~|f| as long as~|f| is an applicative
+functor. This is the case for~|IO| and |ST|, but it is also true for all the
+other applicative functors out there.
 
 It is tempting to avoid this obvious repetition by defining an
 instance for all applicatives, in one fell swoop.
 
-> instance (Applicative f, Monoid a) => Monoid2 (f a) where
->
->   mempty2 :: f a
->   mempty2 = pure mempty
->
->   mappend2 :: f a -> f a -> f a
->   mappend2 = liftA2 mappend
+> instance (Applicative f, Monoid a)
+>   => Monoid2 (f a) where
+>   mempty2   =  pure mempty
+>   mappend2  =  liftA2 mappend
 
 Unfortunately, this general instance is undesirable for several
 reasons:
 
-First, it overlaps with all other instances that match |Monoid (f
+First, the instance overlaps with all other instances that match |Monoid (f
 a)|. Instance resolution will match the instance head before even
 considering the context, even if |f| is not applicative. Consider
 
 > newtype Endo a = MkEndo (a -> a) -- Data.Monoid
 
-|Endo| is not even a |Functor| yet it admits a perfectly valid monoid
+An |Endo| is not even a |Functor|, yet it admits a perfectly valid monoid
 instance that overlaps with the lifted instance above
 
-> instance overlapping Monoid2 (Endo a) where
+> instance overlapping (Monoid2 (Endo a)) where
 >   mempty2 = MkEndo id
 >   mappend2 (MkEndo f) (MkEndo g) = MkEndo (f . g)
 
-and while we can make \GHC\ accept it nevertheless, the presence of
-overlapping instances often leads to undesirable behavior.\alnote{The
-original enumeration mentioned another point which I do not understand
-right now, so I omitted it for the time being: ``Structure of the |f|
-is often considered more significant that that of |x|.''  Much of this
-is stolen from Conor:
-https://personal.cis.strath.ac.uk/conor.mcbride/so-pigworker.pdf}
+We can make \GHC\ accept this instance, but in practice, the presence
+of overlapping instances often leads to confusing behavior.
 
-Second, even if |f| is an applicative functor the lifted monoid
-instance may not be the only one, or the one we want to use.  Most
+Second, even if~|f| is an applicative functor, the lifted monoid
+instance may not be the only one, or the one we want to use. Most
 notably, lists are the \emph{free monoid} (the most ‘fundemental’
 monoid), and their monoid instance looks as follows:
 
@@ -288,14 +323,23 @@ we wanted to in this way.
 
 Currently, the only viable workaround is to define individual
 instances for each datatype in spirit of the |Monoid (IO a)| instance
-shown in the beginning. But as we shall see in the remainder of this
-paper, there are many such rules, and while the approach of defining
-individual instances in a uniform format may be somewhat feasible for
-classes that consists of just one or two methods, it becomes extremely
-tedious for classes with many methods.
+shown in the beginning, but that is extremely unsatisfactory:
+\begin{itemize}
+\item It is no longer obvious that we are, in fact, instantiating
+  a general principle.
+\item Because the general principle is not written down in code and
+  given a name, it has to be communicated by folklore or in comments,
+  and is difficult to discover.
+\item There are many such rules, some quite obvious, but
+  some more surprising and easy to miss.
+\item While for monoids with only two methods the work required to
+  define the instance manually is perhaps acceptable, it quickly becomes
+  extremely tedious and error-prone for classes with many methods.
+\end{itemize}
 
-For example, there is a way to lift a |Num| instance through any applicative
-functor (and similarly, there are ways to lift |Floating| and |Fractional|):
+As an illustration of the final point, consider |Num|. There is a way
+to lift a |Num| instance through any applicative
+functor\footnote{There are similar ways to lift |Floating| and |Fractional|.}:
 %{
 %if style == newcode
 %format Num = Num2
@@ -319,18 +363,14 @@ functor (and similarly, there are ways to lift |Floating| and |Fractional|):
 %endif
 
 > instance (Applicative f, Num a) => Num (f a) where
+>   (+)  =  liftA2 (+)
+>   (-)  =  liftA2 (-)
+>   (*)  =  liftA2 (*)
 >
->   (+), (-), (*) :: f a -> f a -> f a
->   (+) = liftA2 (+)
->   (-) = liftA2 (-)
->   (*) = liftA2 (*)
+>   negate   =  liftA negate
+>   abs      =  liftA abs
+>   signum   =  liftA signum
 >
->   negate, abs, signum :: f a -> f a
->   negate = liftA negate
->   abs    = liftA abs
->   signum = liftA signum
->
->   fromInteger :: Integer -> f a
 >   fromInteger = pure . fromInteger
 
 %}
@@ -343,7 +383,7 @@ https://gist.github.com/Icelandjack/e1ddefb0d5a79617a81ee98c49fbbdc4\#a-lot-of-t
 We cannot put a gist dump like this into a paper. We might want to make a selection,
 or just describe the situation in words.}
 
-\subsection{Our solution: newtypes and a new form of deriving}
+\subsection{Introducing \DerivingVia}
 %if style /= newcode
 %format App = "\ty{App}"
 %format Alt = "\ty{Alt}"
@@ -351,31 +391,37 @@ or just describe the situation in words.}
 %format MkAlt = "\con{Alt}"
 %endif
 
-We solve the above problem of capturing general rules for defining
-new instances by using a known mechanism: |newtype|s.
+Our approach to deal with this unfortunate lack of abstraction
+has two ingredients:
+\begin{enumerate}
+\item We capture general rules for defining new instances using
+  newtypes.
+\item We use such newtypes in a new \DerivingVia language
+  construct to explain to the compiler how to construct the
+  instance without having to write it manually.
+\end{enumerate}
 
-We can turn a problematic generic and overlapping instance into an
-entirely unproblematic (but not yet useful) one by defining a |newtype|
-and wrapping the instance head in it\alnote{According to Baldur, Conor
+For the first part,
+let us revisit the rule that explains how to lift a monoid
+instance through an applicative functor. We can turn the problematic
+generic and overlapping instance for |Monoid (f a)| into an entirely
+unproblematic instance by defining a suitable newtype and wrapping
+the instance head in it:\alnote{According to Baldur, Conor
 calls these ``adaptors''. Perhaps we should consider this terminology too.}:
 
 > newtype App f a = MkApp (f a)
 >
-> instance (Applicative f, Monoid4 a) => Monoid4 (App f a) where
->
->   mempty4 :: App f a
+> instance (Applicative f, Monoid4 a)
+>   => Monoid4 (App f a) where
 >   mempty4 = MkApp (pure mempty4)
->
->   mappend4 :: App f a -> App f a -> App f a
 >   mappend4 (MkApp f) (MkApp g) = MkApp (liftA2 mappend4 f g)
 
 Since \GHC\ 8.4, we also need a |Semigroup| instance, because it just became
 a superclass of |Monoid|\footnote{See Section~\ref{sec:superclasses} for
 a more detailed discussion of this aspect.}:
 
-> instance (Applicative f, Semigroup a) => Semigroup (App f a) where
->
->   (<>) :: App f a -> App f a -> App f a
+> instance (Applicative f, Semigroup a)
+>   => Semigroup (App f a) where
 >   MkApp f <> MkApp g = MkApp (liftA2 (<>) f g)
 
 Such instance definitions can be made more concise by employing the
