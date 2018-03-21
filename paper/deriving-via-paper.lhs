@@ -1343,10 +1343,8 @@ right word?) gives us constant time (TODO: O(1)) definitions that drop
 one of their arguments
 
 < instance Applicative (a ->) where
-<   pure :: b -> (a -> b)
 <   pure = const
-<
-<   liftA2 :: (b1 -> b2 -> b3) -> ((a -> b1) -> (a -> b2) -> (a -> b3))
+
 <   liftA2 q f g a = q (f a) (g a)
 <
 <   f <* _ = f
@@ -1413,8 +1411,8 @@ convenient to define and work with
 %endif
 
 > class Functor f => Monoidal f where
->   unit  ::  f ()
->   (⋆)   ::  f a -> f b -> f (a, b)
+>   unit ::  f ()
+>   mult ::  f a -> f b -> f (a, b)
 
 Allowing us to derive |Applicative| from a |Monoidal| instance, allow
 us to use whatever formulation we prefer
@@ -1424,7 +1422,7 @@ us to use whatever formulation we prefer
 >
 > instance Monoidal f => Applicative (WrapMonoidal f) where
 >   pure a    = a <$ unit
->   mf <*> mx = fmap (\(f, x) -> f x) (mf ⋆ mx)
+>   mf <*> mx = fmap (\(f, x) -> f x) (mul mf mx)
 
 We can then define the opposite direction, codifying the equivalence
 in these two instances
