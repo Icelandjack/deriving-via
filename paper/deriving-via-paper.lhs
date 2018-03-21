@@ -212,9 +212,10 @@ In Haskell, type classes capture common interfaces. When we are in
 the situation that we want to declare a datatype to be an instance
 of a type class, we end up in one of two possible situations:
 
-We might be lucky, and the type class we are deriving is in the subset
-of classes that \GHC\ can derive automatically, or for which a generic
-program~\cite{gdmfh} already exists, or it is a newtype, and the
+We might be lucky, and the type class we are writing and instance for is
+in the subset of classes that \GHC\ can derive automatically. Alternatively,
+the type class might already have a generic implementation~\cite{gdmfh},
+or we might be writing an instance for a newtype, and the
 underlying type already supports this instance~\cite{zero-cost-coercions}.
 In these cases, we can use a deriving clause, and with nearly no work,
 we get the compiler to generate the instance for us.
