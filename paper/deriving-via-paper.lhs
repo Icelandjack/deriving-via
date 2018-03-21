@@ -12,16 +12,32 @@
 
 \usepackage{booktabs}
 \usepackage{hyperref}
+\usepackage{xspace}
+
+%include general.fmt
+
+% macros
+\newcommand\extension[1]{\Conid{#1}}
+\newcommand\DerivingVia{Deriving Via\xspace}
+\newcommand\GND{{\smaller GND}\xspace}
+\newcommand\GHC{{\smaller GHC}\xspace}
+\newcommand\DefaultSignatures{default signatures\xspace}
+\newcommand\StandaloneDeriving{|StandaloneDeriving|}
 
 % comments
+%let comments = True
+%if comments
 \colorlet{bbnote}{blue}
 \colorlet{alnote}{orange}
 \colorlet{rsnote}{red}
 \newcommand\bbnote[1]{\footnote{\color{bbnote}[BB: #1]}}
 \newcommand\alnote[1]{\footnote{\color{alnote}[AL: #1]}}
 \newcommand\rsnote[1]{\footnote{\color{rsnote}[RS: #1]}}
-
-%include general.fmt
+%else
+\newcommand\bbnote[1]{}%
+\newcommand\alnote[1]{}%
+\newcommand\rsnote[1]{}%
+%endif
 
 \setcopyright{rightsretained}
 
@@ -52,6 +68,7 @@
 > {-# LANGUAGE ScopedTypeVariables #-}
 > {-# LANGUAGE StandaloneDeriving #-}
 > {-# LANGUAGE TypeApplications #-}
+> {-# LANGUAGE TypeFamilies #-}
 > {-# LANGUAGE TypeOperators #-}
 > {-# LANGUAGE UndecidableInstances #-}
 >
@@ -60,9 +77,11 @@
 > import Control.Monad.Identity
 > import Control.Monad.ST
 > import Data.Coerce
+> import Data.Kind
 > import Data.Profunctor
 > import Data.Proxy
-> import GHC.Generics hiding (C, C1)
+> import GHC.Generics hiding (C, C1, Rep)
+> import qualified GHC.Generics as GHC
 > import GHC.TypeLits
 > import Test.QuickCheck hiding (NonNegative, Large)
 > import qualified Test.QuickCheck as QC
@@ -82,7 +101,7 @@
 %format Monoid4 = Monoid
 %format mempty4 = mempty
 %format mappend4 = mappend
-%format overlapping =
+%format overlapping (x) = x
 %else
 
 > class Monoid2 m where
@@ -100,7 +119,7 @@
 >   mempty4 :: m
 >   mappend4 :: m -> m -> m
 
-%format overlapping = " {-# OVERLAPPING #-} "
+%format overlapping (x) = " {-# OVERLAPPING #-} " x
 %endif
 
 \begin{document}
@@ -108,7 +127,6 @@
 \title{Deriving Via}
 \subtitle{or, How to Turn Hand-Written Instances into an Anti-Pattern}
 \author{Baldur Blöndal}
-\authornote{It would be nice to have a title, something that (like "copy-paste") invokes the sense of boilerplate that can be textually substituted}
 \affiliation{
 }
 \author{Andres Löh}
@@ -121,17 +139,28 @@
 }
 
 \begin{abstract}
-Introduces a deriving strategy that
+Haskell instance declarations fall into one of two categories:
+either we can use the |deriving| construct and get the instance
+generated for us for free, or we have to write the instance by
+hand, providing explicit implementations of the class methods.
+There is nothing in between.
 
-Subsumes generalized |newtype| deriving.
+Many instances, however, can be defined for a reason, and that
+reason can be captured as a program. There might be a general
+rule that if a type is an instance of some classes, it can be
+made an instance of another class. Or there might be a rule that
+says that if we can define a class instance in a particular way,
+we can also define an instance of the same class in a slightly
+different way.
 
-We present a new Haskell language extension that miraculously solves
-all problems in generic programming that ever existed.
-
-I want to make it very clear that this works perfectly for |data|, not
-limited to |newtype|.
-
-  \end{abstract}
+In this paper, we introduce \DerivingVia, a language extension
+that allows to capture such rules and use |deriving| on any
+instance that can be constructed using a rule. In this way, we
+can vastly increase the fraction of type classes for which we
+can use |deriving|. This not only saves work, but also explains
+the intention behind the code better, as we can give names to
+recurring patterns.
+\end{abstract}
 
 % CCSXML to be inserted later:
 %
@@ -144,10 +173,10 @@ limited to |newtype|.
 
 \maketitle
 
-``These types we write down they're not just names for data
-representations in memory, they're tags that queue in mathematical
-structures that we exploit.''\footnote{Taken from unknown position:
-https://www.youtube.com/watch?v=3U3lV5VPmOU}
+% ``These types we write down they're not just names for data
+% representations in memory, they're tags that queue in mathematical
+% structures that we exploit.''\footnote{Taken from unknown position:
+% https://www.youtube.com/watch?v=3U3lV5VPmOU}
 
 \section{Introduction}
 %if style /= newcode
@@ -175,75 +204,100 @@ https://www.youtube.com/watch?v=3U3lV5VPmOU}
 %format MkEndo = "\con{MkEndo}"
 %format coerce = "\id{coerce}"
 %format ap = "\id{ap}"
+%format ST = "\ty{ST}"
 %endif
 
-In Haskell, type classes capture common interfaces. When we declare a
-datatype to be an instance of a type class, we explain how it
-implements the interface by providing implementations of all the
-methods of the class.
+In Haskell, type classes capture common interfaces. When we are in
+the situation that we want to declare a datatype to be an instance
+of a type class, we end up in one of two possible situations:
 
-Quite often, however, these implementations are not unrelated but the
-application of a common pattern. For example, in the @base@ package,
+We might be lucky, and the type class we are deriving is in the subset
+of classes that \GHC\ can derive automatically, or for which a generic
+program~\cite{gdmfh} already exists, or it is a newtype, and the
+underlying type already supports this instance~\cite{zero-cost-coercions}.
+In these cases, we can use a deriving clause, and with nearly no work,
+we get the compiler to generate the instance for us.
+
+However, if the above conditions are not met, or if the instance that
+would be generated when using deriving is not the instance we want, we
+have no other choice but to write the instance by hand.
+This means that we have to provide explicit implementations of at
+least a minimal subset of the class methods.
+
+The difference between the two can be quite drastic. Especially if the
+class has many methods, it is extremely appealing if we can somehow
+derive the instance. But what if we want a variant of the class that
+would be derived automatically, rather than exactly the default? What
+if we know that there is a systematic way to explain how the instance
+can be built, but it's not the one corresponding to one of the existing
+deriving mechanisms? Then we are out of luck, and we still have to define
+the instance by hand.
+
+In this paper, we introduce a new language extension that
+bridges this gap: \DerivingVia. With \DerivingVia, we can vastly
+increase the fraction of type class instances that we can derive, in
+that we no longer rely on a few (if any at all) essentially
+pre-defined ways to define a particular class instance, but rather
+allow to teach the compiler new rules for deriving classes, and select
+the one we want using a high-level description.
+
+Our extension is light-weight in the sense that it is easy to
+impement and builds on concepts that are already in the language
+such as deriving strategies, newtypes, and safe coercions. It furthermore
+naturally generalizes a number of language extensions such as
+generalized newtype deriving and default signatures.
+
+But before we explain our approach in more detail, let's first
+look at a concrete example.
+
+\subsection{Example: Lifting monoids}
+
+If we look at the \GHC\ @base@ package,
 we can find the following |Monoid| instances:
 
 > instance Monoid a => Monoid2 (IO a) where
->
->   mempty2  = pure mempty
->   mappend2 = liftA2 mappend
+>   mempty2   =  pure mempty
+>   mappend2  =  liftA2 mappend
 
 > instance Monoid a => Monoid2 (ST s a) where
->
->   mempty2  = pure mempty
->   mappend2 = liftA2 mappend
+>   mempty2   =  pure mempty
+>   mappend2  =  liftA2 mappend
 
-While the definition as given is specific to |IO a| and |ST s a|, the
-principle is not: we can always lift a monoid |a| over a type
-constructor |f| as long as |f| is an applicative (or |Biapplicative|)
-functor. This is the case for |IO|, but it is also true for all the
-other applicative functors out there.  \alnote{There was a reference
-to Conor McBride here, mentioning ``routine programming'' and
-\cite{applicative-programming-with-effects}. We might want to reinsert
-this.}
-
-\subsection{The problem: capturing general instance rules}
+While the definitions as given are specific to |IO| and |ST|, the
+principle is not: we can always lift a monoid~|a| over a type
+constructor~|f| as long as~|f| is an applicative
+functor. This is the case for~|IO| and |ST|, but it is also true for all the
+other applicative functors out there.
 
 It is tempting to avoid this obvious repetition by defining an
 instance for all applicatives, in one fell swoop.
 
-> instance (Applicative f, Monoid a) => Monoid2 (f a) where
->
->   mempty2 :: f a
->   mempty2 = pure mempty
->
->   mappend2 :: f a -> f a -> f a
->   mappend2 = liftA2 mappend
+> instance (Applicative f, Monoid a)
+>   => Monoid2 (f a) where
+>   mempty2   =  pure mempty
+>   mappend2  =  liftA2 mappend
 
 Unfortunately, this general instance is undesirable for several
 reasons:
 
-First, it overlaps with all other instances that match |Monoid (f
+First, the instance overlaps with all other instances that match |Monoid (f
 a)|. Instance resolution will match the instance head before even
 considering the context, even if |f| is not applicative. Consider
 
 > newtype Endo a = MkEndo (a -> a) -- Data.Monoid
 
-|Endo| is not even a |Functor| yet it admits a perfectly valid monoid
+An |Endo| is not even a |Functor|, yet it admits a perfectly valid monoid
 instance that overlaps with the lifted instance above
 
-> instance overlapping Monoid2 (Endo a) where
+> instance overlapping (Monoid2 (Endo a)) where
 >   mempty2 = MkEndo id
 >   mappend2 (MkEndo f) (MkEndo g) = MkEndo (f . g)
 
-and while we can make GHC accept it nevertheless, the presence of
-overlapping instances often leads to undesirable behavior.\alnote{The
-original enumeration mentioned another point which I do not understand
-right now, so I omitted it for the time being: ``Structure of the |f|
-is often considered more significant that that of |x|.''  Much of this
-is stolen from Conor:
-https://personal.cis.strath.ac.uk/conor.mcbride/so-pigworker.pdf}
+We can make \GHC\ accept this instance, but in practice, the presence
+of overlapping instances often leads to confusing behavior.
 
-Second, even if |f| is an applicative functor the lifted monoid
-instance may not be the only one, or the one we want to use.  Most
+Second, even if~|f| is an applicative functor, the lifted monoid
+instance may not be the only one, or the one we want to use. Most
 notably, lists are the \emph{free monoid} (the most ‘fundemental’
 monoid), and their monoid instance looks as follows:
 
@@ -268,14 +322,23 @@ we wanted to in this way.
 
 Currently, the only viable workaround is to define individual
 instances for each datatype in spirit of the |Monoid (IO a)| instance
-shown in the beginning. But as we shall see in the remainder of this
-paper, there are many such rules, and while the approach of defining
-individual instances in a uniform format may be somewhat feasible for
-classes that consists of just one or two methods, it becomes extremely
-tedious for classes with many methods.
+shown in the beginning, but that is extremely unsatisfactory:
+\begin{itemize}
+\item It is no longer obvious that we are, in fact, instantiating
+  a general principle.
+\item Because the general principle is not written down in code and
+  given a name, it has to be communicated by folklore or in comments,
+  and is difficult to discover.
+\item There are many such rules, some quite obvious, but
+  some more surprising and easy to miss.
+\item While for monoids with only two methods the work required to
+  define the instance manually is perhaps acceptable, it quickly becomes
+  extremely tedious and error-prone for classes with many methods.
+\end{itemize}
 
-For example, there is a way to lift a |Num| instance through any applicative
-functor (and similarly, there are ways to lift |Floating| and |Fractional|):
+As an illustration of the final point, consider |Num|. There is a way
+to lift a |Num| instance through any applicative
+functor\footnote{There are similar ways to lift |Floating| and |Fractional|.}:
 %{
 %if style == newcode
 %format Num = Num2
@@ -299,18 +362,14 @@ functor (and similarly, there are ways to lift |Floating| and |Fractional|):
 %endif
 
 > instance (Applicative f, Num a) => Num (f a) where
+>   (+)  =  liftA2 (+)
+>   (-)  =  liftA2 (-)
+>   (*)  =  liftA2 (*)
 >
->   (+), (-), (*) :: f a -> f a -> f a
->   (+) = liftA2 (+)
->   (-) = liftA2 (-)
->   (*) = liftA2 (*)
+>   negate   =  liftA negate
+>   abs      =  liftA abs
+>   signum   =  liftA signum
 >
->   negate, abs, signum :: f a -> f a
->   negate = liftA negate
->   abs    = liftA abs
->   signum = liftA signum
->
->   fromInteger :: Integer -> f a
 >   fromInteger = pure . fromInteger
 
 %}
@@ -323,7 +382,7 @@ https://gist.github.com/Icelandjack/e1ddefb0d5a79617a81ee98c49fbbdc4\#a-lot-of-t
 We cannot put a gist dump like this into a paper. We might want to make a selection,
 or just describe the situation in words.}
 
-\subsection{Our solution: newtypes and a new form of deriving}
+\subsection{Introducing \DerivingVia}
 %if style /= newcode
 %format App = "\ty{App}"
 %format Alt = "\ty{Alt}"
@@ -331,35 +390,42 @@ or just describe the situation in words.}
 %format MkAlt = "\con{Alt}"
 %endif
 
-We solve the above problem of capturing general rules for defining
-new instances by using a known mechanism: |newtype|s.
+Our approach to deal with this unfortunate lack of abstraction
+has two ingredients:
+\begin{enumerate}
+\item We capture general rules for defining new instances using
+  newtypes.
+\item We use such newtypes in a new \DerivingVia language
+  construct to explain to the compiler how to construct the
+  instance without having to write it manually.
+\end{enumerate}
 
-We can turn a problematic generic and overlapping instance into an
-entirely unproblematic (but not yet useful) one by defining a |newtype|
-and wrapping the instance head in it\alnote{According to Baldur, Conor
+For the first part,
+let us revisit the rule that explains how to lift a monoid
+instance through an applicative functor. We can turn the problematic
+generic and overlapping instance for |Monoid (f a)| into an entirely
+unproblematic instance by defining a suitable newtype and wrapping
+the instance head in it:\alnote{According to Baldur, Conor
 calls these ``adaptors''. Perhaps we should consider this terminology too.}:
 
 > newtype App f a = MkApp (f a)
 >
-> instance (Applicative f, Monoid4 a) => Monoid4 (App f a) where
->
->   mempty4 :: App f a
+> instance (Applicative f, Monoid4 a)
+>   => Monoid4 (App f a) where
 >   mempty4 = MkApp (pure mempty4)
->
->   mappend4 :: App f a -> App f a -> App f a
 >   mappend4 (MkApp f) (MkApp g) = MkApp (liftA2 mappend4 f g)
 
-Since GHC 8.4, we also need a |Semigroup| instance, because it just became
+Since \GHC\ 8.4, we also need a |Semigroup| instance, because it just became
 a superclass of |Monoid|\footnote{See Section~\ref{sec:superclasses} for
 a more detailed discussion of this aspect.}:
 
-> instance (Applicative f, Semigroup a) => Semigroup (App f a) where
->
->   (<>) :: App f a -> App f a -> App f a
+> instance (Applicative f, Semigroup a)
+>   => Semigroup (App f a) where
 >   MkApp f <> MkApp g = MkApp (liftA2 (<>) f g)
 
 Such instance definitions can be made more concise by employing the
-existing language extension @GeneralizedNewtypeDeriving@ which allows
+existing language extension \emph{generalized newtype deriving} (\GND)
+which allows
 us to make an instance on the underlying type available on the wrapped
 type. This is always possible because a |newtype|-wrapped type is
 guaranteed to have the same representation as the underlying type
@@ -375,17 +441,17 @@ guaranteed to have the same representation as the underlying type
 > instance Alternative f => Semigroup (Alt f a) where
 >   (<>) = mappend4
 
-We now introduce a new style of |deriving| that allows us to instruct
+We now introduce a new style of deriving that allows us to instruct
 the compiler to use such a newtype-derived rule as the basis of a new
 instance definition.
 
-For example, using the @StandaloneDeriving@ language extension, the
+For example, using the \StandaloneDeriving\ language extension, the
 |Monoid| instances for |IO| and |[]| could be written as follows:
 
 > deriving via (App IO a) instance Monoid4 a => Monoid4 (IO a)
 > deriving via (Alt [] a) instance Monoid4 [a]
 
-Here, |via| is a new language construct that explains \emph{how} GHC
+Here, |via| is a new language construct that explains \emph{how} \GHC\
 should derive the instance, namely be reusing the instance already
 available for the given type. It should be easy to see why this works:
 due to the use of a |newtype|, |App IO a| has the same internal
@@ -397,94 +463,23 @@ on a representationally equal type as well.
 
 In the rest of this paper, we will spell out this idea in more detail.
 
-In Section~\ref{sec:examples} we will look at several more useful examples of
-instance rules that can be captured and applied using |newtype|s. In
-particular, we will see that our new language extension subsumes
-@GeneralizedNewtypeDeriving@.
+In Section~\ref{sec:quickcheck}, we will use the QuickCheck library
+as a case study for explaining how to use \DerivingVia.
 %
 In Section~\ref{sec:typechecking}, we explain how the language extension works
 from a typechecking perspective and analyze the code that it generates.
 %
-Section~\ref{sec:advanced} shows some further uses cases that are more advanced and perhaps
+Section~\ref{sec:usecases} shows some further uses cases that are perhaps
 somewhat surprising.
 
 We discuss related work in Section~\ref{sec:related} and conclude
 in Section~\ref{sec:conclusions}.
 
-The extension is fully implemented in a GHC branch and all the code presented
+The extension is fully implemented in a \GHC\ branch and all the code presented
 in this paper compiles, so it will hopefully be available in a near future
-release of GHC. \alnote{We should make sure that we don't end up promising
-something that isn't true, but I think it's likely we'll have a full implementation
-by the time the paper is published, given that we have an almost working one
-already.}
+release of \GHC.
 
-\section{Examples}\label{sec:examples}
-%if style /= newcode
-%format FromMonad = "\ty{FromMonad}"
-%format MkFromMonad = "\con{FromMonad}"
-%format Stream = "\ty{Stream}"
-%format Yield = "\con{Yield}"
-%format Done = "\con{Done}"
-%endif
-
-\subsection{Defining superclasses}\label{sec:superclasses}
-
-When the ``Applicative Monad Proposal'' was introduced and turned |Monad|
-from a plain type class into one that has |Applicative| as a superclass
-(which in turn has |Functor| as a superclass), one counter-argument against
-the change was that someone who wants to primarily wants to declare a~|Monad|
-instance is now required to define two extra instances for~|Functor|
-and~|Applicative| -- both of which are usually boilerplate, because they can
-be defined from the~|Monad| instance.
-
-We can capture these rules as follows:
-
-> newtype FromMonad m a = MkFromMonad (m a)
->   deriving Monad
->
-> instance Monad m => Functor (FromMonad m) where
->   fmap  =  liftM
->
-> instance Monad m => Applicative (FromMonad m) where
->   pure   =  return
->   (<*>)  =  ap
-
-The wrapper type |FromMonad| serves the purpose of giving a name
-to the patterns. The two instance make it precise what it means
-to define the |Functor| and |Applicative| instances in terms of
-the monad instance.
-
-If we now have a datatype with a monad instance, we can simply derive
-the |Functor| and |Applicative| instances by referring to |FromMonad|:
-
-> data Stream a b = Done b | Yield a (Stream a b)
->   deriving (Functor, Applicative)
->     via (FromMonad (Stream a))
->
-> instance Monad (Stream a) where
->
->   return = Done
->
->   Yield a k >>= f  =  Yield a (k >>= f)
->   Done b    >>= f  =  f b
-
-A similar rule could also be added to define the |(<>)| of the |Semigroup|
-class in terms of an existing |Monoid| instance.
-
-\alnote{Several other mechanisms have been proposed to deal with this situation.
-We should go through them and point out whether they're subsumed by this or not.}
-
-One potentially problematic aspect remains. Another proposal that has been made
-but (as of now) not been accepted, namely to remove the |return| method from
-the |Monad| class. The argument is that it is redundant given the presence of
-|pure| in |Applicative|. All other points that have been raised about this
-proposal aside, it should be noted that removing |return| from the |Monad|
-class would prevent the above scheme from working. A similar, yet somewhat
-weaker, argument applies to suggested changes to relax the constraints of
-|liftM| and |ap| to merely |Applicative| and change their definitions to be
-identical to |fmap| and |(<*>)|, respectively.
-
-\subsection{QuickCheck}\label{sec:quickcheck}
+\section{Case study: QuickCheck}\label{sec:quickcheck}
 %if style /= newcode
 %format Arbitrary = "\cl{Arbitrary}"
 %format arbitrary = "\id{arbitrary}"
@@ -547,7 +542,7 @@ And what if other libraries export their own set of modifiers as well? We certai
 do not want to change the actual definition of our datatypes (and corresponding
 code) whenever we start using a new library.
 
-With |deriving via|, we have the option to reuse the existing infrastructure of
+With \DerivingVia, we have the option to reuse the existing infrastructure of
 modifiers without paying the price of cluttering up our datatype definitions.
 We can choose an actual domain-specific newtype such as
 
@@ -575,9 +570,9 @@ If we want to restrict ourselves to non-negative durations, we replace this by
 >   deriving Arbitrary via (NonNegative Int)
 
 and now we get the |Arbitrary| instance for non-negative integers. Only the
-|deriving| clause changes, not the datatype itself. If we later decide we want
+deriving clause changes, not the datatype itself. If we later decide we want
 only positive integers as durations, we replace |NonNegative| with |Positive|
-in the |deriving| clause. Again, the datatype itself is unaffected. In particular,
+in the deriving clause. Again, the datatype itself is unaffected. In particular,
 we do not have to change any constructor names anywhere in our code.
 
 \subsection{Composition}
@@ -682,7 +677,7 @@ We can do so by using a modifier that has extra arguments, and using
 the extra arguments in the associated |Arbitrary| instance.
 
 An extreme case that also makes use from type-level programming features
-in GHC is a modifier that allows us to specify a lower and an upper bound
+in \GHC\ is a modifier that allows us to specify a lower and an upper bound
 of a generated natural number.
 %if style /= newcode
 %format Between = "\ty{Between}"
@@ -723,13 +718,13 @@ a generator implementing respecting a plausible range:
 
 \section{Typechecking}\label{sec:typechecking}
 
-Seeing enough examples of |deriving via| can give the impression that it is
+Seeing enough examples of \DerivingVia\ can give the impression that it is
 a somewhat magical feature. In this section, we aim to explain the magic
-underlying |deriving via| by giving a more precise description of:
+underlying \DerivingVia\ by giving a more precise description of:
 \begin{itemize}
- \item How |deriving via| clauses are typechecked
- \item What code |deriving via| generates behind the scenes
- \item How to determine the scoping of type variables in |deriving via| clauses
+ \item How \DerivingVia\ clauses are typechecked.
+ \item What code \DerivingVia\ generates behind the scenes.
+ \item How to determine the scoping of type variables in \DerivingVia\ clauses.
 \end{itemize}
 
 %if style /= newcode
@@ -770,18 +765,18 @@ underlying |deriving via| by giving a more precise description of:
 
 To avoid clutter, we assume that all types have monomorphic kinds. However, it
 is easy to incorporate kind polymorphism~\cite{haskell-promotion}, and our
-implementation of these ideas in GHC does so.
+implementation of these ideas in \GHC\ does so.
 
-\subsection{Well typed uses of |deriving via|}
+\subsection{Well-typed uses of \DerivingVia}
 
-|deriving via| grants the programmer the ability to put extra types in her programs,
+\DerivingVia\ grants the programmer the ability to put extra types in her programs,
 but the flip side to this is that it's possible for her to accidentally put total nonsense
-into a |deriving via| clause, such as:
+into a \DerivingVia\ clause, such as:
 
 < newtype S = S Char
 <   deriving Eq via Maybe
 
-In this section, we will describe a general algorithm for when a |deriving via| clause should
+In this section, we will describe a general algorithm for when a \DerivingVia\ clause should
 typecheck, which will allow us to reject ill-formed examples like the one above.
 
 \subsubsection{Aligning kinds} \label{sec:kinds}
@@ -803,7 +798,7 @@ Suppose we are deriving the following instance:
 < data D (sub d 1) DOTS (sub d m)
 <   deriving (C (sub c 1) DOTS (sub c n)) via (V (sub v 1) DOTS (sub v p))
 
-In order for this declaration to typecheck, we must check the \textit{kinds} of each type.
+In order for this declaration to typecheck, we must check the \emph{kinds} of each type.
 In particular, the following conditions must hold:
 
 \begin{enumerate}
@@ -848,9 +843,9 @@ because the code that actually gets generated has the following shape:
 
 < instance Functor Foo where ...
 
-To put it differently, we have \textit{eta-reduced} away the |a| in |Foo a| before applying
+To put it differently, we have \emph{eta-reduced} away the |a| in |Foo a| before applying
 |Functor| to it. The power to eta-reduce variables from the data types is part of what
-makes |deriving| clauses so flexible.
+makes deriving clauses so flexible.
 
 To determine how many variables to eta-reduce,
 we must examine the kind of
@@ -876,20 +871,20 @@ from |B b| to obtain |B|. We then check that |B| is kind of |(* -> *)|, which is
 \subsection{Code generation}
 
 Once the typechecker has ascertained that a |via| type is fully compatibly with the data type
-and the class for which an instance is being derived, GHC proceeds with generating the code
-for the instance itself. This generated code is then fed \textit{back} into the typechecker,
-which acts as a final sanity check that GHC is doing the right thing under the hood.
+and the class for which an instance is being derived, \GHC\ proceeds with generating the code
+for the instance itself. This generated code is then fed \emph{back} into the typechecker,
+which acts as a final sanity check that \GHC\ is doing the right thing under the hood.
 
-\subsubsection{@GeneralizedNewtypeDeriving@} \label{sec:gnd}
+\subsubsection{Generalized newtype deriving (\GND)} \label{sec:gnd}
 
-The process by which |deriving via| generates code is heavily based off of the approach that
-the @GeneralizedNewtypeDeriving@ takes, so it is informative to first explain how
-@GeneralizedNewtypeDeriving@ works. From there, |deriving via| is a straightforward
-generalization---so much so that |deriving via| could be thought of as
-"generalized @GeneralizedNewtypeDeriving@".
+The process by which \DerivingVia\ generates code is heavily based off of the approach that
+the \GND\ takes, so it is informative to first explain how
+\GND\ works. From there, \DerivingVia\ is a straightforward
+generalization---so much so that \DerivingVia\ could be thought of as
+"generalized \GND".
 
 Our running example in this section will be the newtype |Age|, which is a simple
-wrapper around |Int| (which we will call the \textit{representation type}):
+wrapper around |Int| (which we will call the \emph{representation type}):
 
 %if style /= newcode
 %format Age = "\ty{Age}"
@@ -916,12 +911,12 @@ at runtime.
 
 Unfortunately, the implementation of |enumFrom| may not uphold this guarantee. While wrapping
 and unwrapping the |MkAge| constructor is certain to be a no-op, the |map| function is
-definitely \textit{not} a no-op, as it must walk the length of a list. But the fact that we
+definitely \emph{not} a no-op, as it must walk the length of a list. But the fact that we
 need to call |map| in the first place feels rather silly, as all we are doing is wrapping
 a newtype at each element.
 
-Luckily, there is a convenient solution to this problem: the |coerce| function from
-\cite{zero-cost-coercions}:
+Luckily, there is a convenient solution to this problem: the safe
+|coerce| function~\cite{zero-cost-coercions}:
 %if style /= newcode
 %format Coercible = "\protect\cl{Coercible}"
 %endif
@@ -936,7 +931,7 @@ it suffices to say that a |Coercible a b| constraint witnesses the fact that two
 and |b| have the same representation at runtime, and thus any value of type |a| can be
 casted to type |b|.
 
-Armed with |coerce|, we can show what code @GeneralizedNewtypeDeriving@ would actually
+Armed with |coerce|, we can show what code \GND\ would actually
 generate for the |Enum Age| instance above:
 
 < instance Enum Age where
@@ -952,21 +947,21 @@ representation type, and one for the newtype.
 
 \subsubsection{The |Coercible| constraint} \label{sec:coercible}
 
-A |Coercible| constraint can be thought of as evidence that GHC can use to
+A |Coercible| constraint can be thought of as evidence that \GHC\ can use to
 cast between two types. |Coercible| is not a type class, so it is impossible to write
-a |Coercible| instance by hand. Instead, GHC can generate and solve |Coercible| constraints
+a |Coercible| instance by hand. Instead, \GHC\ can generate and solve |Coercible| constraints
 automatically as part of its built-in constraint solver, much like it can solve equality
 constraints. (Indeed, |Coercible| can be thought of as a broader notion of equality among
 types.)
 
 As mentioned in the previous section, a newtype can be safely cast to and from its
-representation type, so GHC treats them as inter-|Coercible|. Continuing our earlier example,
-this would mean that GHC would be able to conclude that:
+representation type, so \GHC\ treats them as inter-|Coercible|. Continuing our earlier example,
+this would mean that \GHC\ would be able to conclude that:
 
 < instance Coercible Age Int
 < instance Coercible Int Age
 
-But this is not all that |Coercible| is capable of. A key property is that GHC's constraint
+But this is not all that |Coercible| is capable of. A key property is that \GHC's constraint
 solver can look inside of other type constructors when determining if two types are
 inter-|Coercible|. For instance, both of these statements hold:
 
@@ -980,28 +975,28 @@ Another crucial fact about |Coercible| that we rely on is that it is transitive:
 |Coercible a b| and |Coercible b c| hold, then |Coercible a c| also holds. This is perhaps
 unsurprising if one views |Coercible| as an equivalence relation, but it a fact that is worth
 highlighting, as the transitivity of |Coercible| is what allows us to |coerce|
-\textit{between newtypes}. For instance, if we have these two newtypes:
+\emph{between newtypes}. For instance, if we have these two newtypes:
 
 > newtype A a = A [a]
 > newtype B = B [Int]
 
-Then GHC is able to conclude that |Coercible (A Int) B| holds, because we have the following
+Then \GHC\ is able to conclude that |Coercible (A Int) B| holds, because we have the following
 |Coercible| rules:
 
 < instance Coercible (A Int) [Int]
 < instance Coercible [Int] B
 
-Therefore, by the transitivity of |Coercible|, we have |Coercible (A Int) B|. |deriving via|
+Therefore, by the transitivity of |Coercible|, we have |Coercible (A Int) B|. \DerivingVia\
 in particular makes heavy use of the transitivity of |Coercible|, as we will
 see momentarily.
 
-\subsubsection{From @GeneralizedNewtypeDeriving@ to |deriving via|}
+\subsubsection{From \GND\ to \DerivingVia}
 
-As we saw in section \ref{sec:gnd}, the code which @GeneralizedNewtypeDeriving@ generates
+As we saw in section \ref{sec:gnd}, the code which \GND\ generates
 relies on |coerce| to do the heavy lifting. In this section, we will generalize this
-technique slightly to give us a way to generate code for |deriving via|.
+technique slightly to give us a way to generate code for \DerivingVia.
 
-Recall that the following instance, which is derived through @GeneralizedNewtypeDeriving@:
+Recall that the following instance, which is derived through \GND:
 
 < newtype Age = MkAge Int
 <   deriving Enum
@@ -1016,9 +1011,9 @@ original newtype itself, |Age|. The implementation of |enumFrom| simply sets up 
 invocation of |coerce enumFrom|, with explicit type annotations to indicate that we should
 reuse the existing |enumFrom| implementation for |Int| and reappropriate it for |Age.|
 
-The only difference in the code that @GeneralizedNewtypeDeriving@ and |deriving via| generate
-is that in the former strategy, GHC always picks the representation type for you, but in
-|deriving via|, the \textit{user} has the power to choose this type. For example,
+The only difference in the code that \GND\ and \DerivingVia\ generate
+is that in the former strategy, \GHC\ always picks the representation type for you, but in
+\DerivingVia, the \emph{user} has the power to choose this type. For example,
 if a programmer had written this instead:
 
 < newtype T = T Int
@@ -1032,18 +1027,18 @@ Then the following code would be generated:
 < instance Enum Age where
 <   enumFrom = coerce (enumFrom :: T -> [T]) :: Age -> [Age]
 
-This time, GHC |coerce|s from an |enumFrom| implementation for |T| (the |via| type) to
+This time, \GHC\ coerces from an |enumFrom| implementation for |T| (the |via| type) to
 an implementation for |Age|. (Recall from section \ref{sec:coercible} that this is
 possible since we can |coerce| transitivity from |T| to |Int| to |Age|).
 
-Now we can see why the instances that |deriving via| can generate are a strict superset of
-those that @GeneralizedNewtypeDeriving@ can generate. For instance, our earlier
-@GeneralizedNewtypeDeriving@ example:
+Now we can see why the instances that \DerivingVia\ can generate are a strict superset of
+those that \GND\ can generate. For instance, our earlier
+\GND\ example:
 
 < newtype Age = MkAge Int
 <   deriving Enum
 
-Could equivalently have been written using |deriving via| like so:
+Could equivalently have been written using \DerivingVia\ like so:
 
 < newtype Age = MkAge Int
 <   deriving Enum via Int
@@ -1051,9 +1046,9 @@ Could equivalently have been written using |deriving via| like so:
 \subsection{Type variable scoping}
 
 In the remainder of this section, we will present an overview of how type
-variables are bound in |deriving via| clauses, and over what types they scope.
-|deriving via| introduces a new place where types can go, and more importantly,
-it introduces a new place where type variables can be \textit{quantified}, so
+variables are bound in \DerivingVia\ clauses, and over what types they scope.
+\DerivingVia\ introduces a new place where types can go, and more importantly,
+it introduces a new place where type variables can be \emph{quantified}, so
 it takes some amount of care to devise a consistent treatment for it.
 
 \subsubsection{Binding sites}
@@ -1111,7 +1106,7 @@ derive multiple classes at once with a single |via| type:
 %endif
 
 Suppose we first quantified the variables in the derived classes and
-\textit{then} the variables in the |via| type. Because each derived class
+\emph{then} the variables in the |via| type. Because each derived class
 has its own type variable scope, the |a| in |C1 a| is bound independently from
 the |a| in |C2 a|. In other words, we have something like this (using a
 hypothetical |forall| syntax):
@@ -1133,7 +1128,7 @@ Now, there is no ambiguity regarding |a|, as both |a| variables in the list of
 derived classes were bound in the same place.
 
 It might feel strange visually to see a variable being used
-\textit{before} of its binding site (assuming one reads code from left to right).
+\emph{before} of its binding site (assuming one reads code from left to right).
 However, this is not unprecedented within Haskell, as this is also legal:
 
 > f :: Int
@@ -1147,7 +1142,7 @@ after their use sites. In this sense, the |via| keyword is continuing a rich
 tradition pioneered by |where| clauses.
 
 One alternative idea (which was briefly considered) was to put the |via| type
-\textit{before} the derived classes so as to avoid this ``zigzagging'' scoping.
+\emph{before} the derived classes so as to avoid this ``zigzagging'' scoping.
 However, this would introduce additional ambiguities. Imagine one were to
 take this example:
 
@@ -1200,7 +1195,7 @@ this choice would force programmers to write additional parentheses.
 %
 % \subsubsection{Multiple binding sites?}
 %
-% One slight wrinkle in this story is that |deriving| clauses can specify \textit{multiple}
+% One slight wrinkle in this story is that |deriving| clauses can specify \emph{multiple}
 % classes to derive per data type, e.g.,
 %
 % < data Bar
@@ -1233,7 +1228,7 @@ this choice would force programmers to write additional parentheses.
 %
 % Now, the quantification has become unambiguous.
 %
-% A tricky corner case to consider is that |deriving| clauses can also derive \textit{zero}
+% A tricky corner case to consider is that |deriving| clauses can also derive \emph{zero}
 % classes to derive. Combined with |deriving via|, this can lead to the following example:
 %
 % < data Bar
@@ -1282,7 +1277,71 @@ this choice would force programmers to write additional parentheses.
 %
 % This approach uses an explicit TODO RGS
 
-\section{Advanced uses}\label{sec:advanced}
+\section{More use cases}\label{sec:usecases}
+
+\subsection{Defining superclasses}\label{sec:superclasses}
+%if style /= newcode
+%format FromMonad = "\ty{FromMonad}"
+%format MkFromMonad = "\con{FromMonad}"
+%format Stream = "\ty{Stream}"
+%format Yield = "\con{Yield}"
+%format Done = "\con{Done}"
+%endif
+
+When the ``Applicative Monad Proposal'' was introduced and turned |Monad|
+from a plain type class into one that has |Applicative| as a superclass
+(which in turn has |Functor| as a superclass), one counter-argument against
+the change was that someone who wants to primarily wants to declare a~|Monad|
+instance is now required to define two extra instances for~|Functor|
+and~|Applicative| -- both of which are usually boilerplate, because they can
+be defined from the~|Monad| instance.
+
+We can capture these rules as follows:
+
+> newtype FromMonad m a = MkFromMonad (m a)
+>   deriving Monad
+>
+> instance Monad m => Functor (FromMonad m) where
+>   fmap  =  liftM
+>
+> instance Monad m => Applicative (FromMonad m) where
+>   pure   =  return
+>   (<*>)  =  ap
+
+The wrapper type |FromMonad| serves the purpose of giving a name
+to the patterns. The two instance make it precise what it means
+to define the |Functor| and |Applicative| instances in terms of
+the monad instance.
+
+If we now have a datatype with a monad instance, we can simply derive
+the |Functor| and |Applicative| instances by referring to |FromMonad|:
+
+> data Stream a b = Done b | Yield a (Stream a b)
+>   deriving (Functor, Applicative)
+>     via (FromMonad (Stream a))
+>
+> instance Monad (Stream a) where
+>
+>   return = Done
+>
+>   Yield a k >>= f  =  Yield a (k >>= f)
+>   Done b    >>= f  =  f b
+
+A similar rule could also be added to define the |(<>)| of the |Semigroup|
+class in terms of an existing |Monoid| instance.
+
+\alnote{Several other mechanisms have been proposed to deal with this situation.
+We should go through them and point out whether they're subsumed by this or not.}
+
+One potentially problematic aspect remains. Another proposal that has been made
+but (as of now) not been accepted, namely to remove the |return| method from
+the |Monad| class. The argument is that it is redundant given the presence of
+|pure| in |Applicative|. All other points that have been raised about this
+proposal aside, it should be noted that removing |return| from the |Monad|
+class would prevent the above scheme from working. A similar, yet somewhat
+weaker, argument applies to suggested changes to relax the constraints of
+|liftM| and |ap| to merely |Applicative| and change their definitions to be
+identical to |fmap| and |(<*>)|, respectively.
 
 \subsection{Avoiding orphan instances}
 
@@ -1331,6 +1390,13 @@ Another example from the same paper can be derived as well:
 %endif
 
 \subsection{Asymptotic improvement}
+%if style /= newcode
+%format Rep = "\ty{Rep}"
+%format Type = "\ki{Type}"
+%format index = "\id{index}"
+%format tabulate = "\id{tabulate}"
+%format Representable = "\cl{Representable}"
+%endif
 
 The |Applicative| operators |(*>)| and |(<*)| always have a default
 definition in terms of |liftA2|
@@ -1404,6 +1470,7 @@ convenient to define and work with
 %if style /= newcode
 %format Monoidal = "\cl{Monoidal}"
 %format unit = "\id{unit}"
+%format mult = "\id{mult}"
 %format WrapMonoidal = "\ty{WrapMonoidal}"
 %format WrapApplicative = "\ty{WrapApplicative}"
 %format WM = "\con{WM}"
@@ -1411,8 +1478,8 @@ convenient to define and work with
 %endif
 
 > class Functor f => Monoidal f where
->   unit ::  f ()
->   mult ::  f a -> f b -> f (a, b)
+>   unit  ::  f ()
+>   mult  ::  f a -> f b -> f (a, b)
 
 Allowing us to derive |Applicative| from a |Monoidal| instance, allow
 us to use whatever formulation we prefer
@@ -1422,7 +1489,7 @@ us to use whatever formulation we prefer
 >
 > instance Monoidal f => Applicative (WrapMonoidal f) where
 >   pure a    = a <$ unit
->   mf <*> mx = fmap (\(f, x) -> f x) (mul mf mx)
+>   mf <*> mx = fmap (\(f, x) -> f x) (mf `mult` mx)
 
 We can then define the opposite direction, codifying the equivalence
 in these two instances
@@ -1494,18 +1561,21 @@ Parallel Legacy Languages as Theorem Provers (deriving
 \subsection{Traversal order}
 \url{Discuss ideas here https://www.reddit.com/r/haskell/comments/6udl0i/representable_functors_parameterised_by/}
 
-\subsection{Enhancing @DefaultSignatures@}\label{sec:defaultsignatures}
+\subsection{Enhancing \DefaultSignatures}\label{sec:defaultsignatures}
+%if style == newcode
+%format Rep = "GHC.Rep"
+%endif
 
-In section \ref{sec:gnd}, we observed that |deriving via| can fully replace the
-@GeneralizedNewtypeDeriving@ extension. In fact, that's not the only language
-extension that |deriving via| can be used as a substitute for! There is another
-type class-related extension, @DefaultSignatures@, which is frequently used by
-GHC programmers to eliminate large classes of boilerplate but it limited by its
+In section \ref{sec:gnd}, we observed that \DerivingVia\ can fully replace the
+\GND\ extension. In fact, that's not the only language
+extension that \GND\ can be used as a substitute for! There is another
+type class-related extension \emph{default signatures} which is frequently used by
+\GHC\ programmers to eliminate large classes of boilerplate but it limited by its
 expressive power. Here, we demonstrate how one can scrap uses of
-@DefaultSignatures@ in favor of |deriving via|, and show how |deriving via|
-can overcome the limitations of @DefaultSignatures@.
+\DefaultSignatures\ in favor of \DerivingVia, and show how \DerivingVia\
+can overcome the limitations of \DefaultSignatures.
 
-The typical use case for @DefaultSignatures@ when one has a type class method
+The typical use case for \DefaultSignatures\ when one has a type class method
 that has a frequently used default implementation at a different type.
 For instance, consider a |Pretty| class with a method |pPrint| for
 pretty-printing data:
@@ -1567,7 +1637,7 @@ default implementation of |pPrint| in terms of |genericPPrint| is infeasible:
 
 The code above will not typecheck, as |genericPPrint| requires extra
 constraints |(Generic a, GPretty (Rep a))| that |pPrint| does not provide.
-Before the advent of @DefaultSignatures@, one had to work around this by
+Before the advent of \DefaultSignatures, one had to work around this by
 defining |pPrint| to be |genericPPrint| in every |Pretty| instance, as in the
 examples below:
 
@@ -1580,7 +1650,7 @@ examples below:
 > instance (Pretty a, Pretty b) => Pretty (Either a b) where
 >   pPrint = genericPPrint
 
-To avoid this repetition, @DefaultSignatures@ allows one to provide a default
+To avoid this repetition, \DefaultSignatures allow one to provide a default
 implementation of a type class method using \emph{different} constraints
 than the method itself has. For instance:
 %if style == newcode
@@ -1603,10 +1673,10 @@ above to just:
 > instance Pretty a => Pretty (Maybe a)
 > instance (Pretty a, Pretty b) => Pretty (Either a b)
 
-Although @DefaultSignatures@ removes the need for many occurrences of
+Although \DefaultSignatures\ remove the need for many occurrences of
 boilerplate code, it also imposes a significant limitation: every type class
 method can only have at most one default implementation. As a result,
-@DefaultSignatures@ effectively endorses one default implementation as the
+\DefaultSignatures\ effectively endorse one default implementation as the
 canonical one. But in many scenarios, there is far more than just one way to
 do something. Our |pPrint| example is no exception. Instead of
 |genericPPrint|, one might one to:
@@ -1621,12 +1691,12 @@ do something. Our |pPrint| example is no exception. Instead of
 \end{itemize}
 
 All of these are perfectly reasonable choices a programmer might want to make,
-but alas, @DefaultSignatures@ will only accept a single implementation as the
+but alas, \DefaultSignatures\ will only accept a single implementation as the
 One True Default.
 
-Fortunately, |deriving via| provides a convenient way of encoding default
+Fortunately, \DerivingVia\ provides a convenient way of encoding default
 implementations with the ability to toggle between different choices:
-|newtype|s! For instance, we can codify two different approaches to
+newtypes! For instance, we can codify two different approaches to
 implementing |pPrint| as follows:
 %if style /= newcode
 %format GenericPPrint = "\ty{GenericPPrint}"
@@ -1658,7 +1728,7 @@ TODO: Something about ML functors?
 
 \subsection{Explicit dictionary passing}
 
-The power and flexibility of |deriving via| is largely due to GHC's ability
+The power and flexibility of \DerivingVia\ is largely due to GHC's ability
 to take a class method of a particular type and massage it into a method
 of a different type. This process is almost completely abstracted away from
 the user, however. A user only needs to specify the types involved, and GHC
@@ -1667,30 +1737,30 @@ will handle the rest behind the scenes.
 An alternative approach, which would put more power into the hands of the
 programmer, is to permit the ability to explicitly construct and pass the
 normally implicit dictionary arguments corresponding to type class instances
-~\cite{implicit-params-explicit}. Unlike in |deriving via|, where going between
+~\cite{implicit-params-explicit}. Unlike in \DerivingVia\, where going between
 class instances is a process that is carefully guided by the compiler,
 permitting explicit dictionary arguments would allow users to actually
 @coerce@ concrete instance values and pass them around as first-class objects.
 In this sense, explicit dictionary arguments could be thought of as a further
-generalization of the technique that |deriving via| uses.
+generalization of the technique that \DerivingVia\ uses.
 
 However, explicit dictionary arguments do come with some costs. They
 require significantly enhancing Haskell's type system to support, and
 they break principle typing. Moreover, we feel as if explicit
 dictionary passing to too large a hammer for the nail we are trying to hit.
-|deriving via| works by means of a simple desugaring of code with some
+\DerivingVia\ works by means of a simple desugaring of code with some
 light typechecking on top, which makes it much simpler to describe and
 implement. Finally, the problem which explicit dictionaries aims to
 solve---resolving ambiguity in implicit arguments---almost never arises
-in |deriving via|, as the programmer must specify all the types involved
+in \DerivingVia, as the programmer must specify all the types involved
 in the process.
 
 \section{Limitations and Future Work}\label{sec:conclusions}
 
-We have implemented |deriving via| within the GHC.
-Our implementation also interacts well with other GHC features that were
+We have implemented \DerivingVia\ within \GHC.
+Our implementation also interacts well with other \GHC\ features that were
 not covered in this paper, such as kind polymorphism ~\cite{haskell-promotion},
-@StandaloneDeriving@ \rsnote{Is this true? Double-check.},
+\StandaloneDeriving\rsnote{Is this true? Double-check.},
 and type classes with associated type families ~\cite{associated-type-synonyms}.
 However, there are still challenges remaining, which we will describe
 in this section.
@@ -1705,11 +1775,11 @@ are usually rooted in \emph{generated} code, and pointing to code that the
 user didn't write in error messages can lead to a confusing debugging
 experience.
 
-|deriving via| is certainly no exception to this trend. In fact, the problem
+\DerivingVia\ is certainly no exception to this trend. In fact, the problem
 of creating lucid error messages is arguably \emph{worse} in the context of
-|deriving via|, as we give users the power to derive instances through whatever
+\DerivingVia, as we give users the power to derive instances through whatever
 type they wish. Unfortunately, this makes it easier to shoot oneself in the
-foot, as it is now easier than ever before to feed |deriving| garbage. As one
+foot, as it is now easier than ever before to feed \DerivingVia\ garbage. As one
 example, if a user were to accidentally write this code:
 
 < newtype Foo a = MkFoo (Maybe a) deriving Ord via a
@@ -1737,10 +1807,10 @@ likely many more tricky corner cases lurking around the corner, given that
 one can put anything after |via|.
 
 We do not propose a solution to this problem here, but instead note that issues
-with |deriving via| error quality are ultimately issues with |coerce| error
+with \DerivingVia\ error quality are ultimately issues with |coerce| error
 quality, given that the error messages are a result of |coerce| failing to
 typecheck. It is likely that investing more effort into making |coerce|'s
-error messages easier to understand would benefit |deriving via| as well.
+error messages easier to understand would benefit \DerivingVia\ as well.
 
 \subsection{Multi-Parameter Type Classes}
 
@@ -1748,12 +1818,12 @@ GHC extends Haskell by permitting type classes with more than one parameter.
 Multi-parameter type classes are extremely common in modern Haskell, to the
 point where we assumed the existence of them in Section \ref{sec:kinds}
 without further mention. However, multi-parameter type classes pose an
-intriguing design question when combined with |deriving via| and
-@StandaloneDeriving@, another GHC feature which allows one to write
+intriguing design question when combined with \DerivingVia\ and
+\StandaloneDeriving, another GHC feature which allows one to write
 |deriving| declarations independently of a data type.
 
 For example, one can write the following instance using
-@StandaloneDeriving@:
+\StandaloneDeriving:
 
 %if style == newcode
 %format Triple = Triple_
@@ -1788,7 +1858,7 @@ For example, one can write the following instance using
 However, the code it generates is somewhat surprising. Instead of reusing
 the |Triple () () ()| instance in the derived instance, it will attempt
 to reuse an instance for |Triple A B ()|. This is because, by convention,
-@StandaloneDeriving@ will only ever coerce through the \textit{last}
+\StandaloneDeriving\ will only ever coerce through the \emph{last}
 argument of a class. That is because the standalone instance above would be
 the same as if a user had written:
 %if style == newcode
