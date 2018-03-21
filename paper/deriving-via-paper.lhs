@@ -1729,7 +1729,15 @@ a single type:
 
 \section{Related Ideas}\label{sec:related}
 
-TODO: Something about ML functors?
+\subsection{ML functors}
+
+Languages in the ML family, such as Standard ML and OCaml, provide
+\textit{functors}, which is a feature of the module system that allows
+writing functions from modules of one signature to modules of another
+signature. In terms of functionality, functors somewhat closely resemble
+\DerivingVia\, as functors allow ``lifting'' of code into the module
+language much like \DerivingVia\ allows lifting of code into GHC's
+deriving construct.
 
 \subsection{Explicit dictionary passing}
 
