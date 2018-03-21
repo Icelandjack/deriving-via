@@ -1735,7 +1735,7 @@ Languages in the ML family, such as Standard ML and OCaml, provide
 \textit{functors}, which is a feature of the module system that allows
 writing functions from modules of one signature to modules of another
 signature. In terms of functionality, functors somewhat closely resemble
-\DerivingVia\, as functors allow ``lifting'' of code into the module
+\DerivingVia, as functors allow ``lifting'' of code into the module
 language much like \DerivingVia\ allows lifting of code into GHC's
 deriving construct.
 
@@ -1750,7 +1750,7 @@ will handle the rest behind the scenes.
 An alternative approach, which would put more power into the hands of the
 programmer, is to permit the ability to explicitly construct and pass the
 normally implicit dictionary arguments corresponding to type class instances
-~\cite{implicit-params-explicit}. Unlike in \DerivingVia\, where going between
+~\cite{implicit-params-explicit}. Unlike in \DerivingVia, where going between
 class instances is a process that is carefully guided by the compiler,
 permitting explicit dictionary arguments would allow users to actually
 @coerce@ concrete instance values and pass them around as first-class objects.
