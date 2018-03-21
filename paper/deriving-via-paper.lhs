@@ -1765,8 +1765,8 @@ in the process.
 We have implemented \DerivingVia\ within \GHC.
 Our implementation also interacts well with other \GHC\ features that were
 not covered in this paper, such as kind polymorphism ~\cite{haskell-promotion},
-\StandaloneDeriving\rsnote{Is this true? Double-check.},
-and type classes with associated type families ~\cite{associated-type-synonyms}.
+\StandaloneDeriving, and type classes with associated type families
+~\cite{associated-type-synonyms}.
 However, there are still challenges remaining, which we will describe
 in this section.
 
