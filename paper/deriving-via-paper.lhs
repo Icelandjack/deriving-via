@@ -15,10 +15,15 @@
 \usepackage{hyperref}
 \usepackage{xspace}
 
+%include general.fmt
+
 % macros
+\newcommand\extension[1]{\Conid{#1}}
 \newcommand\DerivingVia{Deriving Via\xspace}
 \newcommand\GND{{\smaller GND}\xspace}
 \newcommand\GHC{{\smaller GHC}\xspace}
+\newcommand\DefaultSignatures{default signatures\xspace}
+\newcommand\StandaloneDeriving{|StandaloneDeriving|}
 
 % comments
 %let comments = True
@@ -34,8 +39,6 @@
 \newcommand\alnote[1]{}%
 \newcommand\rsnote[1]{}%
 %endif
-
-%include general.fmt
 
 \setcopyright{rightsretained}
 
@@ -251,7 +254,7 @@ instance that overlaps with the lifted instance above
 >   mempty2 = MkEndo id
 >   mappend2 (MkEndo f) (MkEndo g) = MkEndo (f . g)
 
-and while we can make GHC accept it nevertheless, the presence of
+and while we can make \GHC\ accept it nevertheless, the presence of
 overlapping instances often leads to undesirable behavior.\alnote{The
 original enumeration mentioned another point which I do not understand
 right now, so I omitted it for the time being: ``Structure of the |f|
@@ -366,7 +369,7 @@ calls these ``adaptors''. Perhaps we should consider this terminology too.}:
 >   mappend4 :: App f a -> App f a -> App f a
 >   mappend4 (MkApp f) (MkApp g) = MkApp (liftA2 mappend4 f g)
 
-Since GHC 8.4, we also need a |Semigroup| instance, because it just became
+Since \GHC\ 8.4, we also need a |Semigroup| instance, because it just became
 a superclass of |Monoid|\footnote{See Section~\ref{sec:superclasses} for
 a more detailed discussion of this aspect.}:
 
@@ -393,17 +396,17 @@ guaranteed to have the same representation as the underlying type
 > instance Alternative f => Semigroup (Alt f a) where
 >   (<>) = mappend4
 
-We now introduce a new style of |deriving| that allows us to instruct
+We now introduce a new style of deriving that allows us to instruct
 the compiler to use such a newtype-derived rule as the basis of a new
 instance definition.
 
-For example, using the @StandaloneDeriving@ language extension, the
+For example, using the \StandaloneDeriving\ language extension, the
 |Monoid| instances for |IO| and |[]| could be written as follows:
 
 > deriving via (App IO a) instance Monoid4 a => Monoid4 (IO a)
 > deriving via (Alt [] a) instance Monoid4 [a]
 
-Here, |via| is a new language construct that explains \emph{how} GHC
+Here, |via| is a new language construct that explains \emph{how} \GHC\
 should derive the instance, namely be reusing the instance already
 available for the given type. It should be easy to see why this works:
 due to the use of a |newtype|, |App IO a| has the same internal
@@ -427,9 +430,9 @@ somewhat surprising.
 We discuss related work in Section~\ref{sec:related} and conclude
 in Section~\ref{sec:conclusions}.
 
-The extension is fully implemented in a GHC branch and all the code presented
+The extension is fully implemented in a \GHC\ branch and all the code presented
 in this paper compiles, so it will hopefully be available in a near future
-release of GHC.
+release of \GHC.
 
 \section{Case study: QuickCheck}\label{sec:quickcheck}
 %if style /= newcode
@@ -494,7 +497,7 @@ And what if other libraries export their own set of modifiers as well? We certai
 do not want to change the actual definition of our datatypes (and corresponding
 code) whenever we start using a new library.
 
-With |deriving via|, we have the option to reuse the existing infrastructure of
+With \DerivingVia, we have the option to reuse the existing infrastructure of
 modifiers without paying the price of cluttering up our datatype definitions.
 We can choose an actual domain-specific newtype such as
 
@@ -522,9 +525,9 @@ If we want to restrict ourselves to non-negative durations, we replace this by
 >   deriving Arbitrary via (NonNegative Int)
 
 and now we get the |Arbitrary| instance for non-negative integers. Only the
-|deriving| clause changes, not the datatype itself. If we later decide we want
+deriving clause changes, not the datatype itself. If we later decide we want
 only positive integers as durations, we replace |NonNegative| with |Positive|
-in the |deriving| clause. Again, the datatype itself is unaffected. In particular,
+in the deriving clause. Again, the datatype itself is unaffected. In particular,
 we do not have to change any constructor names anywhere in our code.
 
 \subsection{Composition}
@@ -629,7 +632,7 @@ We can do so by using a modifier that has extra arguments, and using
 the extra arguments in the associated |Arbitrary| instance.
 
 An extreme case that also makes use from type-level programming features
-in GHC is a modifier that allows us to specify a lower and an upper bound
+in \GHC\ is a modifier that allows us to specify a lower and an upper bound
 of a generated natural number.
 %if style /= newcode
 %format Between = "\ty{Between}"
@@ -670,13 +673,13 @@ a generator implementing respecting a plausible range:
 
 \section{Typechecking}\label{sec:typechecking}
 
-Seeing enough examples of |deriving via| can give the impression that it is
+Seeing enough examples of \DerivingVia\ can give the impression that it is
 a somewhat magical feature. In this section, we aim to explain the magic
-underlying |deriving via| by giving a more precise description of:
+underlying \DerivingVia\ by giving a more precise description of:
 \begin{itemize}
- \item How |deriving via| clauses are typechecked
- \item What code |deriving via| generates behind the scenes
- \item How to determine the scoping of type variables in |deriving via| clauses
+ \item How \DerivingVia\ clauses are typechecked.
+ \item What code \DerivingVia\ generates behind the scenes.
+ \item How to determine the scoping of type variables in \DerivingVia\ clauses.
 \end{itemize}
 
 %if style /= newcode
@@ -717,18 +720,18 @@ underlying |deriving via| by giving a more precise description of:
 
 To avoid clutter, we assume that all types have monomorphic kinds. However, it
 is easy to incorporate kind polymorphism~\cite{haskell-promotion}, and our
-implementation of these ideas in GHC does so.
+implementation of these ideas in \GHC\ does so.
 
-\subsection{Well typed uses of |deriving via|}
+\subsection{Well-typed uses of \DerivingVia}
 
-|deriving via| grants the programmer the ability to put extra types in her programs,
+\DerivingVia\ grants the programmer the ability to put extra types in her programs,
 but the flip side to this is that it's possible for her to accidentally put total nonsense
-into a |deriving via| clause, such as:
+into a \DerivingVia\ clause, such as:
 
 < newtype S = S Char
 <   deriving Eq via Maybe
 
-In this section, we will describe a general algorithm for when a |deriving via| clause should
+In this section, we will describe a general algorithm for when a \DerivingVia\ clause should
 typecheck, which will allow us to reject ill-formed examples like the one above.
 
 \subsubsection{Aligning kinds} \label{sec:kinds}
@@ -750,7 +753,7 @@ Suppose we are deriving the following instance:
 < data D (sub d 1) DOTS (sub d m)
 <   deriving (C (sub c 1) DOTS (sub c n)) via (V (sub v 1) DOTS (sub v p))
 
-In order for this declaration to typecheck, we must check the \textit{kinds} of each type.
+In order for this declaration to typecheck, we must check the \emph{kinds} of each type.
 In particular, the following conditions must hold:
 
 \begin{enumerate}
@@ -795,9 +798,9 @@ because the code that actually gets generated has the following shape:
 
 < instance Functor Foo where ...
 
-To put it differently, we have \textit{eta-reduced} away the |a| in |Foo a| before applying
+To put it differently, we have \emph{eta-reduced} away the |a| in |Foo a| before applying
 |Functor| to it. The power to eta-reduce variables from the data types is part of what
-makes |deriving| clauses so flexible.
+makes deriving clauses so flexible.
 
 To determine how many variables to eta-reduce,
 we must examine the kind of
@@ -823,20 +826,20 @@ from |B b| to obtain |B|. We then check that |B| is kind of |(* -> *)|, which is
 \subsection{Code generation}
 
 Once the typechecker has ascertained that a |via| type is fully compatibly with the data type
-and the class for which an instance is being derived, GHC proceeds with generating the code
-for the instance itself. This generated code is then fed \textit{back} into the typechecker,
-which acts as a final sanity check that GHC is doing the right thing under the hood.
+and the class for which an instance is being derived, \GHC\ proceeds with generating the code
+for the instance itself. This generated code is then fed \emph{back} into the typechecker,
+which acts as a final sanity check that \GHC\ is doing the right thing under the hood.
 
-\subsubsection{@GeneralizedNewtypeDeriving@} \label{sec:gnd}
+\subsubsection{Generalized newtype deriving (\GND)} \label{sec:gnd}
 
 The process by which \DerivingVia\ generates code is heavily based off of the approach that
-the @GeneralizedNewtypeDeriving@ takes, so it is informative to first explain how
-@GeneralizedNewtypeDeriving@ works. From there, |deriving via| is a straightforward
-generalization---so much so that |deriving via| could be thought of as
-"generalized @GeneralizedNewtypeDeriving@".
+the \GND\ takes, so it is informative to first explain how
+\GND\ works. From there, \DerivingVia\ is a straightforward
+generalization---so much so that \DerivingVia\ could be thought of as
+"generalized \GND".
 
 Our running example in this section will be the newtype |Age|, which is a simple
-wrapper around |Int| (which we will call the \textit{representation type}):
+wrapper around |Int| (which we will call the \emph{representation type}):
 
 %if style /= newcode
 %format Age = "\ty{Age}"
@@ -863,12 +866,12 @@ at runtime.
 
 Unfortunately, the implementation of |enumFrom| may not uphold this guarantee. While wrapping
 and unwrapping the |MkAge| constructor is certain to be a no-op, the |map| function is
-definitely \textit{not} a no-op, as it must walk the length of a list. But the fact that we
+definitely \emph{not} a no-op, as it must walk the length of a list. But the fact that we
 need to call |map| in the first place feels rather silly, as all we are doing is wrapping
 a newtype at each element.
 
-Luckily, there is a convenient solution to this problem: the |coerce| function from
-\cite{zero-cost-coercions}:
+Luckily, there is a convenient solution to this problem: the safe
+|coerce| function~\cite{zero-cost-coercions}:
 %if style /= newcode
 %format Coercible = "\protect\cl{Coercible}"
 %endif
@@ -883,7 +886,7 @@ it suffices to say that a |Coercible a b| constraint witnesses the fact that two
 and |b| have the same representation at runtime, and thus any value of type |a| can be
 casted to type |b|.
 
-Armed with |coerce|, we can show what code @GeneralizedNewtypeDeriving@ would actually
+Armed with |coerce|, we can show what code \GND\ would actually
 generate for the |Enum Age| instance above:
 
 < instance Enum Age where
@@ -899,21 +902,21 @@ representation type, and one for the newtype.
 
 \subsubsection{The |Coercible| constraint} \label{sec:coercible}
 
-A |Coercible| constraint can be thought of as evidence that GHC can use to
+A |Coercible| constraint can be thought of as evidence that \GHC\ can use to
 cast between two types. |Coercible| is not a type class, so it is impossible to write
-a |Coercible| instance by hand. Instead, GHC can generate and solve |Coercible| constraints
+a |Coercible| instance by hand. Instead, \GHC\ can generate and solve |Coercible| constraints
 automatically as part of its built-in constraint solver, much like it can solve equality
 constraints. (Indeed, |Coercible| can be thought of as a broader notion of equality among
 types.)
 
 As mentioned in the previous section, a newtype can be safely cast to and from its
-representation type, so GHC treats them as inter-|Coercible|. Continuing our earlier example,
-this would mean that GHC would be able to conclude that:
+representation type, so \GHC\ treats them as inter-|Coercible|. Continuing our earlier example,
+this would mean that \GHC\ would be able to conclude that:
 
 < instance Coercible Age Int
 < instance Coercible Int Age
 
-But this is not all that |Coercible| is capable of. A key property is that GHC's constraint
+But this is not all that |Coercible| is capable of. A key property is that \GHC's constraint
 solver can look inside of other type constructors when determining if two types are
 inter-|Coercible|. For instance, both of these statements hold:
 
@@ -927,28 +930,28 @@ Another crucial fact about |Coercible| that we rely on is that it is transitive:
 |Coercible a b| and |Coercible b c| hold, then |Coercible a c| also holds. This is perhaps
 unsurprising if one views |Coercible| as an equivalence relation, but it a fact that is worth
 highlighting, as the transitivity of |Coercible| is what allows us to |coerce|
-\textit{between newtypes}. For instance, if we have these two newtypes:
+\emph{between newtypes}. For instance, if we have these two newtypes:
 
 > newtype A a = A [a]
 > newtype B = B [Int]
 
-Then GHC is able to conclude that |Coercible (A Int) B| holds, because we have the following
+Then \GHC\ is able to conclude that |Coercible (A Int) B| holds, because we have the following
 |Coercible| rules:
 
 < instance Coercible (A Int) [Int]
 < instance Coercible [Int] B
 
-Therefore, by the transitivity of |Coercible|, we have |Coercible (A Int) B|. |deriving via|
+Therefore, by the transitivity of |Coercible|, we have |Coercible (A Int) B|. \DerivingVia\
 in particular makes heavy use of the transitivity of |Coercible|, as we will
 see momentarily.
 
-\subsubsection{From @GeneralizedNewtypeDeriving@ to |deriving via|}
+\subsubsection{From \GND\ to \DerivingVia}
 
-As we saw in section \ref{sec:gnd}, the code which @GeneralizedNewtypeDeriving@ generates
+As we saw in section \ref{sec:gnd}, the code which \GND\ generates
 relies on |coerce| to do the heavy lifting. In this section, we will generalize this
-technique slightly to give us a way to generate code for |deriving via|.
+technique slightly to give us a way to generate code for \DerivingVia.
 
-Recall that the following instance, which is derived through @GeneralizedNewtypeDeriving@:
+Recall that the following instance, which is derived through \GND:
 
 < newtype Age = MkAge Int
 <   deriving Enum
@@ -963,9 +966,9 @@ original newtype itself, |Age|. The implementation of |enumFrom| simply sets up 
 invocation of |coerce enumFrom|, with explicit type annotations to indicate that we should
 reuse the existing |enumFrom| implementation for |Int| and reappropriate it for |Age.|
 
-The only difference in the code that @GeneralizedNewtypeDeriving@ and |deriving via| generate
-is that in the former strategy, GHC always picks the representation type for you, but in
-|deriving via|, the \textit{user} has the power to choose this type. For example,
+The only difference in the code that \GND\ and \DerivingVia\ generate
+is that in the former strategy, \GHC\ always picks the representation type for you, but in
+\DerivingVia, the \emph{user} has the power to choose this type. For example,
 if a programmer had written this instead:
 
 < newtype T = T Int
@@ -979,18 +982,18 @@ Then the following code would be generated:
 < instance Enum Age where
 <   enumFrom = coerce (enumFrom :: T -> [T]) :: Age -> [Age]
 
-This time, GHC |coerce|s from an |enumFrom| implementation for |T| (the |via| type) to
+This time, \GHC\ coerces from an |enumFrom| implementation for |T| (the |via| type) to
 an implementation for |Age|. (Recall from section \ref{sec:coercible} that this is
 possible since we can |coerce| transitivity from |T| to |Int| to |Age|).
 
-Now we can see why the instances that |deriving via| can generate are a strict superset of
-those that @GeneralizedNewtypeDeriving@ can generate. For instance, our earlier
-@GeneralizedNewtypeDeriving@ example:
+Now we can see why the instances that \DerivingVia\ can generate are a strict superset of
+those that \GND\ can generate. For instance, our earlier
+\GND\ example:
 
 < newtype Age = MkAge Int
 <   deriving Enum
 
-Could equivalently have been written using |deriving via| like so:
+Could equivalently have been written using \DerivingVia\ like so:
 
 < newtype Age = MkAge Int
 <   deriving Enum via Int
@@ -998,9 +1001,9 @@ Could equivalently have been written using |deriving via| like so:
 \subsection{Type variable scoping}
 
 In the remainder of this section, we will present an overview of how type
-variables are bound in |deriving via| clauses, and over what types they scope.
-|deriving via| introduces a new place where types can go, and more importantly,
-it introduces a new place where type variables can be \textit{quantified}, so
+variables are bound in \DerivingVia\ clauses, and over what types they scope.
+\DerivingVia\ introduces a new place where types can go, and more importantly,
+it introduces a new place where type variables can be \emph{quantified}, so
 it takes some amount of care to devise a consistent treatment for it.
 
 \subsubsection{Binding sites}
@@ -1058,7 +1061,7 @@ derive multiple classes at once with a single |via| type:
 %endif
 
 Suppose we first quantified the variables in the derived classes and
-\textit{then} the variables in the |via| type. Because each derived class
+\emph{then} the variables in the |via| type. Because each derived class
 has its own type variable scope, the |a| in |C1 a| is bound independently from
 the |a| in |C2 a|. In other words, we have something like this (using a
 hypothetical |forall| syntax):
@@ -1080,7 +1083,7 @@ Now, there is no ambiguity regarding |a|, as both |a| variables in the list of
 derived classes were bound in the same place.
 
 It might feel strange visually to see a variable being used
-\textit{before} of its binding site (assuming one reads code from left to right).
+\emph{before} of its binding site (assuming one reads code from left to right).
 However, this is not unprecedented within Haskell, as this is also legal:
 
 > f :: Int
@@ -1094,7 +1097,7 @@ after their use sites. In this sense, the |via| keyword is continuing a rich
 tradition pioneered by |where| clauses.
 
 One alternative idea (which was briefly considered) was to put the |via| type
-\textit{before} the derived classes so as to avoid this ``zigzagging'' scoping.
+\emph{before} the derived classes so as to avoid this ``zigzagging'' scoping.
 However, this would introduce additional ambiguities. Imagine one were to
 take this example:
 
@@ -1147,7 +1150,7 @@ this choice would force programmers to write additional parentheses.
 %
 % \subsubsection{Multiple binding sites?}
 %
-% One slight wrinkle in this story is that |deriving| clauses can specify \textit{multiple}
+% One slight wrinkle in this story is that |deriving| clauses can specify \emph{multiple}
 % classes to derive per data type, e.g.,
 %
 % < data Bar
@@ -1180,7 +1183,7 @@ this choice would force programmers to write additional parentheses.
 %
 % Now, the quantification has become unambiguous.
 %
-% A tricky corner case to consider is that |deriving| clauses can also derive \textit{zero}
+% A tricky corner case to consider is that |deriving| clauses can also derive \emph{zero}
 % classes to derive. Combined with |deriving via|, this can lead to the following example:
 %
 % < data Bar
@@ -1515,21 +1518,21 @@ Parallel Legacy Languages as Theorem Provers (deriving
 \subsection{Traversal order}
 \url{Discuss ideas here https://www.reddit.com/r/haskell/comments/6udl0i/representable_functors_parameterised_by/}
 
-\subsection{Enhancing @DefaultSignatures@}\label{sec:defaultsignatures}
+\subsection{Enhancing \DefaultSignatures}\label{sec:defaultsignatures}
 %if style == newcode
 %format Rep = "GHC.Rep"
 %endif
 
-In section \ref{sec:gnd}, we observed that |deriving via| can fully replace the
-@GeneralizedNewtypeDeriving@ extension. In fact, that's not the only language
-extension that |deriving via| can be used as a substitute for! There is another
-type class-related extension, @DefaultSignatures@, which is frequently used by
-GHC programmers to eliminate large classes of boilerplate but it limited by its
+In section \ref{sec:gnd}, we observed that \DerivingVia\ can fully replace the
+\GND\ extension. In fact, that's not the only language
+extension that \GND\ can be used as a substitute for! There is another
+type class-related extension \emph{default signatures} which is frequently used by
+\GHC\ programmers to eliminate large classes of boilerplate but it limited by its
 expressive power. Here, we demonstrate how one can scrap uses of
-@DefaultSignatures@ in favor of |deriving via|, and show how |deriving via|
-can overcome the limitations of @DefaultSignatures@.
+\DefaultSignatures\ in favor of \DerivingVia, and show how \DerivingVia\
+can overcome the limitations of \DefaultSignatures.
 
-The typical use case for @DefaultSignatures@ when one has a type class method
+The typical use case for \DefaultSignatures\ when one has a type class method
 that has a frequently used default implementation at a different type.
 For instance, consider a |Pretty| class with a method |pPrint| for
 pretty-printing data:
@@ -1591,7 +1594,7 @@ default implementation of |pPrint| in terms of |genericPPrint| is infeasible:
 
 The code above will not typecheck, as |genericPPrint| requires extra
 constraints |(Generic a, GPretty (Rep a))| that |pPrint| does not provide.
-Before the advent of @DefaultSignatures@, one had to work around this by
+Before the advent of \DefaultSignatures, one had to work around this by
 defining |pPrint| to be |genericPPrint| in every |Pretty| instance, as in the
 examples below:
 
@@ -1604,7 +1607,7 @@ examples below:
 > instance (Pretty a, Pretty b) => Pretty (Either a b) where
 >   pPrint = genericPPrint
 
-To avoid this repetition, @DefaultSignatures@ allows one to provide a default
+To avoid this repetition, \DefaultSignatures allow one to provide a default
 implementation of a type class method using \emph{different} constraints
 than the method itself has. For instance:
 %if style == newcode
@@ -1627,10 +1630,10 @@ above to just:
 > instance Pretty a => Pretty (Maybe a)
 > instance (Pretty a, Pretty b) => Pretty (Either a b)
 
-Although @DefaultSignatures@ removes the need for many occurrences of
+Although \DefaultSignatures\ remove the need for many occurrences of
 boilerplate code, it also imposes a significant limitation: every type class
 method can only have at most one default implementation. As a result,
-@DefaultSignatures@ effectively endorses one default implementation as the
+\DefaultSignatures\ effectively endorse one default implementation as the
 canonical one. But in many scenarios, there is far more than just one way to
 do something. Our |pPrint| example is no exception. Instead of
 |genericPPrint|, one might one to:
@@ -1645,12 +1648,12 @@ do something. Our |pPrint| example is no exception. Instead of
 \end{itemize}
 
 All of these are perfectly reasonable choices a programmer might want to make,
-but alas, @DefaultSignatures@ will only accept a single implementation as the
+but alas, \DefaultSignatures\ will only accept a single implementation as the
 One True Default.
 
-Fortunately, |deriving via| provides a convenient way of encoding default
+Fortunately, \DerivingVia\ provides a convenient way of encoding default
 implementations with the ability to toggle between different choices:
-|newtype|s! For instance, we can codify two different approaches to
+newtypes! For instance, we can codify two different approaches to
 implementing |pPrint| as follows:
 %if style /= newcode
 %format GenericPPrint = "\ty{GenericPPrint}"
@@ -1682,7 +1685,7 @@ TODO: Something about ML functors?
 
 \subsection{Explicit dictionary passing}
 
-The power and flexibility of |deriving via| is largely due to GHC's ability
+The power and flexibility of \DerivingVia\ is largely due to GHC's ability
 to take a class method of a particular type and massage it into a method
 of a different type. This process is almost completely abstracted away from
 the user, however. A user only needs to specify the types involved, and GHC
@@ -1691,30 +1694,30 @@ will handle the rest behind the scenes.
 An alternative approach, which would put more power into the hands of the
 programmer, is to permit the ability to explicitly construct and pass the
 normally implicit dictionary arguments corresponding to type class instances
-~\cite{implicit-params-explicit}. Unlike in |deriving via|, where going between
+~\cite{implicit-params-explicit}. Unlike in \DerivingVia\, where going between
 class instances is a process that is carefully guided by the compiler,
 permitting explicit dictionary arguments would allow users to actually
 @coerce@ concrete instance values and pass them around as first-class objects.
 In this sense, explicit dictionary arguments could be thought of as a further
-generalization of the technique that |deriving via| uses.
+generalization of the technique that \DerivingVia\ uses.
 
 However, explicit dictionary arguments do come with some costs. They
 require significantly enhancing Haskell's type system to support, and
 they break principle typing. Moreover, we feel as if explicit
 dictionary passing to too large a hammer for the nail we are trying to hit.
-|deriving via| works by means of a simple desugaring of code with some
+\DerivingVia\ works by means of a simple desugaring of code with some
 light typechecking on top, which makes it much simpler to describe and
 implement. Finally, the problem which explicit dictionaries aims to
 solve---resolving ambiguity in implicit arguments---almost never arises
-in |deriving via|, as the programmer must specify all the types involved
+in \DerivingVia, as the programmer must specify all the types involved
 in the process.
 
 \section{Limitations and Future Work}\label{sec:conclusions}
 
-We have implemented |deriving via| within the GHC.
-Our implementation also interacts well with other GHC features that were
+We have implemented \DerivingVia\ within \GHC.
+Our implementation also interacts well with other \GHC\ features that were
 not covered in this paper, such as kind polymorphism ~\cite{haskell-promotion},
-@StandaloneDeriving@ \rsnote{Is this true? Double-check.},
+\StandaloneDeriving\rsnote{Is this true? Double-check.},
 and type classes with associated type families ~\cite{associated-type-synonyms}.
 However, there are still challenges remaining, which we will describe
 in this section.
@@ -1729,11 +1732,11 @@ are usually rooted in \emph{generated} code, and pointing to code that the
 user didn't write in error messages can lead to a confusing debugging
 experience.
 
-|deriving via| is certainly no exception to this trend. In fact, the problem
+\DerivingVia\ is certainly no exception to this trend. In fact, the problem
 of creating lucid error messages is arguably \emph{worse} in the context of
-|deriving via|, as we give users the power to derive instances through whatever
+\DerivingVia, as we give users the power to derive instances through whatever
 type they wish. Unfortunately, this makes it easier to shoot oneself in the
-foot, as it is now easier than ever before to feed |deriving| garbage. As one
+foot, as it is now easier than ever before to feed \DerivingVia\ garbage. As one
 example, if a user were to accidentally write this code:
 
 < newtype Foo a = MkFoo (Maybe a) deriving Ord via a
@@ -1761,10 +1764,10 @@ likely many more tricky corner cases lurking around the corner, given that
 one can put anything after |via|.
 
 We do not propose a solution to this problem here, but instead note that issues
-with |deriving via| error quality are ultimately issues with |coerce| error
+with \DerivingVia\ error quality are ultimately issues with |coerce| error
 quality, given that the error messages are a result of |coerce| failing to
 typecheck. It is likely that investing more effort into making |coerce|'s
-error messages easier to understand would benefit |deriving via| as well.
+error messages easier to understand would benefit \DerivingVia\ as well.
 
 \subsection{Multi-Parameter Type Classes}
 
@@ -1772,12 +1775,12 @@ GHC extends Haskell by permitting type classes with more than one parameter.
 Multi-parameter type classes are extremely common in modern Haskell, to the
 point where we assumed the existence of them in Section \ref{sec:kinds}
 without further mention. However, multi-parameter type classes pose an
-intriguing design question when combined with |deriving via| and
-@StandaloneDeriving@, another GHC feature which allows one to write
+intriguing design question when combined with \DerivingVia\ and
+\StandaloneDeriving, another GHC feature which allows one to write
 |deriving| declarations independently of a data type.
 
 For example, one can write the following instance using
-@StandaloneDeriving@:
+\StandaloneDeriving:
 
 %if style == newcode
 %format Triple = Triple_
@@ -1812,7 +1815,7 @@ For example, one can write the following instance using
 However, the code it generates is somewhat surprising. Instead of reusing
 the |Triple () () ()| instance in the derived instance, it will attempt
 to reuse an instance for |Triple A B ()|. This is because, by convention,
-@StandaloneDeriving@ will only ever coerce through the \textit{last}
+\StandaloneDeriving\ will only ever coerce through the \emph{last}
 argument of a class. That is because the standalone instance above would be
 the same as if a user had written:
 %if style == newcode
