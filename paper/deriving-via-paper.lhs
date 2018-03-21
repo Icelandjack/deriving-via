@@ -301,16 +301,16 @@ of overlapping instances often leads to confusing behavior.
 Second, even if~|f| is an applicative functor, the lifted monoid
 instance may not be the only one, or the one we want to use. Most
 notably, lists are the \emph{free monoid} (the most `fundamental'
-monoid), and their monoid instance looks as follows:
+monoid), and their monoid instance is as follows:
 
 > instance Monoid2 [a] where
 >   mempty2   =  []
 >   mappend2  =  (++)
 
 This instance does not coincide with the instantiation of the rule above
-(and in particular, imposes no constraint on |a| to be a monoid). In fact,
-lists are an example of applying a different rule for defining monoids
-based on an |Alternative| instance for the type constructor:
+(and in particular, imposes no constraint on the type |a| to be a monoid).
+In fact, lists are an example of applying a \textit{different} rule for
+defining monoids, based on an |Alternative| instance for the type constructor:
 
 > instance Alternative f => Monoid3 (f a) where
 >   mempty3   =  empty
@@ -333,7 +333,7 @@ shown in the beginning, but that is extremely unsatisfactory:
   and is difficult to discover.
 \item There are many such rules, some quite obvious, but
   some more surprising and easy to miss.
-\item While for monoids with only two methods the work required to
+\item While for monoids---which only have two methods---the work required to
   define the instance manually is perhaps acceptable, it quickly becomes
   extremely tedious and error-prone for classes with many methods.
 \end{itemize}
