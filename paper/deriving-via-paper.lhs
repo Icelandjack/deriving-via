@@ -406,8 +406,9 @@ let us revisit the rule that explains how to lift a monoid
 instance through an applicative functor. We can turn the problematic
 generic and overlapping instance for |Monoid (f a)| into an entirely
 unproblematic instance by defining a suitable newtype and wrapping
-the instance head in it:\alnote{According to Baldur, Conor
-calls these ``adaptors''. Perhaps we should consider this terminology too.}:
+the instance head in it:\alnote{These are called \emph{adapters}
+in ``The Essence of the Iterator Pattern'', and \emph{modifiers}
+in QuickCheck.}
 
 > newtype App f a = MkApp (f a)
 >
