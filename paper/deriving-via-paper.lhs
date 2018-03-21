@@ -13,6 +13,12 @@
 
 \usepackage{booktabs}
 \usepackage{hyperref}
+\usepackage{xspace}
+
+% macros
+\newcommand\DerivingVia{Deriving Via\xspace}
+\newcommand\GND{{\smaller GND}\xspace}
+\newcommand\GHC{{\smaller GHC}\xspace}
 
 % comments
 %let comments = True
@@ -367,7 +373,8 @@ a more detailed discussion of this aspect.}:
 >   MkApp f <> MkApp g = MkApp (liftA2 (<>) f g)
 
 Such instance definitions can be made more concise by employing the
-existing language extension @GeneralizedNewtypeDeriving@ which allows
+existing language extension \emph{generalized newtype deriving} (\GND)
+which allows
 us to make an instance on the underlying type available on the wrapped
 type. This is always possible because a |newtype|-wrapped type is
 guaranteed to have the same representation as the underlying type
@@ -405,15 +412,13 @@ on a representationally equal type as well.
 
 In the rest of this paper, we will spell out this idea in more detail.
 
-In Section~\ref{sec:examples} we will look at several more useful examples of
-instance rules that can be captured and applied using |newtype|s. In
-particular, we will see that our new language extension subsumes
-@GeneralizedNewtypeDeriving@.
+In Section~\ref{sec:quickcheck}, we will use the QuickCheck library
+as a case study for explaining how to use \DerivingVia.
 %
 In Section~\ref{sec:typechecking}, we explain how the language extension works
 from a typechecking perspective and analyze the code that it generates.
 %
-Section~\ref{sec:advanced} shows some further uses cases that are more advanced and perhaps
+Section~\ref{sec:usecases} shows some further uses cases that are perhaps
 somewhat surprising.
 
 We discuss related work in Section~\ref{sec:related} and conclude
@@ -421,78 +426,9 @@ in Section~\ref{sec:conclusions}.
 
 The extension is fully implemented in a GHC branch and all the code presented
 in this paper compiles, so it will hopefully be available in a near future
-release of GHC. \alnote{We should make sure that we don't end up promising
-something that isn't true, but I think it's likely we'll have a full implementation
-by the time the paper is published, given that we have an almost working one
-already.}
+release of GHC.
 
-\section{Examples}\label{sec:examples}
-%if style /= newcode
-%format FromMonad = "\ty{FromMonad}"
-%format MkFromMonad = "\con{FromMonad}"
-%format Stream = "\ty{Stream}"
-%format Yield = "\con{Yield}"
-%format Done = "\con{Done}"
-%endif
-
-\subsection{Defining superclasses}\label{sec:superclasses}
-
-When the ``Applicative Monad Proposal'' was introduced and turned |Monad|
-from a plain type class into one that has |Applicative| as a superclass
-(which in turn has |Functor| as a superclass), one counter-argument against
-the change was that someone who wants to primarily wants to declare a~|Monad|
-instance is now required to define two extra instances for~|Functor|
-and~|Applicative| -- both of which are usually boilerplate, because they can
-be defined from the~|Monad| instance.
-
-We can capture these rules as follows:
-
-> newtype FromMonad m a = MkFromMonad (m a)
->   deriving Monad
->
-> instance Monad m => Functor (FromMonad m) where
->   fmap  =  liftM
->
-> instance Monad m => Applicative (FromMonad m) where
->   pure   =  return
->   (<*>)  =  ap
-
-The wrapper type |FromMonad| serves the purpose of giving a name
-to the patterns. The two instance make it precise what it means
-to define the |Functor| and |Applicative| instances in terms of
-the monad instance.
-
-If we now have a datatype with a monad instance, we can simply derive
-the |Functor| and |Applicative| instances by referring to |FromMonad|:
-
-> data Stream a b = Done b | Yield a (Stream a b)
->   deriving (Functor, Applicative)
->     via (FromMonad (Stream a))
->
-> instance Monad (Stream a) where
->
->   return = Done
->
->   Yield a k >>= f  =  Yield a (k >>= f)
->   Done b    >>= f  =  f b
-
-A similar rule could also be added to define the |(<>)| of the |Semigroup|
-class in terms of an existing |Monoid| instance.
-
-\alnote{Several other mechanisms have been proposed to deal with this situation.
-We should go through them and point out whether they're subsumed by this or not.}
-
-One potentially problematic aspect remains. Another proposal that has been made
-but (as of now) not been accepted, namely to remove the |return| method from
-the |Monad| class. The argument is that it is redundant given the presence of
-|pure| in |Applicative|. All other points that have been raised about this
-proposal aside, it should be noted that removing |return| from the |Monad|
-class would prevent the above scheme from working. A similar, yet somewhat
-weaker, argument applies to suggested changes to relax the constraints of
-|liftM| and |ap| to merely |Applicative| and change their definitions to be
-identical to |fmap| and |(<*>)|, respectively.
-
-\subsection{QuickCheck}\label{sec:quickcheck}
+\section{Case study: QuickCheck}\label{sec:quickcheck}
 %if style /= newcode
 %format Arbitrary = "\cl{Arbitrary}"
 %format arbitrary = "\id{arbitrary}"
@@ -890,7 +826,7 @@ which acts as a final sanity check that GHC is doing the right thing under the h
 
 \subsubsection{@GeneralizedNewtypeDeriving@} \label{sec:gnd}
 
-The process by which |deriving via| generates code is heavily based off of the approach that
+The process by which \DerivingVia\ generates code is heavily based off of the approach that
 the @GeneralizedNewtypeDeriving@ takes, so it is informative to first explain how
 @GeneralizedNewtypeDeriving@ works. From there, |deriving via| is a straightforward
 generalization---so much so that |deriving via| could be thought of as
@@ -1290,7 +1226,71 @@ this choice would force programmers to write additional parentheses.
 %
 % This approach uses an explicit TODO RGS
 
-\section{Advanced uses}\label{sec:advanced}
+\section{More use cases}\label{sec:usecases}
+
+\subsection{Defining superclasses}\label{sec:superclasses}
+%if style /= newcode
+%format FromMonad = "\ty{FromMonad}"
+%format MkFromMonad = "\con{FromMonad}"
+%format Stream = "\ty{Stream}"
+%format Yield = "\con{Yield}"
+%format Done = "\con{Done}"
+%endif
+
+When the ``Applicative Monad Proposal'' was introduced and turned |Monad|
+from a plain type class into one that has |Applicative| as a superclass
+(which in turn has |Functor| as a superclass), one counter-argument against
+the change was that someone who wants to primarily wants to declare a~|Monad|
+instance is now required to define two extra instances for~|Functor|
+and~|Applicative| -- both of which are usually boilerplate, because they can
+be defined from the~|Monad| instance.
+
+We can capture these rules as follows:
+
+> newtype FromMonad m a = MkFromMonad (m a)
+>   deriving Monad
+>
+> instance Monad m => Functor (FromMonad m) where
+>   fmap  =  liftM
+>
+> instance Monad m => Applicative (FromMonad m) where
+>   pure   =  return
+>   (<*>)  =  ap
+
+The wrapper type |FromMonad| serves the purpose of giving a name
+to the patterns. The two instance make it precise what it means
+to define the |Functor| and |Applicative| instances in terms of
+the monad instance.
+
+If we now have a datatype with a monad instance, we can simply derive
+the |Functor| and |Applicative| instances by referring to |FromMonad|:
+
+> data Stream a b = Done b | Yield a (Stream a b)
+>   deriving (Functor, Applicative)
+>     via (FromMonad (Stream a))
+>
+> instance Monad (Stream a) where
+>
+>   return = Done
+>
+>   Yield a k >>= f  =  Yield a (k >>= f)
+>   Done b    >>= f  =  f b
+
+A similar rule could also be added to define the |(<>)| of the |Semigroup|
+class in terms of an existing |Monoid| instance.
+
+\alnote{Several other mechanisms have been proposed to deal with this situation.
+We should go through them and point out whether they're subsumed by this or not.}
+
+One potentially problematic aspect remains. Another proposal that has been made
+but (as of now) not been accepted, namely to remove the |return| method from
+the |Monad| class. The argument is that it is redundant given the presence of
+|pure| in |Applicative|. All other points that have been raised about this
+proposal aside, it should be noted that removing |return| from the |Monad|
+class would prevent the above scheme from working. A similar, yet somewhat
+weaker, argument applies to suggested changes to relax the constraints of
+|liftM| and |ap| to merely |Applicative| and change their definitions to be
+identical to |fmap| and |(<*>)|, respectively.
 
 \subsection{Avoiding orphan instances}
 
