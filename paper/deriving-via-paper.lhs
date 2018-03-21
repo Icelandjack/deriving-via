@@ -300,7 +300,7 @@ of overlapping instances often leads to confusing behavior.
 
 Second, even if~|f| is an applicative functor, the lifted monoid
 instance may not be the only one, or the one we want to use. Most
-notably, lists are the \emph{free monoid} (the most ‘fundemental’
+notably, lists are the \emph{free monoid} (the most `fundamental'
 monoid), and their monoid instance looks as follows:
 
 > instance Monoid2 [a] where
