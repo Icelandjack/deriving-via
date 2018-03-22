@@ -401,7 +401,7 @@ has two ingredients:
   instance without having to write it manually.
 \end{enumerate}
 
-For the first part,
+For the \emph{first part},
 let us revisit the rule that explains how to lift a monoid
 instance through an applicative functor. We can turn the problematic
 generic and overlapping instance for |Monoid (f a)| into an entirely
@@ -425,7 +425,7 @@ a more detailed discussion of this aspect.}:
 >   MkApp f <> MkApp g = MkApp (liftA2 (<>) f g)
 
 
-The second part is to now use such a rule in our new form
+The \emph{second part} is to now use such a rule in our new form
 of |deriving| statement.
 We can do this when defining a new datatype, such as in
 %{
@@ -456,25 +456,26 @@ We can also use a standalone deriving declaration as is
 available in \GHC\ to introduce the instance separately from
 the datatype declaration, such as in
 
-> deriving via (App IO a) instance Monoid4 a => Monoid4 (IO a)
-%}
+> deriving via (App IO a)
+>   instance Monoid4 a => Monoid4 (IO a)
 
-Here, |via| is a new language construct that explains \emph{how} \GHC\
+%}
+In both cases, |via| is a new language construct that explains \emph{how} \GHC\
 should derive the instance, namely be reusing the instance already
 available for the given type. It should be easy to see why this works:
 due to the use of a newtype, |App IO a| has the same internal
 representation as |IO a|, and any instance available on one type can
 be made to work on a representationally equal type as well.
 
-The |MODULE Data.Monoid| module already defines many further
-adapters that can easily be used with \DerivingVia. For example,
+The |MODULE Data.Monoid| module defines many further
+adapters that can readily be used with \DerivingVia. For example,
 the rule that obtains a |Monoid| instance from an |Alternative|
 instance is already implemented in terms of |Alt|:%
 \footnote{The |Monoid4| and |Semigroup| instance for |App| and |Alt|
 can be made even more conside if additionally employ
 \emph{generalized newtype deriving} (GND), but we refrain from
 this here for clarity. There is more discussion about the relation
-to GND in Section~\ref{gnd}.}
+to GND in Section~\ref{sec:gnd}.}
 
 > newtype Alt f a = MkAlt (f a)
 >
@@ -485,7 +486,7 @@ to GND in Section~\ref{gnd}.}
 > instance Alternative f => Semigroup (Alt f a) where
 >   (<>) = mappend4
 
-Using another standadlone deriving declaration, the |Monoid|
+Using another standalone deriving declaration, the |Monoid|
 instance for lists could then be written as follows:
 
 > deriving via (Alt [] a) instance Monoid4 [a]
