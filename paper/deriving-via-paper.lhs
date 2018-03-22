@@ -1887,6 +1887,20 @@ this via the generic representations into an arbitrary of |Gen a|.
 
 Finally, we can use the following |deriving| declarations for |Track|
 to obtain the desired |Arbitrary| instance:
+%if style == newcode
+%format Track = Track2
+%format MkTrack = MkTrack2
+%format title = title2
+%format duration = duration2
+
+> data Track =
+>   MkTrack
+>     {  title     ::  Title
+>     ,  duration  ::  Duration
+>     }
+
+%endif
+
 
 >   deriving Generic
 >   deriving Arbitrary
