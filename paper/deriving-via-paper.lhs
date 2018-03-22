@@ -1529,6 +1529,7 @@ For representable functors the definitions of |m *> _ = m| and |_ <* m
 } This codifies knowledge (on a ``library, not lore'' principle) where
 the code can be documented and linked to.
 
+%if style == newcode
 \subsection{Deriving with configuration}
 
 This lets us pass static static value to instance deriving.
@@ -1539,7 +1540,9 @@ This lets us pass static static value to instance deriving.
 
 Many of these newtypes existed a long time before @-XDerivingVia@ did
 but can be used directly with it which is promising.
+%endif
 
+%if style == newcode
 \subsection{Every Applicative can be reversed}
 
 The Haskell ‘wisdom’ that says every |Applicative| can be reversed can
@@ -1553,6 +1556,9 @@ in @transformers@.}
 >
 >   MkRev f <*> MkRev x = MkRev (liftA2 (flip ($)) x f)
 
+%endif
+
+%if style == newcode
 \subsection{Equivalent Applicative definition}
 
 There is an equivalent, more symmetric definition of |Applicative|
@@ -1620,6 +1626,9 @@ move to a more categorical.\footnote{Such as Kmett's |hask|}
 > instance Triple m => Monad (WrapTriple m) where
 >   WT mx >>= k = WT (mu (fmap (unWT . k) mx))
 
+%endif
+
+%if style == newcode
 \subsection{Classes over Defunctionalization Symbols}
 
 \bbnote{TODO}: Using \emph{Singletons} library we can create
@@ -1651,9 +1660,12 @@ inference Haskell will synthesize the code for us:
 
 Refinement Reflection:
 Parallel Legacy Languages as Theorem Provers (deriving
+%endif
 
+%if style == newcode
 \subsection{Traversal order}
 \url{Discuss ideas here https://www.reddit.com/r/haskell/comments/6udl0i/representable_functors_parameterised_by/}
+%endif
 
 \subsection{Enhancing \DefaultSignatures}\label{sec:defaultsignatures}
 %if style == newcode
