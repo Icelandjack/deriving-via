@@ -377,12 +377,11 @@ functor\footnote{There are similar ways to lift |Floating| and |Fractional|.}:
 %}
 Defining such a boilerplate instance manually for a concrete type constructor
 is so annoying that Conal Elliott has introduced a preprocessor for this particular
-use case several years ago.\footnote{https://hackage.haskell.org/package/applicative-numbers}
-\alnote{Should ideally be replaced with a proper citation.}
-\alnote{And Conal is by no means alone: see
-https://gist.github.com/Icelandjack/e1ddefb0d5a79617a81ee98c49fbbdc4\#a-lot-of-things-we-can-find-with-define
-We cannot put a gist dump like this into a paper. We might want to make a selection,
-or just describe the situation in words.}
+use case several years ago~\cite{applicative-numbers}.
+% \alnote{And Conal is by no means alone: see
+% https://gist.github.com/Icelandjack/e1ddefb0d5a79617a81ee98c49fbbdc4\#a-lot-of-things-we-can-find-with-define
+% We cannot put a gist dump like this into a paper. We might want to make a selection,
+% or just describe the situation in words.}
 
 \subsection{Introducing \DerivingVia}
 %if style /= newcode
@@ -406,10 +405,9 @@ For the first part,
 let us revisit the rule that explains how to lift a monoid
 instance through an applicative functor. We can turn the problematic
 generic and overlapping instance for |Monoid (f a)| into an entirely
-unproblematic instance by defining a suitable newtype and wrapping
-the instance head in it:\alnote{These are called \emph{adapters}
-in ``The Essence of the Iterator Pattern'', and \emph{modifiers}
-in QuickCheck.}
+unproblematic instance by defining a suitable \emph{adapter}
+newtype~\cite{iterator-pattern} and wrapping
+the instance head in it:
 
 > newtype App f a = MkApp (f a)
 >
@@ -426,61 +424,112 @@ a more detailed discussion of this aspect.}:
 >   => Semigroup (App f a) where
 >   MkApp f <> MkApp g = MkApp (liftA2 (<>) f g)
 
-Such instance definitions can be made more concise by employing the
-existing language extension \emph{generalized newtype deriving} (\GND)
-which allows
-us to make an instance on the underlying type available on the wrapped
-type. This is always possible because a |newtype|-wrapped type is
-guaranteed to have the same representation as the underlying type
-\cite{zero-cost-coercions}\bbnote{|Alt| is found in |Data.Monoid|.}
 
-> newtype Alt f a = MkAlt (f a)
->   deriving (Functor, Applicative, Alternative)
+The second part is to now use such a rule in our new form
+of |deriving| statement.
+We can do this when defining a new datatype, such as in
+%{
+%if style == newcode
+%format Maybe = Maybe2
+%format Nothing = Nothing2
+%format Just = Just2
+
+> instance Applicative Maybe where
+>   pure = Just
+>   Nothing <*> _ = Nothing
+>   _ <*> Nothing = Nothing
+>   Just f <*> Just x = Just (f x)
 >
-> instance Alternative f => Monoid4 (Alt f a) where
->   mempty4   =  empty
->   mappend4  =  (<|>)
->
-> instance Alternative f => Semigroup (Alt f a) where
->   (<>) = mappend4
+> instance Functor Maybe where
+>   fmap f x = pure f <*> x
 
-We now introduce a new style of deriving that allows us to instruct
-the compiler to use such a newtype-derived rule as the basis of a new
-instance definition.
+%endif
 
-For example, using the \StandaloneDeriving\ language extension, the
-|Monoid| instances for |IO| and |[]| could be written as follows:
+> data Maybe a = Nothing | Just a
+>   deriving Monoid4 via (App Maybe a)
+
+This requires that we independently have an |Applicative| instance
+for |Maybe|, but then we obtain the desired |Monoid4| instance nearly
+for free.
+
+We can also use a standalone deriving declaration as is
+available in \GHC\ to introduce the instance separately from
+the datatype declaration, such as in
 
 > deriving via (App IO a) instance Monoid4 a => Monoid4 (IO a)
-> deriving via (Alt [] a) instance Monoid4 [a]
+%}
 
 Here, |via| is a new language construct that explains \emph{how} \GHC\
 should derive the instance, namely be reusing the instance already
 available for the given type. It should be easy to see why this works:
-due to the use of a |newtype|, |App IO a| has the same internal
-representation as |IO a|, and |Alt [] a| has the same representation
-as |[a]|, and any instance available on one type can be made to work
-on a representationally equal type as well.
+due to the use of a newtype, |App IO a| has the same internal
+representation as |IO a|, and any instance available on one type can
+be made to work on a representationally equal type as well.
 
-\subsection{Structure of the paper}
+The |MODULE Data.Monoid| module already defines many further
+adapters that can easily be used with \DerivingVia. For example,
+the rule that obtains a |Monoid| instance from an |Alternative|
+instance is already implemented in terms of |Alt|:%
+\footnote{The |Monoid4| and |Semigroup| instance for |App| and |Alt|
+can be made even more conside if additionally employ
+\emph{generalized newtype deriving} (GND), but we refrain from
+this here for clarity. There is more discussion about the relation
+to GND in Section~\ref{gnd}.}
 
-In the rest of this paper, we will spell out this idea in more detail.
+> newtype Alt f a = MkAlt (f a)
+>
+> instance Alternative f => Monoid4 (Alt f a) where
+>   mempty4                        =  MkAlt empty
+>   mappend4  (MkAlt f) (MkAlt g)  =  MkAlt (f <|> g)
+>
+> instance Alternative f => Semigroup (Alt f a) where
+>   (<>) = mappend4
 
-In Section~\ref{sec:quickcheck}, we will use the QuickCheck library
-as a case study for explaining how to use \DerivingVia.
-%
-In Section~\ref{sec:typechecking}, we explain how the language extension works
-from a typechecking perspective and analyze the code that it generates.
-%
-Section~\ref{sec:usecases} shows some further uses cases that are perhaps
-somewhat surprising.
+Using another standadlone deriving declaration, the |Monoid|
+instance for lists could then be written as follows:
 
-We discuss related work in Section~\ref{sec:related} and conclude
-in Section~\ref{sec:conclusions}.
+> deriving via (Alt [] a) instance Monoid4 [a]
 
-The extension is fully implemented in a \GHC\ branch and all the code presented
-in this paper compiles, so it will hopefully be available in a near future
-release of \GHC.
+\subsection{Contributions and structure of the paper}
+
+The paper is structured as follows:
+
+In Section~\ref{sec:quickcheck}, we use the QuickCheck library
+as a case study to explain in more detail how \DerivingVia can
+be used, and how it works.
+
+In Section~\ref{sec:typechecking}, we explain in detail how to
+typecheck and translate \DerivingVia\ clauses.
+
+In Section~\ref{sec:usecases}, we discuss several additional
+applications of \DerivingVia.
+
+We discuss related ideas in Section~\ref{sec:related} and
+conclude in Section~\ref{sec:conclusions}.
+
+Our extension is fully implemented in a \GHC\
+branch\footnote{\url{https://github.com/RyanGlScott/ghc/tree/deriving-via}},
+and we are working on a proposal to include it into \GHC, so it will hopefully
+be available in one of the next releases of \GHC.
+
+The idea of \DerivingVia\ is surprisingly simple, yet it has
+a number of powerful and perhaps surprising properties:
+\begin{itemize}
+\item It generalizes the \emph{generalized newtype deriving}
+  extension. (Section~\ref{sec:gnd}).
+
+\item It generalizes the concept of \emph{default signatures}.
+  (Section~\ref{sec:defaultsignatures}).
+
+\item It provides a possible solution to the problem of
+  introducing additional boilerplate code when introducing
+  new superclasses (such as |Applicative| for |Monad|,
+  Section~\ref{sec:superclasses}).
+
+\item It allows to reuse instances not just from representationtally
+  equal, but also from isomorphic or similarly related
+  types~\ref{sec:isomorphisms}).
+\end{itemize}
 
 \section{Case study: QuickCheck}\label{sec:quickcheck}
 %if style /= newcode
@@ -1726,6 +1775,9 @@ a single type:
 
 < deriving Pretty via (GenericPPrint DataType1)
 < deriving Pretty via (ShowPPrint    DataType2)
+
+\subsection{Deriving via isomorphisms}\label{sec:isomorphisms}
+
 
 \section{Related Ideas}\label{sec:related}
 
