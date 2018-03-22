@@ -598,13 +598,18 @@ code) whenever we start using a new library.
 With \DerivingVia, we have the option to reuse the existing infrastructure of
 modifiers without paying the price of cluttering up our datatype definitions.
 We can choose an actual domain-specific newtype such as
+%if style /= newcode
+%format ?? = "\hsindent{2}"
+%else
+%format ?? = "  "
+%endif
 
 > newtype Duration = MkDuration Int -- in seconds
 
 and now specify exactly how we want to derive |Arbitrary| for this. The simplest
 option is to derive via |Int| itself:
 
->   deriving Arbitrary via Int
+> ??deriving Arbitrary via Int
 
 This declaration has exactly the same effect as using the
 @GeneralizedNewtypeDeriving@ extension to derive the instance: because
@@ -620,7 +625,7 @@ If we want to restrict ourselves to non-negative durations, we replace this by
 
 %endif
 
->   deriving Arbitrary via (NonNegative Int)
+> ??deriving Arbitrary via (NonNegative Int)
 
 and now we get the |Arbitrary| instance for non-negative integers. Only the
 deriving clause changes, not the datatype itself. If we later decide we want
@@ -665,7 +670,7 @@ For our |Duration| type, we can easily write
 
 %endif
 
->   deriving Arbitrary via (NonNegative (Large Int))
+> ??deriving Arbitrary via (NonNegative (Large Int))
 
 The types |NonNegative (Large Int)| and |Duration| still share
 the same run-time representation (namely that of~|Int|), so
@@ -1164,7 +1169,7 @@ has its own type variable scope, the |a| in |C1 a| is bound independently from
 the |a| in |C2 a|. In other words, we have something like this (using a
 hypothetical |forall| syntax):
 
-< deriving (forall a. C1 a, forall a. C2 a) via (T a)
+< ??deriving (forall a. C1 a, forall a. C2 a) via (T a)
 
 Now we are faced with a thorny question: which |a| is used in the |via| type,
 |T a|? There are multiple choices here, since the |a| variables in
@@ -1175,7 +1180,7 @@ of |C1| and |C2| might differ, so the choice of |a| could affect whether
 On the other hand, if one binds the |a| in |T a| first, then this becomes a
 non-issue. We would instead have this:
 
-< deriving (C1 a, C2 a) via (forall a. T a)
+< ??deriving (C1 a, C2 a) via (forall a. T a)
 
 Now, there is no ambiguity regarding |a|, as both |a| variables in the list of
 derived classes were bound in the same place.
@@ -1199,11 +1204,11 @@ One alternative idea (which was briefly considered) was to put the |via| type
 However, this would introduce additional ambiguities. Imagine one were to
 take this example:
 
-< deriving Z via X Y
+< ??deriving Z via X Y
 
 And convert it to a form in which the |via| type came first:
 
-< deriving via X Y Z
+< ??deriving via X Y Z
 
 Should this be parsed as |(X Y) Z|, or |X (Y Z)|? It's not clear visually, so
 this choice would force programmers to write additional parentheses.
