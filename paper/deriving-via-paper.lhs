@@ -1458,28 +1458,65 @@ Another example from the same paper can be derived as well:
 The |Applicative| operators |(*>)| and |(<*)| always have a default
 definition in terms of |liftA2|
 
-< (<*) = liftA2 (\ a _ -> a)
-< (*>) = liftA2 (\ _ b -> b)
+<   (<*) = liftA2 (\ a _ -> a)
+<   (*>) = liftA2 (\ _ b -> b)
 
-It is well known that functions are |Applicative| which unfolds (TODO:
-right word?) gives us constant time (TODO: O(1)) definitions that drop
-one of their arguments
+These definitions can be overwritten for individual instances. In the
+case of of functions, unfolding the default definitions of |(*>)| and
+|(<*)| gives their definitions as constant functions
 
 < instance Applicative (a ->) where
 <   pure = const
-
+<
 <   liftA2 q f g a = q (f a) (g a)
 <
-<   f <* _ = f
-<   _ *> g = g
+<   f <*  _ = f
+<   _  *> g = g
 
-This definition is actually valid for a subset of functors that is
-isomorphic to functions, called |Representable|
+The last two definitions are not only valid for the |(a ->)| instance
+but for any functor isomorphic to it. These ‘function-like’ functors
+are called |Representable|:
 
 > class Functor f => Representable f where
 >   type Rep f :: Type
 >   index    :: f a -> (Rep f -> a)
 >   tabulate :: (Rep f -> a) -> f a
+
+So we can capture this with a modifier with an applicative instance for
+any |Representable| functor
+
+> newtype WrapRep f a = WrapRep (f a)
+>   deriving newtype
+>     (Functor, Representable)
+> 
+> instance Representable f => Applicative (WrapRep f) where
+>   pure = tabulate . pure
+> 
+>   f <*> g = tabulate (index f <*> index g)
+>
+>   f <* _ = f
+>   _ *> g = g
+
+
+There is a class of functors where the last two definitions always
+hold, 
+
+
+
+which this definition of |(<*)|,
+|(*>)| always holds and that is any functor isomorphic to |(Rep f
+->)|.
+
+For a class of ‘function-like’ functors
+they can be defined as constant functions
+
+
+
+And assuming that our functor |f| is isomorphic to functions |(Rep f
+->)| (|Representable f|) we can always define |(<*)|, |(*>)| this way.
+
+This definition is actually valid for a subset of functors that is
+isomorphic to functions, called |Representable|
 
 so for each |Representable| we get these constant-time operations
 
