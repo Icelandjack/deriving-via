@@ -211,9 +211,10 @@ In Haskell, type classes capture common interfaces. When we are in
 the situation that we want to declare a datatype to be an instance
 of a type class, we end up in one of two possible situations:
 
-We might be lucky, and the type class we are deriving is in the subset
-of classes that \GHC\ can derive automatically, or for which a generic
-program~\cite{gdmfh} already exists, or it is a newtype, and the
+We might be lucky, and the type class we are writing and instance for is
+in the subset of classes that \GHC\ can derive automatically. Alternatively,
+the type class might already have a generic implementation~\cite{gdmfh},
+or we might be writing an instance for a newtype, and the
 underlying type already supports this instance~\cite{zero-cost-coercions}.
 In these cases, we can use a deriving clause, and with nearly no work,
 we get the compiler to generate the instance for us.
@@ -298,17 +299,17 @@ of overlapping instances often leads to confusing behavior.
 
 Second, even if~|f| is an applicative functor, the lifted monoid
 instance may not be the only one, or the one we want to use. Most
-notably, lists are the \emph{free monoid} (the most ‘fundemental’
-monoid), and their monoid instance looks as follows:
+notably, lists are the \emph{free monoid} (the most `fundamental'
+monoid), and their monoid instance is as follows:
 
 > instance Monoid2 [a] where
 >   mempty2   =  []
 >   mappend2  =  (++)
 
 This instance does not coincide with the instantiation of the rule above
-(and in particular, imposes no constraint on |a| to be a monoid). In fact,
-lists are an example of applying a different rule for defining monoids
-based on an |Alternative| instance for the type constructor:
+(and in particular, imposes no constraint on the type |a| to be a monoid).
+In fact, lists are an example of applying a \textit{different} rule for
+defining monoids, based on an |Alternative| instance for the type constructor:
 
 > instance Alternative f => Monoid3 (f a) where
 >   mempty3   =  empty
@@ -331,7 +332,7 @@ shown in the beginning, but that is extremely unsatisfactory:
   and is difficult to discover.
 \item There are many such rules, some quite obvious, but
   some more surprising and easy to miss.
-\item While for monoids with only two methods the work required to
+\item While for monoids---which only have two methods---the work required to
   define the instance manually is perhaps acceptable, it quickly becomes
   extremely tedious and error-prone for classes with many methods.
 \end{itemize}
@@ -375,12 +376,11 @@ functor\footnote{There are similar ways to lift |Floating| and |Fractional|.}:
 %}
 Defining such a boilerplate instance manually for a concrete type constructor
 is so annoying that Conal Elliott has introduced a preprocessor for this particular
-use case several years ago.\footnote{https://hackage.haskell.org/package/applicative-numbers}
-\alnote{Should ideally be replaced with a proper citation.}
-\alnote{And Conal is by no means alone: see
-https://gist.github.com/Icelandjack/e1ddefb0d5a79617a81ee98c49fbbdc4\#a-lot-of-things-we-can-find-with-define
-We cannot put a gist dump like this into a paper. We might want to make a selection,
-or just describe the situation in words.}
+use case several years ago~\cite{applicative-numbers}.
+% \alnote{And Conal is by no means alone: see
+% https://gist.github.com/Icelandjack/e1ddefb0d5a79617a81ee98c49fbbdc4\#a-lot-of-things-we-can-find-with-define
+% We cannot put a gist dump like this into a paper. We might want to make a selection,
+% or just describe the situation in words.}
 
 \subsection{Introducing \DerivingVia}
 %if style /= newcode
@@ -400,13 +400,13 @@ has two ingredients:
   instance without having to write it manually.
 \end{enumerate}
 
-For the first part,
+For the \emph{first part},
 let us revisit the rule that explains how to lift a monoid
 instance through an applicative functor. We can turn the problematic
 generic and overlapping instance for |Monoid (f a)| into an entirely
-unproblematic instance by defining a suitable newtype and wrapping
-the instance head in it:\alnote{According to Baldur, Conor
-calls these ``adaptors''. Perhaps we should consider this terminology too.}:
+unproblematic instance by defining a suitable \emph{adapter}
+newtype~\cite{iterator-pattern} and wrapping
+the instance head in it:
 
 > newtype App f a = MkApp (f a)
 >
@@ -423,61 +423,113 @@ a more detailed discussion of this aspect.}:
 >   => Semigroup (App f a) where
 >   MkApp f <> MkApp g = MkApp (liftA2 (<>) f g)
 
-Such instance definitions can be made more concise by employing the
-existing language extension \emph{generalized newtype deriving} (\GND)
-which allows
-us to make an instance on the underlying type available on the wrapped
-type. This is always possible because a |newtype|-wrapped type is
-guaranteed to have the same representation as the underlying type
-\cite{zero-cost-coercions}\bbnote{|Alt| is found in |Data.Monoid|.}
+
+The \emph{second part} is to now use such a rule in our new form
+of |deriving| statement.
+We can do this when defining a new datatype, such as in
+%{
+%if style == newcode
+%format Maybe = Maybe2
+%format Nothing = Nothing2
+%format Just = Just2
+
+> instance Applicative Maybe where
+>   pure = Just
+>   Nothing <*> _ = Nothing
+>   _ <*> Nothing = Nothing
+>   Just f <*> Just x = Just (f x)
+>
+> instance Functor Maybe where
+>   fmap f x = pure f <*> x
+
+%endif
+
+> data Maybe a = Nothing | Just a
+>   deriving Monoid4 via (App Maybe a)
+
+This requires that we independently have an |Applicative| instance
+for |Maybe|, but then we obtain the desired |Monoid4| instance nearly
+for free.
+
+We can also use a standalone deriving declaration as is
+available in \GHC\ to introduce the instance separately from
+the datatype declaration, such as in
+
+> deriving via (App IO a)
+>   instance Monoid4 a => Monoid4 (IO a)
+
+%}
+In both cases, |via| is a new language construct that explains \emph{how} \GHC\
+should derive the instance, namely be reusing the instance already
+available for the given type. It should be easy to see why this works:
+due to the use of a newtype, |App IO a| has the same internal
+representation as |IO a|, and any instance available on one type can
+be made to work on a representationally equal type as well.
+
+The |MODULE Data.Monoid| module defines many further
+adapters that can readily be used with \DerivingVia. For example,
+the rule that obtains a |Monoid| instance from an |Alternative|
+instance is already implemented in terms of |Alt|:%
+\footnote{The |Monoid4| and |Semigroup| instance for |App| and |Alt|
+can be made even more conside if additionally employ
+\emph{generalized newtype deriving} (GND), but we refrain from
+this here for clarity. There is more discussion about the relation
+to GND in Section~\ref{sec:gnd}.}
 
 > newtype Alt f a = MkAlt (f a)
->   deriving (Functor, Applicative, Alternative)
 >
 > instance Alternative f => Monoid4 (Alt f a) where
->   mempty4   =  empty
->   mappend4  =  (<|>)
+>   mempty4                        =  MkAlt empty
+>   mappend4  (MkAlt f) (MkAlt g)  =  MkAlt (f <|> g)
 >
 > instance Alternative f => Semigroup (Alt f a) where
 >   (<>) = mappend4
 
-We now introduce a new style of deriving that allows us to instruct
-the compiler to use such a newtype-derived rule as the basis of a new
-instance definition.
+Using another standalone deriving declaration, the |Monoid|
+instance for lists could then be written as follows:
 
-For example, using the \StandaloneDeriving\ language extension, the
-|Monoid| instances for |IO| and |[]| could be written as follows:
-
-> deriving via (App IO a) instance Monoid4 a => Monoid4 (IO a)
 > deriving via (Alt [] a) instance Monoid4 [a]
 
-Here, |via| is a new language construct that explains \emph{how} \GHC\
-should derive the instance, namely be reusing the instance already
-available for the given type. It should be easy to see why this works:
-due to the use of a |newtype|, |App IO a| has the same internal
-representation as |IO a|, and |Alt [] a| has the same representation
-as |[a]|, and any instance available on one type can be made to work
-on a representationally equal type as well.
+\subsection{Contributions and structure of the paper}
 
-\subsection{Structure of the paper}
+The paper is structured as follows:
 
-In the rest of this paper, we will spell out this idea in more detail.
+In Section~\ref{sec:quickcheck}, we use the QuickCheck library
+as a case study to explain in more detail how \DerivingVia can
+be used, and how it works.
 
-In Section~\ref{sec:quickcheck}, we will use the QuickCheck library
-as a case study for explaining how to use \DerivingVia.
-%
-In Section~\ref{sec:typechecking}, we explain how the language extension works
-from a typechecking perspective and analyze the code that it generates.
-%
-Section~\ref{sec:usecases} shows some further uses cases that are perhaps
-somewhat surprising.
+In Section~\ref{sec:typechecking}, we explain in detail how to
+typecheck and translate \DerivingVia\ clauses.
 
-We discuss related work in Section~\ref{sec:related} and conclude
-in Section~\ref{sec:conclusions}.
+In Section~\ref{sec:usecases}, we discuss several additional
+applications of \DerivingVia.
 
-The extension is fully implemented in a \GHC\ branch and all the code presented
-in this paper compiles, so it will hopefully be available in a near future
-release of \GHC.
+We discuss related ideas in Section~\ref{sec:related} and
+conclude in Section~\ref{sec:conclusions}.
+
+Our extension is fully implemented in a \GHC\
+branch\footnote{\url{https://github.com/RyanGlScott/ghc/tree/deriving-via}},
+and we are working on a proposal to include it into \GHC, so it will hopefully
+be available in one of the next releases of \GHC.
+
+The idea of \DerivingVia\ is surprisingly simple, yet it has
+a number of powerful and perhaps surprising properties:
+\begin{itemize}
+\item It generalizes the \emph{generalized newtype deriving}
+  extension. (Section~\ref{sec:gnd}).
+
+\item It generalizes the concept of \emph{default signatures}.
+  (Section~\ref{sec:defaultsignatures}).
+
+\item It provides a possible solution to the problem of
+  introducing additional boilerplate code when introducing
+  new superclasses (such as |Applicative| for |Monad|,
+  Section~\ref{sec:superclasses}).
+
+\item It allows to reuse instances not just from representationtally
+  equal, but also from isomorphic or similarly related
+  types~\ref{sec:isomorphisms}).
+\end{itemize}
 
 \section{Case study: QuickCheck}\label{sec:quickcheck}
 %if style /= newcode
@@ -545,13 +597,18 @@ code) whenever we start using a new library.
 With \DerivingVia, we have the option to reuse the existing infrastructure of
 modifiers without paying the price of cluttering up our datatype definitions.
 We can choose an actual domain-specific newtype such as
+%if style /= newcode
+%format ?? = "\hsindent{2}"
+%else
+%format ?? = "  "
+%endif
 
 > newtype Duration = MkDuration Int -- in seconds
 
 and now specify exactly how we want to derive |Arbitrary| for this. The simplest
 option is to derive via |Int| itself:
 
->   deriving Arbitrary via Int
+> ??deriving Arbitrary via Int
 
 This declaration has exactly the same effect as using the
 @GeneralizedNewtypeDeriving@ extension to derive the instance: because
@@ -567,7 +624,7 @@ If we want to restrict ourselves to non-negative durations, we replace this by
 
 %endif
 
->   deriving Arbitrary via (NonNegative Int)
+> ??deriving Arbitrary via (NonNegative Int)
 
 and now we get the |Arbitrary| instance for non-negative integers. Only the
 deriving clause changes, not the datatype itself. If we later decide we want
@@ -612,7 +669,7 @@ For our |Duration| type, we can easily write
 
 %endif
 
->   deriving Arbitrary via (NonNegative (Large Int))
+> ??deriving Arbitrary via (NonNegative (Large Int))
 
 The types |NonNegative (Large Int)| and |Duration| still share
 the same run-time representation (namely that of~|Int|), so
@@ -1111,7 +1168,7 @@ has its own type variable scope, the |a| in |C1 a| is bound independently from
 the |a| in |C2 a|. In other words, we have something like this (using a
 hypothetical |forall| syntax):
 
-< deriving (forall a. C1 a, forall a. C2 a) via (T a)
+< ??deriving (forall a. C1 a, forall a. C2 a) via (T a)
 
 Now we are faced with a thorny question: which |a| is used in the |via| type,
 |T a|? There are multiple choices here, since the |a| variables in
@@ -1122,7 +1179,7 @@ of |C1| and |C2| might differ, so the choice of |a| could affect whether
 On the other hand, if one binds the |a| in |T a| first, then this becomes a
 non-issue. We would instead have this:
 
-< deriving (C1 a, C2 a) via (forall a. T a)
+< ??deriving (C1 a, C2 a) via (forall a. T a)
 
 Now, there is no ambiguity regarding |a|, as both |a| variables in the list of
 derived classes were bound in the same place.
@@ -1146,11 +1203,11 @@ One alternative idea (which was briefly considered) was to put the |via| type
 However, this would introduce additional ambiguities. Imagine one were to
 take this example:
 
-< deriving Z via X Y
+< ??deriving Z via X Y
 
 And convert it to a form in which the |via| type came first:
 
-< deriving via X Y Z
+< ??deriving via X Y Z
 
 Should this be parsed as |(X Y) Z|, or |X (Y Z)|? It's not clear visually, so
 this choice would force programmers to write additional parentheses.
@@ -1722,9 +1779,20 @@ a single type:
 < deriving Pretty via (GenericPPrint DataType1)
 < deriving Pretty via (ShowPPrint    DataType2)
 
+\subsection{Deriving via isomorphisms}\label{sec:isomorphisms}
+
+
 \section{Related Ideas}\label{sec:related}
 
-TODO: Something about ML functors?
+\subsection{ML functors}
+
+Languages in the ML family, such as Standard ML and OCaml, provide
+\textit{functors}, which is a feature of the module system that allows
+writing functions from modules of one signature to modules of another
+signature. In terms of functionality, functors somewhat closely resemble
+\DerivingVia, as functors allow ``lifting'' of code into the module
+language much like \DerivingVia\ allows lifting of code into GHC's
+deriving construct.
 
 \subsection{Explicit dictionary passing}
 
@@ -1737,7 +1805,7 @@ will handle the rest behind the scenes.
 An alternative approach, which would put more power into the hands of the
 programmer, is to permit the ability to explicitly construct and pass the
 normally implicit dictionary arguments corresponding to type class instances
-~\cite{implicit-params-explicit}. Unlike in \DerivingVia\, where going between
+~\cite{implicit-params-explicit}. Unlike in \DerivingVia, where going between
 class instances is a process that is carefully guided by the compiler,
 permitting explicit dictionary arguments would allow users to actually
 @coerce@ concrete instance values and pass them around as first-class objects.
@@ -1760,8 +1828,8 @@ in the process.
 We have implemented \DerivingVia\ within \GHC.
 Our implementation also interacts well with other \GHC\ features that were
 not covered in this paper, such as kind polymorphism ~\cite{haskell-promotion},
-\StandaloneDeriving\rsnote{Is this true? Double-check.},
-and type classes with associated type families ~\cite{associated-type-synonyms}.
+\StandaloneDeriving, and type classes with associated type families
+~\cite{associated-type-synonyms}.
 However, there are still challenges remaining, which we will describe
 in this section.
 
