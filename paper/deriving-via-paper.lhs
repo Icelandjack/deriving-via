@@ -1465,7 +1465,7 @@ These definitions can be overwritten for individual instances. In the
 case of of functions, unfolding the default definitions of |(*>)| and
 |(<*)| gives their definitions as constant functions
 
-< instance Applicative (a ->) where
+< instance Applicative ((->) rep) where
 <   pure = const
 <
 <   liftA2 q f g a = q (f a) (g a)
@@ -1473,7 +1473,7 @@ case of of functions, unfolding the default definitions of |(*>)| and
 <   f <*  _ = f
 <   _  *> g = g
 
-The last two definitions are not only valid for the |(a ->)| instance
+The last two definitions are not only valid for the |((->) rep)| instance
 but for any functor isomorphic to it. These ‘function-like’ functors
 are called |Representable|:
 
