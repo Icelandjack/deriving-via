@@ -1783,7 +1783,80 @@ a single type:
 < deriving Pretty via (ShowPPrint    DataType2)
 
 \subsection{Deriving via isomorphisms}\label{sec:isomorphisms}
+%if style /= newcode
+%format Track = "\ty{Track}"
+%format MkTrack = "\con{Track}"
+%format SameRepAs = "\ty{SameRepAs}"
+%format MkSameRepAs = "\con{SameRepAs}"
+%format Generic = "\cl{Generic}"
+%format Rep = "\ty{Rep}"
+%format from = "\id{from}"
+%format to = "\id{to}"
+%format title = "\id{title}"
+%format duration = "\id{duration}"
+%format Title = "\ty{Title}"
+%endif
+%if style == newcode
 
+> newtype Title = MkTitle String
+>   deriving Arbitrary
+
+%endif
+
+Let us go back to QuickCheck (as in Section~\ref{sec:quickcheck}) once
+more and consider the datatype
+
+> data Track =
+>   MkTrack
+>     {  title     ::  Title
+>     ,  duration  ::  Duration
+>     }
+
+for which we would like to define an |Arbitrary| instance. Let us further
+assume that we already have instance for both |Title| and |Duration|.
+
+The QuickCheck library defines an instance for pairs, so we could generate
+values of type |(Title, Duration)|, and in essence, this is exactly what
+we want. But alas, the two types are not coercible into each other, even
+though they are isomorphic.
+
+However, we can exploit the isomorphism and still get an instance for free,
+and the technique we apply is quite widely applicable in similar situations.
+
+As a first step, we declare a newtype to capture that one type is
+isomorphic to another:
+
+> newtype SameRepAs a b = MkSameRepAs a
+
+Note that the idea here is that `a` and `b` are isomorphic in some sense,
+but only `a` is used as the value of the type. So `SameRepAs a b` is
+coercible into `a`.
+
+We choose here to witness an isomorphism between the two types via
+their generic representations: if two types have coercible generic
+representations, we can transform back and forth using the |from| and
+|to| methods of the |Generic| class. We can use this to define a
+suitable |Arbitrary| instance for |SameRepAs|:
+
+> instance
+>   (  Generic a, Generic b, Arbitrary b
+>   ,  Coercible (Rep a ()) (Rep b ()), Arbitrary b
+>   ) => Arbitrary (a `SameRepAs` b) where
+>   arbitrary = MkSameRepAs . coerceViaRep <$> arbitrary
+>     where
+>       coerceViaRep :: b -> a
+>       coerceViaRep =
+>         to . (coerce :: Rep b () -> Rep a ()) . from
+
+Here, we first use |arbitrary| to give us a |Gen b|, then coerce
+this via the generic representations into an arbitrary of |Gen a|.
+
+Finally, we can use the following |deriving| declarations for |Track|
+to obtain the desired |Arbitrary| instance:
+
+>   deriving Generic
+>   deriving Arbitrary
+>     via (Track `SameRepAs` (String, Duration))
 
 \section{Related Ideas}\label{sec:related}
 
