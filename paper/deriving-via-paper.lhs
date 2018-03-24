@@ -540,16 +540,17 @@ also has a method |shrink| that is used to try to shrink failing
 counterexamples of test properties.
 
 Many standard Haskell types such as |Int| or lists are already an instance of
-|Arbitrary|. This is sometimes very convenient, because many properties
+|Arbitrary|. This can be very convenient, because many properties
 involving these types can be quick-checked without any extra work.
 
-On the other hand, sometimes there are additional constraints imposed on the
+On the other hand, there are often additional constraints imposed on the
 actual values of a type that are not sufficiently expressed in their types.
-Depending on the context and the situation, we might want to guarantee positive
-integers, or non-empty lists, or even sorted lists.
+Depending on the context and the situation, we might want to guarantee the
+generation of positive integers, or non-empty lists, or even sorted lists.
 
-The QuickCheck library provides a mechanism of newtype-based \emph{modifiers}
-for this purpose. For example, QuickCheck provides:
+The QuickCheck library provides a mechanism of newtype-based adapters
+(called \emph{modifiers} in the library) for this purpose. As an example,
+QuickCheck provides
 %if style /= newcode
 %format Positive = "\ty{Positive}"
 %format NonNegative = "\ty{NonNegative}"
@@ -579,11 +580,11 @@ a non-negative integer can now use |NonNegative Int| rather than |Int| to make t
 obvious.
 
 This approach, however, has a drastic disadvantage: we have to wrap each value
-in an extra constructor, and the type and constructor come from a specific library.
+in an extra constructor, and the newtype and constructor are QuickCheck-specific.
 An implementation detail (the choice of testing library) leaks into the data model
 of an application. While we might be willing to use domain-specific newtypes for
 added type safety, such as |Age| or |Duration|, we might not be happy to add
-QuickCheck modifiers everywhere. And what if we wanted more than one modifier?
+QuickCheck modifiers everywhere. And what if we need more than one modifier?
 And what if other libraries export their own set of modifiers as well? We certainly
 do not want to change the actual definition of our datatypes (and corresponding
 code) whenever we start using a new library.
@@ -599,8 +600,9 @@ We can choose an actual domain-specific newtype such as
 
 > newtype Duration = MkDuration Int -- in seconds
 
-and now specify exactly how we want to derive |Arbitrary| for this. The simplest
-option is to derive via |Int| itself:
+and now specify exactly how the |Arbitrary| should be derived for this:
+%if style == newcode
+The simplest option is to derive via |Int| itself:
 
 > ??deriving Arbitrary via Int
 
@@ -610,6 +612,7 @@ This declaration has exactly the same effect as using the
 the instance for |Int|, but this allows negative durations.
 
 If we want to restrict ourselves to non-negative durations, we replace this by
+%endif
 %if style == newcode
 %format Duration = Duration2
 %format MkDuration = MkDuration2
