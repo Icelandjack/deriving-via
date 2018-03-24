@@ -2,7 +2,7 @@
 %let typewriter_fmt_read = True
 \ReadOnlyOnce{typewriter.fmt}%
 
-\renewcommand\hscodestyle{\small} % make all code smaller
+\renewcommand\hscodestyle{\smaller} % make all code smaller
 \renewcommand\Varid[1]{\texttt{#1}}
 \renewcommand\Conid[1]{\texttt{#1}}
 \renewcommand\keyw[1]{{\color{keyword}\textbf{\texttt{#1}}}}
