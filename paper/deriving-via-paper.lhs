@@ -450,20 +450,14 @@ We can do this when defining a new datatype, such as in
 This requires that we independently have an |Applicative| instance
 for |Maybe|, but then we obtain the desired |Monoid4| instance nearly
 for free.
-
-We can also use a standalone deriving declaration as is
-available in \GHC\ to introduce the instance separately from
-the datatype declaration, such as in
-
-> deriving via (App IO a)
->   instance Monoid4 a => Monoid4 (IO a)
-
 %}
-In both cases, |via| is a new language construct that explains \emph{how} \GHC\
+
+In the deriving clause, |via| is a new language construct that
+explains \emph{how} \GHC\
 should derive the instance, namely be reusing the instance already
 available for the given type. It should be easy to see why this works:
-due to the use of a newtype, |App IO a| has the same internal
-representation as |IO a|, and any instance available on one type can
+due to the use of a newtype, |App Maybe a| has the same internal
+representation as |Maybe a|, and any instance available on one type can
 be made to work on a representationally equal type as well.
 
 The |MODULE Data.Monoid| module defines many further
@@ -485,10 +479,10 @@ to GND in Section~\ref{sec:gnd}.}
 > instance Alternative f => Semigroup (Alt f a) where
 >   (<>) = mappend4
 
-Using another standalone deriving declaration, the |Monoid|
-instance for lists could then be written as follows:
-
-> deriving via (Alt [] a) instance Monoid4 [a]
+Using adapters such as |App| and |Alt|, we can reduce a vast
+amount of |Monoid| instances that currently have to be defined
+by hand to instances that can be derived using the |via|
+construct.
 
 \subsection{Contributions and structure of the paper}
 
