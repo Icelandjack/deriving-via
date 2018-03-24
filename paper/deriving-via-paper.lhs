@@ -1488,10 +1488,10 @@ any |Representable| functor
 > newtype WrapRep f a = WrapRep (f a)
 >   deriving newtype
 >     (Functor, Representable)
-> 
+>
 > instance Representable f => Applicative (WrapRep f) where
 >   pure = tabulate . pure
-> 
+>
 >   f <*> g = tabulate (index f <*> index g)
 >
 >   f <* _ = f
@@ -1499,7 +1499,7 @@ any |Representable| functor
 
 
 There is a class of functors where the last two definitions always
-hold, 
+hold,
 
 
 
