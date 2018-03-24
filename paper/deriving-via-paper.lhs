@@ -225,7 +225,7 @@ have no other choice but to write the instance by hand.
 This means that we have to provide explicit implementations of at
 least a minimal subset of the class methods.
 
-The difference between the two can be quite drastic. Especially if the
+The difference between the two scenarios can be quite drastic. Especially if the
 class has many methods, it is extremely appealing if we can somehow
 derive the instance. But what if we want a variant of the class that
 would be derived automatically, rather than exactly the default? What
@@ -235,7 +235,7 @@ deriving mechanisms? Then we are out of luck, and we still have to define
 the instance by hand.
 
 In this paper, we introduce a new language extension that
-bridges this gap: \DerivingVia. With \DerivingVia, we can vastly
+bridges this gap, called \DerivingVia. With \DerivingVia, we can vastly
 increase the fraction of type class instances that we can derive, in
 that we no longer rely on a few (if any at all) essentially
 pre-defined ways to define a particular class instance, but rather
@@ -248,7 +248,7 @@ such as deriving strategies, newtypes, and safe coercions. It furthermore
 naturally generalizes a number of language extensions such as
 generalized newtype deriving and default signatures.
 
-But before we explain our approach in more detail, let's first
+But before we explain our approach in more detail, let us first
 look at a concrete example.
 
 \subsection{Example: Lifting monoids}
@@ -259,7 +259,7 @@ we can find the following |Monoid| instances:
 > instance Monoid a => Monoid2 (IO a) where
 >   mempty2   =  pure mempty
 >   mappend2  =  liftA2 mappend
-
+>
 > instance Monoid a => Monoid2 (ST s a) where
 >   mempty2   =  pure mempty
 >   mappend2  =  liftA2 mappend
