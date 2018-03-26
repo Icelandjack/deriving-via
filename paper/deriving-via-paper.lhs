@@ -382,7 +382,7 @@ use case several years ago~\cite{applicative-numbers}.
 % We cannot put a gist dump like this into a paper. We might want to make a selection,
 % or just describe the situation in words.}
 
-\subsection{Introducing \DerivingVia}
+\subsection{Introducing \DerivingVia}\label{sec:introducingdv}
 %if style /= newcode
 %format App = "\ty{App}"
 %format Alt = "\ty{Alt}"
@@ -1346,7 +1346,7 @@ abstract over them in a convenient way. We demonstrate how to:
 
 \begin{itemize}
 \item Swiftly define instances of classes in a superclass hierarchy
-      (Section~\ref{sec:superclasses}) as well as orphan instances
+      (Section~\ref{sec:superclasses}) and avoid orphan instances
       (Section~\ref{sec:orphaninstances}).
 \item Codify techniques to achieve asymptotic performance improvements
       in default implementations of class methods
@@ -1433,42 +1433,70 @@ change their definitions to be identical to |fmap| and |(<*>)|, respectively.}
 
 \subsection{Avoiding orphan instances}\label{sec:orphaninstances}
 
-Before we had a |Monoid| instance for |IO a| this could not be derived\footnote{http://www.haskellforall.com/2014/07/equational-reasoning-at-scale.html}
+Not only can \DerivingVia\ quickly procure type class instances, in some
+cases, it can eliminate the need for some instances altogether. One variety
+of instance that Haskell programmers often want to avoid is orphan
+instances---that is, instances defined in a separate module from the type
+class or data types being used. Sometimes, however, it's quite tempting to
+reach for orphan instances, as in the following example from
+~\cite{equational-reasoning-at-scale}:
 
 < newtype Plugin = Plugin (IO (String -> IO ()))
 <   deriving Monoid
 
-\textbf{deriving via} enables us to override and insert arbitrary
-instances adding the following line
+In order for this derived |Monoid| instance to typecheck, there must be a
+|Monoid| instance for |IO| available. Suppose for a moment that there was
+no such |Monoid| instance for |IO|. How can one work around this issue?
 
-<     via (App IO (String -> App IO ()))
+\begin{itemize}
+\item One could patch the \texttt{base} library to add the instance for |IO|.
+      But given \texttt{base}'s slow release cycle, it would be a while
+      before one could actually use this instance.
+\item Write an orphan instance for |IO|. This works, but is
+      undesirable, as now anyone who uses |Plugin| must incur a
+      possibly unwated orphan instance.
+\end{itemize}
 
-\bbnote{I used this just now to get a Semigroup instance for Compose f g a.}
+Luckily, \DerivingVia\ presents a more convenient third option: re-use a
+|Monoid| instance from a data type \textit{besides} |IO|. Recall the |App|
+data type from Section~\ref{sec:introducingdv} that lets us define a
+|Monoid| instance by lifting through an |Applicative| instance. As luck would
+have it, |IO| already has an |Applicative| instance, so we can derive the
+desired |Monoid| instance for |Plugin| like so:
 
-If, like \cite{twist-pointers}
-we wanted to sequential composion for |IO ()| rather than lifted
-behaviour all we need to do is write an adapter type
+< newtype Plugin = Plugin (IO (String -> IO ()))
+<  deriving Monoid
+<    via (App IO (String -> App IO ()))
 
-> newtype Seq f = Seq (f ())
->
-> instance Applicative f => Monoid (Seq f) where
->   mempty :: Seq f
->   mempty = Seq (pure ())
->
->   mappend :: Seq f -> Seq f -> Seq f
->   Seq fs `mappend` Seq gs = Seq (fs *> gs)
+% RGS: I'm leaving this off
+% If, like \cite{twist-pointers}
+% we wanted to sequential composion for |IO ()| rather than lifted
+% behaviour all we need to do is write an adapter type
+%
+% > newtype Seq f = Seq (f ())
+% >
+% > instance Applicative f => Monoid (Seq f) where
+% >   mempty :: Seq f
+% >   mempty = Seq (pure ())
+% >
+% >   mappend :: Seq f -> Seq f -> Seq f
+% >   Seq fs `mappend` Seq gs = Seq (fs *> gs)
+%
+% and derive via
+%
+% <     via (IO (String -> Seq IO))
+%
+% Another example from the same paper can be derived as well:
+%
+% < data Ptr
+% <
+% < newtype ParseAction a = PA (Ptr -> IO a)
+% <   deriving (Functor, Applicative) via
+% <     (Compose ((->) Ptr) IO)
 
-and derive via
-
-<     via (IO (String -> Seq IO))
-
-Another example from the same paper can be derived as well:
-
-< data Ptr
-<
-< newtype ParseAction a = PA (Ptr -> IO a)
-<   deriving (Functor, Applicative) via
-<     (Compose ((->) Ptr) IO)
+Here, we completely bypass the need for a |Monoid| instance for |IO|, as
+|App IO| (which is representationally equal to |IO|) gives us exactly
+the monoidal behavior we seek.
 
 %if style == newcode
 
