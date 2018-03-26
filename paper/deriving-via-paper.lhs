@@ -1930,7 +1930,7 @@ We have seen how \DerivingVia\ makes it quite simple to give names to
 particular defaults, and how toggling between defaults is a matter of
 choosing a name. In light of this, we believe that many current uses of
 \DefaultSignatures\ ought to be removed entirely and replaced with the
-\DerivingVia-based idiom presented in this section. This avoids the need
+\DerivingVia--based idiom presented in this section. This avoids the need
 to bless one particular default, and forces programmers to consider which
 default is best suited to their use case, instead of blindly trusting the
 type class's blessed default to always do the right thing.
@@ -1956,11 +1956,18 @@ type class's blessed default to always do the right thing.
 
 %endif
 
+So far, all of the examples presented thus far in the paper rely on deriving
+through data types that have the same runtime representation as the original
+data type. It is worth pointing out, however, that this technique can be
+generalized even further. That is, we can derive through data types that are
+\textit{isomorphic}, not just representationally equal! In this section, we
+cap off the list of examples by showing how techniques from generic
+programming can let us accomplish this feat.
+
 Let us go back to QuickCheck (as in Section~\ref{sec:quickcheck}) once
 more and consider the datatype
 
-> data Track =
->   MkTrack
+> data Track = MkTrack
 >     {  title     ::  Title
 >     ,  duration  ::  Duration
 >     }
@@ -1970,26 +1977,27 @@ assume that we already have instance for both |Title| and |Duration|.
 
 The QuickCheck library defines an instance for pairs, so we could generate
 values of type |(Title, Duration)|, and in essence, this is exactly what
-we want. But alas, the two types are not coercible into each other, even
-though they are isomorphic.
+we want. But alas, the two types are not inter-|Coercible|, even
+though they are isomorphic (in the sense that one can write a function from
+|Track| to |(Title, Duration)|, and vice versa).
 
 However, we can exploit the isomorphism and still get an instance for free,
 and the technique we apply is quite widely applicable in similar situations.
-
 As a first step, we declare a newtype to capture that one type is
 isomorphic to another:
 
 > newtype SameRepAs a b = MkSameRepAs a
 
-Note that the idea here is that `a` and `b` are isomorphic in some sense,
-but only `a` is used as the value of the type. So `SameRepAs a b` is
-coercible into `a`.
+Note that the idea here is that |a| and |b| are isomorphic in some sense,
+but only |a| is used as the value of the type. So |SameRepAs a b| is
+inter-|Coercible| with |a|.
 
 We choose here to witness an isomorphism between the two types via
-their generic representations: if two types have coercible generic
-representations, we can transform back and forth using the |from| and
-|to| methods of the |Generic| class. We can use this to define a
-suitable |Arbitrary| instance for |SameRepAs|:
+their generic representations: if two types have
+inter-|Coercible| generic representations, we can transform back and forth
+using the |from| and |to| methods of the |Generic| class from |GHC.Generics|.
+~\cite{gdmfh}
+We can use this to define a suitable |Arbitrary| instance for |SameRepAs|:
 
 > instance
 >   (  Generic a, Generic b, Arbitrary b
@@ -2002,7 +2010,8 @@ suitable |Arbitrary| instance for |SameRepAs|:
 >         to . (coerce :: Rep b () -> Rep a ()) . from
 
 Here, we first use |arbitrary| to give us a |Gen b|, then coerce
-this via the generic representations into an arbitrary of |Gen a|.
+this via the generic representations into an |arbitrary| value
+of type |Gen a|.
 
 Finally, we can use the following |deriving| declarations for |Track|
 to obtain the desired |Arbitrary| instance:
@@ -2024,6 +2033,9 @@ to obtain the desired |Arbitrary| instance:
 >   deriving Generic
 >   deriving Arbitrary
 >     via (Track `SameRepAs` (String, Duration))
+
+With this technique, we can significantly expand the ``equivalence classes''
+of data types that can be used when picking suitable types to derive through.
 
 \section{Related Ideas}\label{sec:related}
 
