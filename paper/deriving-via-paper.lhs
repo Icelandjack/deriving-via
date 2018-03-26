@@ -2039,6 +2039,12 @@ of data types that can be used when picking suitable types to derive through.
 
 \section{Related Ideas}\label{sec:related}
 
+We have demonstrated in the previous section that \DerivingVia\ is an
+extremely versatile technique, and can be used to tackle a wide variety of
+problems. \DerivingVia\ also bears a resemblance to other distinct language
+features, such as ML functors and explicit dictionary passing, so in this
+section, we present an overview of their similarities and differences.
+
 \subsection{ML functors}
 
 Languages in the ML family, such as Standard ML and OCaml, provide
@@ -2078,7 +2084,7 @@ solve---resolving ambiguity in implicit arguments---almost never arises
 in \DerivingVia, as the programmer must specify all the types involved
 in the process.
 
-\section{Limitations and Future Work}\label{sec:conclusions}
+\section{Current status}\label{sec:conclusions}
 
 We have implemented \DerivingVia\ within \GHC.
 Our implementation also interacts well with other \GHC\ features that were
