@@ -1046,7 +1046,7 @@ see momentarily.
 
 \subsubsection{From \GND\ to \DerivingVia}
 
-As we saw in section \ref{sec:gnd}, the code which \GND\ generates
+As we saw in Section \ref{sec:gnd}, the code which \GND\ generates
 relies on |coerce| to do the heavy lifting. In this section, we will generalize this
 technique slightly to give us a way to generate code for \DerivingVia.
 
@@ -1082,7 +1082,7 @@ Then the following code would be generated:
 <   enumFrom = coerce (enumFrom :: T -> [T]) :: Age -> [Age]
 
 This time, \GHC\ coerces from an |enumFrom| implementation for |T| (the |via| type) to
-an implementation for |Age|. (Recall from section \ref{sec:coercible} that this is
+an implementation for |Age|. (Recall from Section \ref{sec:coercible} that this is
 possible since we can |coerce| transitivity from |T| to |Int| to |Age|).
 
 Now we can see why the instances that \DerivingVia\ can generate are a strict superset of
@@ -1333,6 +1333,32 @@ this choice would force programmers to write additional parentheses.
 
 \section{More use cases}\label{sec:usecases}
 
+We have already seen in Section~\ref{sec:quickcheck} how \DerivingVia\
+facilitates greater code reuse in the context of QuickCheck. This far from
+the only domain where \DerivingVia\ proves to be a natural fit, however. In
+fact, there are so many of these domains, there would be enought to fill
+pages upon pages!
+
+Unfortunately, we do not have enough pages to document all of these use cases,
+so in this section, we present a cross-section of scenarios in which
+\DerivingVia\ can capture interesting patterns and allow programmers to
+abstract over them in a convenient way. We demonstrate how to:
+
+\begin{itemize}
+\item Swiftly define instances of classes in a superclass hierarchy
+      (Section~\ref{sec:superclasses}) as well as orphan instances
+      (Section~\ref{sec:orphaninstances}).
+\item Codify techniques to achieve asymptotic performance improvements
+      in default implementations of class methods
+      (Section~\ref{sec:asymptotic}).
+\item Generalize the concept of default signatures to allow for
+      \textit{multiple} defaults
+      (Section~\ref{sec:defaultsignatures}).
+\item Share code between types that are \textit{isomorphic}, not just
+      representationally equivalent
+      (Section~\ref{sec:isomorphisms}).
+\end{itemize}
+
 \subsection{Defining superclasses}\label{sec:superclasses}
 %if style /= newcode
 %format FromMonad = "\ty{FromMonad}"
@@ -1397,7 +1423,7 @@ weaker, argument applies to suggested changes to relax the constraints of
 |liftM| and |ap| to merely |Applicative| and change their definitions to be
 identical to |fmap| and |(<*>)|, respectively.
 
-\subsection{Avoiding orphan instances}
+\subsection{Avoiding orphan instances}\label{sec:orphaninstances}
 
 Before we had a |Monoid| instance for |IO a| this could not be derived\footnote{http://www.haskellforall.com/2014/07/equational-reasoning-at-scale.html}
 
@@ -1443,7 +1469,7 @@ Another example from the same paper can be derived as well:
 
 %endif
 
-\subsection{Asymptotic improvement}
+\subsection{Asymptotic improvement}\label{sec:asymptotic}
 %if style /= newcode
 %format Rep = "\ty{Rep}"
 %format Type = "\ki{Type}"
@@ -1669,7 +1695,7 @@ Parallel Legacy Languages as Theorem Provers (deriving
 %format Rep = "GHC.Rep"
 %endif
 
-In section \ref{sec:gnd}, we observed that \DerivingVia\ can fully replace the
+In Section \ref{sec:gnd}, we observed that \DerivingVia\ can fully replace the
 \GND\ extension. In fact, that's not the only language
 extension that \GND\ can be used as a substitute for! There is another
 type class-related extension \emph{default signatures} which is frequently used by
