@@ -1383,7 +1383,7 @@ add these instances was sheer boilerplate, as most of the time one can
 straightforwardly define the class methods of |Functor| and |Applicative|
 using the methods from |Monad|.
 
-With \DerivingVia\, we can make this process much less tedious.
+With \DerivingVia, we can make this process much less tedious.
 We can encode the ability to extract |Functor| and |Applicative|
 methods from |Monad| using a newtype:
 
