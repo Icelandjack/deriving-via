@@ -1359,7 +1359,7 @@ abstract over them in a convenient way. We demonstrate how to:
       (Section~\ref{sec:isomorphisms}).
 \end{itemize}
 
-\subsection{Defining superclasses}\label{sec:superclasses}
+\subsection{Retrofitting superclasses}\label{sec:superclasses}
 %if style /= newcode
 %format FromMonad = "\ty{FromMonad}"
 %format MkFromMonad = "\con{FromMonad}"
@@ -1368,15 +1368,24 @@ abstract over them in a convenient way. We demonstrate how to:
 %format Done = "\con{Done}"
 %endif
 
-When the ``Applicative Monad Proposal'' was introduced and turned |Monad|
-from a plain type class into one that has |Applicative| as a superclass
-(which in turn has |Functor| as a superclass), one counter-argument against
-the change was that someone who wants to primarily wants to declare a~|Monad|
-instance is now required to define two extra instances for~|Functor|
-and~|Applicative| -- both of which are usually boilerplate, because they can
-be defined from the~|Monad| instance.
+On occasion, the need arises to retrofit an existing type class with a
+superclass. One notable example of this was the Applicative--Monad Proposal,
+in which the long-established |Monad| type class was changed to have
+|Applicative| as its superclass (which, in turn, has |Functor| as a
+superclass).
 
-We can capture these rules as follows:
+One especially tedious aspect of this proposal was that at the time, many
+libraries provided |Monad| instances but \textit{not} |Functor| or
+|Applicative| instances. Therefore, after the proposal was adopted, all of
+these libraries were now broken and now had to be retrofitted with |Functor|
+and |Applicative| instances in order to build again. Much of the work to
+add these instances was sheer boilerplate, as most of the time one can
+straightforwardly define the class methods of |Functor| and |Applicative|
+using the methods from |Monad|.
+
+With \DerivingVia\, we can make this process much less tedious.
+We can encode the ability to extract |Functor| and |Applicative|
+methods from |Monad| using a newtype:
 
 > newtype FromMonad m a = MkFromMonad (m a)
 >   deriving Monad
@@ -1388,40 +1397,39 @@ We can capture these rules as follows:
 >   pure   =  return
 >   (<*>)  =  ap
 
-The wrapper type |FromMonad| serves the purpose of giving a name
-to the patterns. The two instance make it precise what it means
-to define the |Functor| and |Applicative| instances in terms of
-the monad instance.
-
-If we now have a datatype with a monad instance, we can simply derive
-the |Functor| and |Applicative| instances by referring to |FromMonad|:
+Now, if we now have a data type with a |Monad| instance, we can simply derive
+the corresponding |Functor| and |Applicative| instances by
+referring to |FromMonad|:
 
 > data Stream a b = Done b | Yield a (Stream a b)
 >   deriving (Functor, Applicative)
 >     via (FromMonad (Stream a))
 >
 > instance Monad (Stream a) where
->
 >   return = Done
 >
 >   Yield a k >>= f  =  Yield a (k >>= f)
 >   Done b    >>= f  =  f b
 
-A similar rule could also be added to define the |(<>)| of the |Semigroup|
-class in terms of an existing |Monoid| instance.
+A similar newtype could also be defined to quickly implement the |(<>)| method
+from the |Semigroup| class in terms of an existing |Monoid| instance
+(of which |Semigroup| is a superclass).
 
-\alnote{Several other mechanisms have been proposed to deal with this situation.
-We should go through them and point out whether they're subsumed by this or not.}
+% \alnote{Several other mechanisms have been proposed to deal with this situation.
+% We should go through them and point out whether they're subsumed by this or not.}
 
-One potentially problematic aspect remains. Another proposal that has been made
-but (as of now) not been accepted, namely to remove the |return| method from
-the |Monad| class. The argument is that it is redundant given the presence of
-|pure| in |Applicative|. All other points that have been raised about this
-proposal aside, it should be noted that removing |return| from the |Monad|
-class would prevent the above scheme from working. A similar, yet somewhat
-weaker, argument applies to suggested changes to relax the constraints of
-|liftM| and |ap| to merely |Applicative| and change their definitions to be
-identical to |fmap| and |(<*>)|, respectively.
+One potentially problematic aspect remains.
+Another proposal~\cite{monad-no-return} has been put forth
+(but has not been implemented, as of now) to remove the |return| method from
+the |Monad| class and make it a synonym for |pure| from |Applicative|.
+The argument is that |return| is redundant, given that |pure| does the
+same thing with a more general type signature. All other prior discussion about
+the  proposal aside, it should be noted that removing |return| from the |Monad|
+class would prevent |FromMonad| from working, as then |Monad| instances would
+not have any way to define |pure|.
+~\footnote{A similar, yet somewhat weaker, argument applies to suggested changes
+to relax the constraints of |liftM| and |ap| to merely |Applicative| and to
+change their definitions to be identical to |fmap| and |(<*>)|, respectively.}
 
 \subsection{Avoiding orphan instances}\label{sec:orphaninstances}
 
