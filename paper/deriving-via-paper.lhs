@@ -1758,17 +1758,25 @@ Parallel Legacy Languages as Theorem Provers (deriving
 \url{Discuss ideas here https://www.reddit.com/r/haskell/comments/6udl0i/representable_functors_parameterised_by/}
 %endif
 
-\subsection{Enhancing \DefaultSignatures}\label{sec:defaultsignatures}
+\subsection{Making defaults more flexible}\label{sec:defaultsignatures}
 %if style == newcode
 %format Rep = "GHC.Rep"
 %endif
 
-In Section \ref{sec:gnd}, we observed that \DerivingVia\ can fully replace the
-\GND\ extension. In fact, that's not the only language
-extension that \GND\ can be used as a substitute for! There is another
-type class-related extension \emph{default signatures} which is frequently used by
-\GHC\ programmers to eliminate large classes of boilerplate but it limited by its
-expressive power. Here, we demonstrate how one can scrap uses of
+In the previous section, we saw an example of how relying too much on a type
+class's default implementations can backfire. Indeed, this is an unfortunately
+common trend with type classes in general. Many classes try to pick a
+one-size-fits-all defaults that don't work well in certain scenarios, but
+because Haskell allows specifying one default per method, if the provided
+default doesn't work for a programmer's use case, then she is forced to
+implement her own implementations by hand.
+
+In this section, we continue the trend of generalizing defaults by looking
+at another language extension that \DerivingVia\ can substitute for:
+\emph{default signatures}. Default signatures (a slight generalization of
+default implementations) can eliminate large classes of boilerplate,
+but they too are limited by the one-default-per-method restriction.
+Here, we demonstrate how one can scrap uses of
 \DefaultSignatures\ in favor of \DerivingVia, and show how \DerivingVia\
 can overcome the limitations of \DefaultSignatures.
 
@@ -1888,8 +1896,7 @@ do something. Our |pPrint| example is no exception. Instead of
 \end{itemize}
 
 All of these are perfectly reasonable choices a programmer might want to make,
-but alas, \DefaultSignatures\ will only accept a single implementation as the
-One True Default.
+but alas, GHC only lets type classes bless each method with one default.
 
 Fortunately, \DerivingVia\ provides a convenient way of encoding default
 implementations with the ability to toggle between different choices:
@@ -1918,6 +1925,15 @@ a single type:
 
 < deriving Pretty via (GenericPPrint DataType1)
 < deriving Pretty via (ShowPPrint    DataType2)
+
+We have seen how \DerivingVia\ makes it quite simple to give names to
+particular defaults, and how toggling between defaults is a matter of
+choosing a name. In light of this, we believe that many current uses of
+\DefaultSignatures\ ought to be removed entirely and replaced with the
+\DerivingVia-based idiom presented in this section. This avoids the need
+to bless one particular default, and forces programmers to consider which
+default is best suited to their use case, instead of blindly trusting the
+type class's blessed default to always do the right thing.
 
 \subsection{Deriving via isomorphisms}\label{sec:isomorphisms}
 %if style /= newcode
