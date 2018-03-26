@@ -2101,26 +2101,43 @@ extremely well. When it \emph{doesn't} work, however, it can be challenging
 to formulate an error message that adequately explains what went wrong. The
 fundamental issue is that error messages resulting from uses of |deriving|
 are usually rooted in \emph{generated} code, and pointing to code that the
-user didn't write in error messages can lead to a confusing debugging
-experience.
+user didn't write in error messages can sometimes lead to a confusing
+debugging experience.
 
-\DerivingVia\ is certainly no exception to this trend. In fact, the problem
-of creating lucid error messages is arguably \emph{worse} in the context of
-\DerivingVia, as we give users the power to derive instances through whatever
-type they wish. Unfortunately, this makes it easier to shoot oneself in the
-foot, as it is now easier than ever before to feed \DerivingVia\ garbage. As one
-example, if a user were to accidentally write this code:
+Fortunately, we have found in our experience that the quality of
+\DerivingVia-related error messages is overall on the positive side. GHC
+has already invested significant effort into making type errors involving
+|Coercible| to be easily digestible by programmers, so \DerivingVia\
+benefits from this work. For instance, if one inadvertently tries to
+derive through a type that is not inter-|Coercible| with the original
+data type, such as in the following example:
+
+< newtype UhOh = UhOh Char
+<   deriving Ord via Int
+
+Then GHC will tell you exactly that, in plain language:
+\begingroup
+\invisiblecomments
+
+< -- \textbullet\ Couldn't match representation of type |Char| with that of |Int|
+< -- \phantom{\textbullet\ }\quad arising from the coercion of the method |compare|
+< -- \phantom{\textbullet\ }\qquad from type `|Int -> Int -> Ordering|'
+< -- \phantom{\textbullet\ }\qquad to type `|UhOh -> UhOh -> Ordering|'
+
+\endgroup
+
+That is not to say that every error message is this straightforward. There
+is are some scenarios that produce less-than-ideal errors, such as this:
 
 < newtype Foo a = MkFoo (Maybe a) deriving Ord via a
 
-Then GHC would throw the following, rather unhelpful error:
 \begingroup
 \invisiblecomments
 
 < -- \textbullet\ Occurs check: cannot construct the infinite type: |a ~ Maybe a|
 < -- \phantom{\textbullet\ }\quad arising from the coercion of the method `|compare|'
-< -- \phantom{\textbullet\ }\qquad from type `|a -> a -> Ordering|' to type `|Foo a -> Foo a -> Ordering|'
-< -- \textbullet\ When deriving the instance for |(Ord (Foo a))|
+< -- \phantom{\textbullet\ }\qquad from type `|a -> a -> Ordering|'
+< -- \phantom{\textbullet\ }\qquad to type `|Foo a -> Foo a -> Ordering|'
 
 \endgroup
 
