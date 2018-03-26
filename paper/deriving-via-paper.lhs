@@ -2069,7 +2069,7 @@ generalization of the technique that \DerivingVia\ uses.
 
 However, explicit dictionary arguments do come with some costs. They
 require significantly enhancing Haskell's type system to support, and
-they break principle typing. Moreover, we feel as if explicit
+they break principal typing. Moreover, we feel as if explicit
 dictionary passing to be too large a hammer for the nail we are trying to hit.
 \DerivingVia\ works by means of a simple desugaring of code with some
 light typechecking on top, which makes it much simpler to describe and
