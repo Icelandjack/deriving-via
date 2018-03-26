@@ -1498,12 +1498,12 @@ Here, we completely bypass the need for a |Monoid| instance for |IO|, as
 |App IO| (which is representationally equal to |IO|) gives us exactly
 the monoidal behavior we seek.
 
-%if style == newcode
-
-> instance Applicative f => Semigroup (Seq f) where
->   (<>) = mappend
-
-%endif
+% %if style == newcode
+%
+% > instance Applicative f => Semigroup (Seq f) where
+% >   (<>) = mappend
+%
+% %endif
 
 \subsection{Asymptotic improvements with ease}\label{sec:asymptotic}
 %if style /= newcode
@@ -1582,8 +1582,8 @@ desired performance, one can accomplish in a more straightforward fashion
 by using \DerivingVia:
 
 > newtype IntConsumer a = IntConsumer (Int -> a)
->   deriving Functor
->   deriving Applicative via (WrapRep IntProducer)
+>   deriving (Functor, Representable)
+>   deriving Applicative via (WrapRep IntConsumer)
 
 Not only does this save code in the long run, but it also gives a name to
 the optimization being used, which can make these sorts of tricks easier
