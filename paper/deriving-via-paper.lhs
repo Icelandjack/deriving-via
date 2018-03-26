@@ -1505,7 +1505,7 @@ the monoidal behavior we seek.
 
 %endif
 
-\subsection{Asymptotic improvement}\label{sec:asymptotic}
+\subsection{Asymptotic improvements with ease}\label{sec:asymptotic}
 %if style /= newcode
 %format Rep = "\ty{Rep}"
 %format Type = "\ki{Type}"
@@ -1514,79 +1514,111 @@ the monoidal behavior we seek.
 %format Representable = "\cl{Representable}"
 %endif
 
-The |Applicative| operators |(*>)| and |(<*)| always have a default
-definition in terms of |liftA2|
+A widely used feature of type classes is their ability to give default
+implementations for their methods if a programmer leaves them off.
+One example of this can be found in the |Applicative| class. The main
+workhorse of |Applicative| is the |(<*>)| method, but on occasion,
+it is more convenient to use the |(<*)| or |(*>)| methods, which
+sequence their actions but discard the result of one of their arguments:
 
+< class Functor f => Applicative f where
+<   pure  :: a -> f a
+<   (<*>) :: f (a -> b) -> f a -> f b
+<
+<   (<*) :: f a -> f b -> f a
 <   (<*) = liftA2 (\ a _ -> a)
+<   (*>) :: f a -> f b -> f b
 <   (*>) = liftA2 (\ _ b -> b)
 
-These definitions can be overwritten for individual instances. In the
-case of of functions, unfolding the default definitions of |(*>)| and
-|(<*)| gives their definitions as constant functions
+As shown here, |(<*)| and |(*>)| have default implementations in terms of
+|liftA2|. This works for any |Applicative|, but is not as efficient as it
+could be in some cases. For certain classes of |Applicative|s, we can
+actually implement these methods in \textit{O}(1) time instead of using
+|liftA2|, which can often run in superlinear time. One such
+|Applicative| is the function type |(->)|:
 
-< instance Applicative ((->) rep) where
+< instance Applicative ((->) r) where
 <   pure = const
-<
-<   liftA2 q f g a = q (f a) (g a)
+<   (<*>) f g x = f x (g x)
 <
 <   f <*  _ = f
 <   _  *> g = g
 
-The last two definitions are not only valid for the |((->) rep)| instance
-but for any functor isomorphic to it. These ‘function-like’ functors
-are called |Representable|:
+Note that we had to explicitly define |(<*)| and |(*>)|, as the default
+implementations would not have been as efficient. But |(->)| is not the
+only type for which this trick works---it also works for any data type
+that is isomorphic to |(->) r| (for some |r|)!.
+These ‘function-like’ types are characterized by the |Representable|
+type class:
 
 > class Functor f => Representable f where
->   type Rep f :: Type
+>   type Rep f
 >   index    :: f a -> (Rep f -> a)
 >   tabulate :: (Rep f -> a) -> f a
 
-So we can capture this with a modifier with an applicative instance for
-any |Representable| functor
+This is a good deal more abstract than |(->) r|, so it can be helpful to
+see how |Representable| works for |(->) r| itself:
+
+> instance Representable ((->) r) where
+>   type Rep ((->) r) = r
+>   index f = f
+>   tabulate f = f
+
+With |Representable|, we can codify the |Applicative| shortcut for |(<*)| and
+|(*>)| with a suitable newtype:
 
 > newtype WrapRep f a = WrapRep (f a)
->   deriving newtype
->     (Functor, Representable)
+>   deriving (Functor, Representable)
 >
 > instance Representable f => Applicative (WrapRep f) where
 >   pure = tabulate . pure
->
 >   f <*> g = tabulate (index f <*> index g)
 >
 >   f <* _ = f
 >   _ *> g = g
 
+Now, instead of having to manually override |(<*)| and |(*>)| to get the
+desired performance, one can accomplish in a more straightforward fashion
+by using \DerivingVia:
 
-There is a class of functors where the last two definitions always
-hold,
+> newtype IntConsumer a = IntConsumer (Int -> a)
+>   deriving Functor
+>   deriving Applicative via (WrapRep IntProducer)
 
+Not only does this save code in the long run, but it also gives a name to
+the optimization being used, which can make these sorts of tricks easier
+to spot ``in the wild'' for other programmers.
 
-
-which this definition of |(<*)|,
-|(*>)| always holds and that is any functor isomorphic to |(Rep f
-->)|.
-
-For a class of ‘function-like’ functors
-they can be defined as constant functions
-
-
-
-And assuming that our functor |f| is isomorphic to functions |(Rep f
-->)| (|Representable f|) we can always define |(<*)|, |(*>)| this way.
-
-This definition is actually valid for a subset of functors that is
-isomorphic to functions, called |Representable|
-
-so for each |Representable| we get these constant-time operations
-
-< f <* _ = f
-< _ <* g = g
-
-For representable functors the definitions of |m *> _ = m| and |_ <* m
-= m| are \(O(1)\).\footnote{Edward Kmett:
-\url{https://ghc.haskell.org/trac/ghc/ticket/10892?cversion=0&cnum_hist=4\#comment:4}
-} This codifies knowledge (on a ``library, not lore'' principle) where
-the code can be documented and linked to.
+% There is a class of functors where the last two definitions always
+% hold,
+%
+%
+%
+% which this definition of |(<*)|,
+% |(*>)| always holds and that is any functor isomorphic to |(Rep f
+% ->)|.
+%
+% For a class of ‘function-like’ functors
+% they can be defined as constant functions
+%
+%
+%
+% And assuming that our functor |f| is isomorphic to functions |(Rep f
+% ->)| (|Representable f|) we can always define |(<*)|, |(*>)| this way.
+%
+% This definition is actually valid for a subset of functors that is
+% isomorphic to functions, called |Representable|
+%
+% so for each |Representable| we get these constant-time operations
+%
+% < f <* _ = f
+% < _ <* g = g
+%
+% For representable functors the definitions of |m *> _ = m| and |_ <* m
+% = m| are \(O(1)\).\footnote{Edward Kmett:
+% \url{https://ghc.haskell.org/trac/ghc/ticket/10892?cversion=0&cnum_hist=4\#comment:4}
+% } This codifies knowledge (on a ``library, not lore'' principle) where
+% the code can be documented and linked to.
 
 %if style == newcode
 \subsection{Deriving with configuration}
