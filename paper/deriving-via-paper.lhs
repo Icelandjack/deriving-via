@@ -54,6 +54,7 @@
 
 > {-# LANGUAGE DataKinds #-}
 > {-# LANGUAGE DefaultSignatures #-}
+> {-# LANGUAGE DeriveFunctor #-}
 > {-# LANGUAGE DeriveGeneric #-}
 > {-# LANGUAGE DerivingStrategies #-}
 > {-# LANGUAGE DerivingVia #-}
@@ -102,7 +103,10 @@
 %format mempty4 = mempty
 %format mappend4 = mappend
 %format overlapping (x) = x
+%format Constraint = "\ki{Constraint}"
+%format TYPE = "\ki{*}"
 %else
+%format TYPE = "*"
 
 > class Monoid2 m where
 >
@@ -183,7 +187,7 @@ recurring patterns.
 %if style /= newcode
 %format via = "\keyw{via}"
 %format Foo = "\ty{Foo}"
-%format MkFoo = "\con{MkFoo}"
+%format MkFoo = "\con{Foo}"
 %format Flip = "\ty{Flip}"
 %format Monoid = "\cl{Monoid}"
 %format Semigroup = "\cl{Semigroup}"
@@ -782,6 +786,7 @@ underlying \DerivingVia\ by giving a more precise description of:
  \item How to determine the scoping of type variables in \DerivingVia\ clauses.
 \end{itemize}
 
+%{
 %if style /= newcode
 %format (sub (x) (i)) = x "_{" i "}"
 %format D = "\ty{D}"
@@ -789,6 +794,10 @@ underlying \DerivingVia\ by giving a more precise description of:
 %format DOTS = "\textrm{\dots} "
 %format T1 = "\ty{T1}"
 %format Ts = "\ty{Ts}"
+%format m = "\mathit{m}"
+%format n = "\mathit{n}"
+%format p = "\mathit{p}"
+%format i = "\mathit{i}"
 %format m1 = "\id{m1}"
 %format mf = "\id{mf}"
 %format C = "\cl{C}"
@@ -827,8 +836,12 @@ implementation of these ideas in \GHC\ does so.
 \DerivingVia\ grants the programmer the ability to put extra types in her programs,
 but the flip side to this is that it's possible for her to accidentally put total nonsense
 into a \DerivingVia\ clause, such as:
+%if style /= newcode
+%format S = "\ty{S}"
+%format MkS = "\con{S}"
+%endif
 
-< newtype S = S Char
+< newtype S = MkS Char
 <   deriving Eq via Maybe
 
 In this section, we will describe a general algorithm for when a \DerivingVia\ clause should
@@ -848,7 +861,10 @@ Suppose we are deriving the following instance:
 %format m1 = "\id{m1}"
 %format mf = "\id{mf}"
 %format C = "\cl{C}"
+%format V = "\ty{V}"
+%format 1 = "1"
 %endif
+
 
 < data D (sub d 1) DOTS (sub d m)
 <   deriving (C (sub c 1) DOTS (sub c n)) via (V (sub v 1) DOTS (sub v p))
@@ -856,47 +872,56 @@ Suppose we are deriving the following instance:
 In order for this declaration to typecheck, we must check the \emph{kinds} of each type.
 In particular, the following conditions must hold:
 
+%{
+%if style /= newcode
+%format -> = "\mathop{\texttt{->}}\linebreak[2]"
+%endif
 \begin{enumerate}
  \item
-   |C (sub c 1) DOTS (sub c n)| must have kind
-   |(((sub k 1) -> ... -> (sub k r) -> *) -> Constraint)| for some kinds
+   The type |C (sub c 1) DOTS (sub c n)| must be of kind
+   |((sub k 1) -> DOTS -> (sub k r) -> TYPE) -> Constraint| for some kinds
    |(sub k 1), DOTS, (sub k r)|.
-   This because the instance we must generate:
+   The reason is that the instance we must generate,
 
 < instance C (sub c 1) DOTS (sub c n) (D (sub d 1) DOTS (sub d i)) where DOTS
 
-   Requires that we apply |C (sub c 1) DOTS (sub c n)| to another type
-   |D (sub d 1) DOTS (sub d i)| (more on what
-   |(sub d i)| is in a moment).
+   requires that we can apply |C (sub c 1) DOTS (sub c n)| to another type
+   |D (sub d 1) DOTS (sub d i)| (where \(i \leq m\), see Section~\ref{sec:eta}).
    Therefore, it would be nonsense to try to derive an instance of |C (sub c 1) DOTS (sub c n)|
    if it had kind, say, |Constraint|.
 
  \item
-   The kinds of |C (sub c 1) DOTS (sub c n)|,
-   |V (sub v 1) DOTS (sub v n)|, and |D (sub d 1) ... (sub d i)| must all unify.
-   This check would rule out the earlier example of |deriving Eq via Maybe|, as it does
+   The kinds |V (sub v 1) DOTS (sub v p)| and |D (sub d 1) DOTS (sub d i)|, and the
+   kind of the argument of |C (sub c1) DOTS (sub c n)| must all unify.
+   This check rules out the earlier example of |deriving Eq via Maybe|, as it does
    not even make sense to talk about
-   reusing the |Eq| instance for |Maybe|---which is of kind |(* -> *)|---as |Eq| instances
-   only make sense for types of kind |*|.
+   reusing the |Eq| instance for |Maybe|---which is of kind |(TYPE -> TYPE)|---as |Eq| instances
+   can only exist for types of kind |TYPE|.
 \end{enumerate}
 
-\subsubsection{Eta-reducing the data type}
+\subsubsection{Eta-reducing the data type}\label{sec:eta}
 
 Note that the conditions above, |D (sub d 1) DOTS (sub d i)| (for some |i|), instead of
 |D (sub d 1) DOTS (sub d m)|. That is because in general, the kind of
 |C (sub c 1) DOTS (sub c n)| is allowed to be different from the kind of
 |D (sub d 1) DOTS (sub d m)|! For instance, the following example is perfectly legitimate:
+%if style == newcode
+%format DDOTS =
+%else
+%format DDOTS = DOTS
+%format Functor2 = Functor
+%endif
 
-< class Functor (f :: * -> *) where ...
-<
-< data Foo a = MkFoo a a
-<   deriving Functor
+> class Functor2 (f :: TYPE -> TYPE) where DDOTS
+>
+> data Foo a = MkFoo a a
+>   deriving Functor
 
-Despite the fact that |Foo a| has kind |*| and the argument to |Functor|
-has kind |(* -> *)|. This is
+despite the fact that |Foo a| has kind |TYPE| and the argument to |Functor|
+has kind |(TYPE -> TYPE)|. This is
 because the code that actually gets generated has the following shape:
 
-< instance Functor Foo where ...
+< instance Functor Foo where DOTS
 
 To put it differently, we have \emph{eta-reduced} away the |a| in |Foo a| before applying
 |Functor| to it. The power to eta-reduce variables from the data types is part of what
@@ -904,24 +929,32 @@ makes deriving clauses so flexible.
 
 To determine how many variables to eta-reduce,
 we must examine the kind of
-|C (sub c 1) DOTS (sub c n)|, which by constraint (1) is of the form
+|C (sub c 1) DOTS (sub c n)|, which by condition (1) is of the form
 |(((sub k 1) -> ... -> (sub k r) -> *) -> Constraint)| for some kinds
-|(sub k 1), DOTS, (sub k r)|. Then the number of variables to eta-reduce is simply $r$,
-so to compute the $i$ in |D (sub d 1) DOTS (sub d i)|, we take $i = m - r$.
+|(sub k 1), DOTS, (sub k r)|. Then the number of variables to eta-reduce is simply |r|,
+so to compute the |i| in |D (sub d 1) DOTS (sub d i)|, we take \(|i| = |m| - |r|\).
 
 This is better explained by example, so consider the following two scenarios,
 both of which typecheck:
+%if style /= newcode
+%format A = "\ty{A}"
+%format MkA = "\con{A}"
+%format B = "\ty{B}"
+%format MkB = "\con{B}"
+%format Identity = "\ty{Identity}"
+%endif
 
-< newtype A a = A a deriving Eq      via (Identity a)
-< newtype B b = B b deriving Functor via Identity
+> newtype A a = MkA a deriving Eq       via (Identity a)
+> newtype B b = MkB b deriving Functor  via Identity
 
-In the first example, we have the class |Eq|, which is of kind |* -> Constraint|. The argument
-to |Eq|, which is of kind |*|, does not require that we eta-reduce any variables. As a result,
-we check that |A a| is of kind |*|, which is the case.
+In the first example, we have the class |Eq|, which is of kind |TYPE -> Constraint|. The argument
+to |Eq|, which is of kind |TYPE|, does not require that we eta-reduce any variables. As a result,
+we check that |A a| is of kind |TYPE|, which is the case.
 
-In the second example, we have the class |Functor|, which is of kind |(* -> *) -> Constraint|.
-The argument to |Functor| is of kind |(* -> *)|, which requires that we eta-reduce one variable
-from |B b| to obtain |B|. We then check that |B| is kind of |(* -> *)|, which is true.
+In the second example, we have the class |Functor|, which is of kind |(TYPE -> TYPE) -> Constraint|.
+The argument to |Functor| is of kind |(TYPE -> TYPE)|, which requires that we eta-reduce one variable
+from |B b| to obtain |B|. We then check that |B| is kind of |(TYPE -> TYPE)|, which is true.
+%}
 
 \subsection{Code generation}
 
@@ -1031,9 +1064,15 @@ Another crucial fact about |Coercible| that we rely on is that it is transitive:
 unsurprising if one views |Coercible| as an equivalence relation, but it a fact that is worth
 highlighting, as the transitivity of |Coercible| is what allows us to |coerce|
 \emph{between newtypes}. For instance, if we have these two newtypes:
+%if style == newcode
+%format A = A2
+%format MkA = MkA2
+%format B = B2
+%format MkB = MkB2
+%endif
 
-> newtype A a = A [a]
-> newtype B = B [Int]
+> newtype A a = MkA [a]
+> newtype B = MkB [Int]
 
 Then \GHC\ is able to conclude that |Coercible (A Int) B| holds, because we have the following
 |Coercible| rules:
@@ -1113,6 +1152,9 @@ Consider the following example:
 %format Bar = "\cl{Bar}"
 %format Baz = "\cl{Baz}"
 %format MkFoo = DOTS
+%else
+%format Foo = Foo3
+%format MkFoo = MkFoo3
 %endif
 
 > data Foo a = MkFoo
@@ -2177,6 +2219,9 @@ For example, one can write the following instance using
 %format A = A3
 %format B = B3
 %format C = C3
+%format MkA = MkA3
+%format MkB = MkB3
+%format MkC = MkC3
 
 > instance Triple A B () where
 >   triple = undefined
