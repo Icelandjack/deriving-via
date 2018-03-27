@@ -143,6 +143,52 @@
 }
 
 \begin{abstract}
+
+Haskell sports a simple yet incredibly powerful interface for generic
+programming, the |deriving| mechanism. Why write boring instances when
+the compiler can generate them for you?
+
+The way instances are derived depends on 
+
+But what can be derived and is it always what we want? It is currently
+up to the author of the type class how to derive
+
+This choice is
+currently 
+
+of the type class declaration itself,
+
+which allows at
+most
+
+A library
+author must make generic instances a part of the type class,
+
+
+The current
+situation puts 
+
+Some are
+hardwired
+
+If an
+author wants to make their type class derivable they must remember
+
+
+Some We are at the mercy of the author of the type class: If
+
+which instance we
+get directly depends on the 
+
+
+
+
+
+if the author didn't use
+default methods we can't derive it. If they picked the wrong
+
+
+
 Haskell instance declarations fall into one of two categories:
 either we can use the |deriving| construct and get the instance
 generated for us for free, or we have to write the instance by
