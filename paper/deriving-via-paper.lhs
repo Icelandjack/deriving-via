@@ -259,12 +259,10 @@ such as deriving strategies, newtypes, and safe coercions. It furthermore
 naturally generalizes a number of language extensions such as
 generalized newtype deriving and default signatures.
 
-But before we explain our approach in more detail, let us first
-look at a concrete example.
-
 \subsection{Example: Lifting monoids}
 
-If we look at the \GHC\ \Package{base} package,
+Before we explain our approach in more detail, let us first
+look at a concrete example: in the \GHC \Package{base} package,
 we can find the following |Monoid| instances:
 
 > instance Monoid a => Monoid2 (IO a) where
@@ -475,11 +473,11 @@ The |MODULE Data.Monoid| module defines many further
 adapters that can readily be used with \DerivingVia. For example,
 the rule that obtains a |Monoid| instance from an |Alternative|
 instance is already implemented in terms of |Alt|:%
-\footnote{The |Monoid4| and |Semigroup| instance for |App| and |Alt|
-can be made even more conside if additionally employ
-\emph{generalized newtype deriving} (GND), but we refrain from
-this here for clarity. There is more discussion about the relation
-to GND in Section~\ref{sec:gnd}.}
+% \footnote{The |Monoid4| and |Semigroup| instance for |App| and |Alt|
+% can be made even more concise if additionally employ
+% \emph{generalized newtype deriving} (GND), but we refrain from
+% this here for clarity. There is more discussion about the relation
+% to GND in Section~\ref{sec:gnd}.}
 
 > newtype Alt f a = MkAlt (f a)
 >
@@ -1193,7 +1191,7 @@ Where is each type variable quantified?
 
 \begin{itemize}
  \item |a| is bound by |Foo| itself in the declaration |data Foo a|.
-       These type variable binders scope over both the derived class,
+       Such a variable scopes over both the derived class,
        |Baz a b c|, as well as the |via| type, |Bar a b|.
  \item |b| is bound by the |via| type, |Bar a b|. Note that |b| is
        bound here but |a| is not, as it was bound earlier by the |data|
@@ -1260,11 +1258,7 @@ However, this is not unprecedented within Haskell, as this is also legal:
 %format f = "\id{f}"
 %endif
 
-> f :: Int
-> f = g + h
->   where
->     g = 1
->     h = 2
+> f = g + h where g = 1; h = 2
 
 In this example, we have another scenario where things are bound (|g| and |h|)
 after their use sites. In this sense, the |via| keyword is continuing a rich
