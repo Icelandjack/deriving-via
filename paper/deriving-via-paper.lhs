@@ -105,8 +105,12 @@
 %format overlapping (x) = x
 %format Constraint = "\ki{Constraint}"
 %format TYPE = "\ki{*}"
+%format DOTS = "\textrm{\dots} "
+%format DDOTS = DOTS
 %else
 %format TYPE = "*"
+%format DOTS = undefined
+%format DDOTS =
 
 > class Monoid2 m where
 >
@@ -1085,8 +1089,8 @@ highlighting, as the transitivity of |Coercible| is what allows us to |coerce|
 %format MkB = MkB2
 %endif
 
-> newtype A a = MkA [a]
-> newtype B = MkB [Int]
+> newtype A a  =  MkA [a]
+> newtype B    =  MkB [Int]
 
 then \GHC\ is able to conclude that |Coercible (A Int) B| holds, because we have the following
 |Coercible| rules:
@@ -1123,8 +1127,12 @@ The only difference in the code that \GND\ and \DerivingVia\ generate
 is that in the former strategy, \GHC\ always picks the representation type for you, but in
 \DerivingVia, the \emph{user} has the power to choose this type. For example,
 if a programmer had written this instead:
+%if style /= newcode
+%format T = "\ty{T}"
+%format MkT = "\con{T}"
+%endif
 
-< newtype T = T Int
+< newtype T = MkT Int
 < instance Enum T where DOTS
 <
 < newtype Age = MkAge Int
@@ -1204,6 +1212,11 @@ type variables bound by the derived classes to scope over the |via| type
 instead. However, this choice introduces additional complications that are
 tricky to resolve. For instance, consider a scenario where one attempts to
 derive multiple classes at once with a single |via| type:
+%if style /= newcode
+%format D = "\ty{D}"
+%format C1 = "\cl{C1}"
+%format C2 = "\cl{C2}"
+%endif
 
 > data D
 >   deriving (C1 a, C2 a) via (T a)
@@ -1241,6 +1254,10 @@ derived classes were bound in the same place.
 It might feel strange visually to see a variable being used
 \emph{before} of its binding site (assuming one reads code from left to right).
 However, this is not unprecedented within Haskell, as this is also legal:
+%{
+%if style /= newcode
+%format f = "\id{f}"
+%endif
 
 > f :: Int
 > f = g + h
@@ -1248,9 +1265,10 @@ However, this is not unprecedented within Haskell, as this is also legal:
 >     g = 1
 >     h = 2
 
-In this example, we have another scenario where things are bound (|f| and |g|)
+In this example, we have another scenario where things are bound (|g| and |h|)
 after their use sites. In this sense, the |via| keyword is continuing a rich
 tradition pioneered by |where| clauses.
+%}
 
 One alternative idea (which was briefly considered) was to put the |via| type
 \emph{before} the derived classes so as to avoid this ``zigzagging'' scoping.
