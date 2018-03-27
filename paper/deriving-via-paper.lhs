@@ -958,7 +958,7 @@ from |B b| to obtain |B|. We then check that |B| is kind of |(TYPE -> TYPE)|, wh
 
 \subsection{Code generation}
 
-Once the typechecker has ascertained that a |via| type is fully compatibly with the data type
+Once the typechecker has ascertained that a |via| type is fully compatible with the data type
 and the class for which an instance is being derived, \GHC\ proceeds with generating the code
 for the instance itself. This generated code is then fed \emph{back} into the typechecker,
 which acts as a final sanity check that \GHC\ is doing the right thing under the hood.
@@ -973,7 +973,6 @@ generalization---so much so that \DerivingVia\ could be thought of as
 
 Our running example in this section will be the newtype |Age|, which is a simple
 wrapper around |Int| (which we will call the \emph{representation type}):
-
 %if style /= newcode
 %format Age = "\ty{Age}"
 %format MkAge = "\con{MkAge}"
@@ -984,11 +983,18 @@ wrapper around |Int| (which we will call the \emph{representation type}):
 
 A na{\"i}ve way to generate code would be to manually wrap and unwrap the |MkAge| constructor
 wherever necessary, such as in the code below:
+%if style == newcode
+%format Age = Age2
+%format MkAge = MkAge2
 
-< instance Enum Age where
-<   toEnum i = MkAge (toEnum i)
-<   fromEnum (MkAge x) = fromEnum x
-<   enumFrom (MkAge x) = map MkAge (enumFrom x)
+> newtype Age = MkAge Int
+
+%endif
+
+> instance Enum Age where
+>   toEnum i = MkAge (toEnum i)
+>   fromEnum (MkAge x) = fromEnum x
+>   enumFrom (MkAge x) = map MkAge (enumFrom x)
 
 This works, but is somewhat unsatisfying. After all, a newtype is intended to be a zero-cost
 abstraction that acts identically to its representation type at runtime. Accordingly, any
@@ -1007,6 +1013,7 @@ Luckily, there is a convenient solution to this problem: the safe
 |coerce| function~\cite{zero-cost-coercions}:
 %if style /= newcode
 %format Coercible = "\protect\cl{Coercible}"
+%format unsafeCoerce = "\id{unsafeCoerce}"
 %endif
 
 < coerce :: Coercible a b => a -> b
