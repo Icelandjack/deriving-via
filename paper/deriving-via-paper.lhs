@@ -1406,10 +1406,10 @@ this choice would force programmers to write additional parentheses.
 We have already seen in Section~\ref{sec:quickcheck} how \DerivingVia\
 facilitates greater code reuse in the context of \QuickCheck. This far from
 the only domain where \DerivingVia\ proves to be a natural fit, however. In
-fact, there are so many of these domains, there would be enought to fill
+fact, there are so many of these domains, there would be enough to fill
 pages upon pages!
 
-Unfortunately, we do not have enough pages to document all of these use cases,
+Unfortunately, we do not have enough space to document all of these use cases,
 so in this section, we present a cross-section of scenarios in which
 \DerivingVia\ can capture interesting patterns and allow programmers to
 abstract over them in a convenient way. We demonstrate how to:
@@ -1439,7 +1439,7 @@ abstract over them in a convenient way. We demonstrate how to:
 %endif
 
 On occasion, the need arises to retrofit an existing type class with a
-superclass. One notable example of this was the Applicative--Monad Proposal,
+superclass. One notable example of this was the Ap\-plicative-Monad Proposal,
 in which the long-established |Monad| type class was changed to have
 |Applicative| as its superclass (which, in turn, has |Functor| as a
 superclass).
