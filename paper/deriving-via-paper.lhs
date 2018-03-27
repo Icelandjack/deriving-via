@@ -1400,10 +1400,10 @@ this choice would force programmers to write additional parentheses.
 We have already seen in Section~\ref{sec:quickcheck} how \DerivingVia\
 facilitates greater code reuse in the context of \QuickCheck. This far from
 the only domain where \DerivingVia\ proves to be a natural fit, however. In
-fact, there are so many of these domains, there would be enought to fill
+fact, there are so many of these domains, there would be enough to fill
 pages upon pages!
 
-Unfortunately, we do not have enough pages to document all of these use cases,
+Unfortunately, we do not have enough space to document all of these use cases,
 so in this section, we present a cross-section of scenarios in which
 \DerivingVia\ can capture interesting patterns and allow programmers to
 abstract over them in a convenient way. We demonstrate how to:
@@ -1433,7 +1433,7 @@ abstract over them in a convenient way. We demonstrate how to:
 %endif
 
 On occasion, the need arises to retrofit an existing type class with a
-superclass. One notable example of this was the Applicative--Monad Proposal,
+superclass. One notable example of this was the Ap\-plicative-Monad Proposal,
 in which the long-established |Monad| type class was changed to have
 |Applicative| as its superclass (which, in turn, has |Functor| as a
 superclass).
@@ -2141,20 +2141,20 @@ section, we present an overview of their similarities and differences.
 
 \subsection{ML functors}
 
-Languages in the ML family, such as Standard ML and OCaml, provide
-\textit{functors}, which is a feature of the module system that allows
+Languages in the ML family, such as Standard ML or OCaml, provide
+\emph{functors}, which are a feature of the module system that allows
 writing functions from modules of one signature to modules of another
 signature. In terms of functionality, functors somewhat closely resemble
 \DerivingVia, as functors allow ``lifting'' of code into the module
-language much like \DerivingVia\ allows lifting of code into GHC's
+language much like \DerivingVia\ allows lifting of code into \GHC's
 deriving construct.
 
 \subsection{Explicit dictionary passing}
 
-The power and flexibility of \DerivingVia\ is largely due to GHC's ability
+The power and flexibility of \DerivingVia\ is largely due to \GHC's ability
 to take a class method of a particular type and massage it into a method
 of a different type. This process is almost completely abstracted away from
-the user, however. A user only needs to specify the types involved, and GHC
+the user, however. A user only needs to specify the types involved, and \GHC\
 will handle the rest behind the scenes.
 
 An alternative approach, which would put more power into the hands of the
@@ -2163,14 +2163,13 @@ normally implicit dictionary arguments corresponding to type class instances
 ~\cite{implicit-params-explicit}. Unlike in \DerivingVia, where going between
 class instances is a process that is carefully guided by the compiler,
 permitting explicit dictionary arguments would allow users to actually
-@coerce@ concrete instance values and pass them around as first-class objects.
+coerce concrete instance values and pass them around as first-class objects.
 In this sense, explicit dictionary arguments could be thought of as a further
 generalization of the technique that \DerivingVia\ uses.
 
-However, explicit dictionary arguments do come with some costs. They
-require significantly enhancing Haskell's type system to support, and
-they break principal typing. Moreover, we feel as if explicit
-dictionary passing to be too large a hammer for the nail we are trying to hit.
+However, explicit dictionary arguments are a considerable extension of
+the language and its type system, and we feel that
+to be too large a hammer for the nail we are trying to hit.
 \DerivingVia\ works by means of a simple desugaring of code with some
 light typechecking on top, which makes it much simpler to describe and
 implement. Finally, the problem which explicit dictionaries aims to
@@ -2199,7 +2198,7 @@ user didn't write in error messages can sometimes lead to a confusing
 debugging experience.
 
 Fortunately, we have found in our experience that the quality of
-\DerivingVia-related error messages is overall on the positive side. GHC
+\DerivingVia-related error messages is overall on the positive side. \GHC\
 has already invested significant effort into making type errors involving
 |Coercible| to be easily digestible by programmers, so \DerivingVia\
 benefits from this work. For instance, if one inadvertently tries to
@@ -2210,8 +2209,7 @@ data type, such as in the following example:
 %format MkUhOh = "\con{UhOh}"
 %endif
 
-< newtype UhOh = MkUhOh Char
-<   deriving Ord via Int
+< newtype UhOh = MkUhOh Char deriving Ord via Int
 
 Then GHC will tell you exactly that, in plain language:
 \begingroup
@@ -2240,12 +2238,13 @@ is are some scenarios that produce less-than-ideal errors, such as this:
 \endgroup
 
 The real problem is that |a| and |Maybe a| do not have the same representation
-at runtime, but the error does not make this obvious.%
-\alnote{This seems similar to the question I brought up during the call
-yesterday, so unless we find a better place, this might be a good point to
-discuss the example of empty type classes and why we don't want to impose
-a specific check for representation-equivalence that is not induced by the
-class methods.} It is possible that one
+at runtime, but the error does not make this obvious.
+% \alnote{This seems similar to the question I brought up during the call
+% yesterday, so unless we find a better place, this might be a good point to
+% discuss the example of empty type classes and why we don't want to impose
+% a specific check for representation-equivalence that is not induced by the
+% class methods.}
+It is possible that one
 could add an \emph{ad hoc} check for this class of programs, but there are
 likely many more tricky corner cases lurking around the corner, given that
 one can put anything after |via|.
@@ -2315,14 +2314,13 @@ the same as if a user had written:
 %format MkC = MkC4
 %endif
 
-> newtype C = MkC ()
->   deriving (Triple A B) via ()
+> newtype C = MkC () deriving (Triple A B) via ()
 
 This consistency is perhaps a bit limiting in this context, where we have
 multiple arguments to |C| that one could ``derive through''. But it is not
-immediately clear how GHC would figure out which of these arguments to |C|
-should be derived through, as there seven different combinations it could
-choose! It is possible that another syntax would need to be devised to
+clear how GHC would figure out which of these arguments to |C|
+should be derived through, as there seven different combinations to choose
+from! It is possible that another syntax would need to be devised to
 allow users to specify which arguments should be coerced to avoid this
 ambiguity.
 
