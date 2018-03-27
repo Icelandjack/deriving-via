@@ -22,7 +22,9 @@
 \newcommand\GND{{\smaller GND}\xspace}
 \newcommand\GHC{{\smaller GHC}\xspace}
 \newcommand\DefaultSignatures{default signatures\xspace}
-\newcommand\StandaloneDeriving{|StandaloneDeriving|}
+\newcommand\StandaloneDeriving{|StandaloneDeriving|\xspace}
+\newcommand\Package[1]{\textsf{#1}}
+\newcommand\QuickCheck{\Package{QuickCheck}\xspace}
 
 % comments
 %let comments = True
@@ -105,8 +107,12 @@
 %format overlapping (x) = x
 %format Constraint = "\ki{Constraint}"
 %format TYPE = "\ki{*}"
+%format DOTS = "\textrm{\dots} "
+%format DDOTS = DOTS
 %else
 %format TYPE = "*"
+%format DOTS = undefined
+%format DDOTS =
 
 > class Monoid2 m where
 >
@@ -299,12 +305,10 @@ such as deriving strategies, newtypes, and safe coercions. It furthermore
 naturally generalizes a number of language extensions such as
 generalized newtype deriving and default signatures.
 
-But before we explain our approach in more detail, let us first
-look at a concrete example.
-
 \subsection{Example: Lifting monoids}
 
-If we look at the \GHC\ @base@ package,
+Before we explain our approach in more detail, let us first
+look at a concrete example: in the \GHC \Package{base} package,
 we can find the following |Monoid| instances:
 
 > instance Monoid a => Monoid2 (IO a) where
@@ -515,11 +519,11 @@ The |MODULE Data.Monoid| module defines many further
 adapters that can readily be used with \DerivingVia. For example,
 the rule that obtains a |Monoid| instance from an |Alternative|
 instance is already implemented in terms of |Alt|:%
-\footnote{The |Monoid4| and |Semigroup| instance for |App| and |Alt|
-can be made even more conside if additionally employ
-\emph{generalized newtype deriving} (GND), but we refrain from
-this here for clarity. There is more discussion about the relation
-to GND in Section~\ref{sec:gnd}.}
+% \footnote{The |Monoid4| and |Semigroup| instance for |App| and |Alt|
+% can be made even more concise if additionally employ
+% \emph{generalized newtype deriving} (GND), but we refrain from
+% this here for clarity. There is more discussion about the relation
+% to GND in Section~\ref{sec:gnd}.}
 
 > newtype Alt f a = MkAlt (f a)
 >
@@ -539,7 +543,7 @@ construct.
 
 The paper is structured as follows:
 
-In Section~\ref{sec:quickcheck}, we use the QuickCheck library
+In Section~\ref{sec:quickcheck}, we use the \QuickCheck\ library
 as a case study to explain in more detail how \DerivingVia can
 be used, and how it works.
 %
@@ -576,15 +580,15 @@ a number of powerful and perhaps surprising properties:
   types~\ref{sec:isomorphisms}).
 \end{itemize}
 
-\section{Case study: QuickCheck}\label{sec:quickcheck}
+\section{Case study: \QuickCheck}\label{sec:quickcheck}
 %if style /= newcode
 %format Arbitrary = "\cl{Arbitrary}"
 %format arbitrary = "\id{arbitrary}"
 %format shrink = "\id{shrink}"
 %endif
 
-QuickCheck~\cite{quickcheck} is a well-known Haskell library for randomized
-property-based testing.  At the core of QuickCheck's test case generation
+\QuickCheck~\cite{quickcheck} is a well-known Haskell library for randomized
+property-based testing.  At the core of \QuickCheck's test case generation
 functionality is the |Arbitrary| class. Its primary method |arbitrary|
 describes how to generate suitable random values of a given size and type. It
 also has a method |shrink| that is used to try to shrink failing
@@ -599,9 +603,9 @@ actual values of a type that are not sufficiently expressed in their types.
 Depending on the context and the situation, we might want to guarantee the
 generation of positive integers, or non-empty lists, or even sorted lists.
 
-The QuickCheck library provides a mechanism of newtype-based adapters
+The \QuickCheck\ library provides a mechanism of newtype-based adapters
 (called \emph{modifiers} in the library) for this purpose. As an example,
-QuickCheck provides
+\QuickCheck\ provides
 %if style /= newcode
 %format Positive = "\ty{Positive}"
 %format NonNegative = "\ty{NonNegative}"
@@ -631,11 +635,11 @@ a non-negative integer can now use |NonNegative Int| rather than |Int| to make t
 obvious.
 
 This approach, however, has a drastic disadvantage: we have to wrap each value
-in an extra constructor, and the newtype and constructor are QuickCheck-specific.
+in an extra constructor, and the newtype and constructor are \QuickCheck-specific.
 An implementation detail (the choice of testing library) leaks into the data model
 of an application. While we might be willing to use domain-specific newtypes for
 added type safety, such as |Age| or |Duration|, we might not be happy to add
-QuickCheck modifiers everywhere. And what if we need more than one modifier?
+\QuickCheck\ modifiers everywhere. And what if we need more than one modifier?
 And what if other libraries export their own set of modifiers as well? We certainly
 do not want to change the actual definition of our datatypes (and corresponding
 code) whenever we start using a new library.
@@ -734,7 +738,7 @@ But for certain subclasses of datatypes, there are quite reasonable strategies o
 coming up with a generic instance. For example, for enumeration type, one reasonable
 strategy is to simply desire a uniform distribution of the finite set of values.
 
-QuickCheck even offers such a generator, but it does not expose it as a |newtype|
+\QuickCheck\ even offers such a generator, but it does not expose it as a newtype
 modifier:
 %if style /= newcode
 %format arbitraryBoundedEnum2 = arbitraryBoundedEnum
@@ -844,6 +848,7 @@ underlying \DerivingVia\ by giving a more precise description of:
 %format n = "\mathit{n}"
 %format p = "\mathit{p}"
 %format i = "\mathit{i}"
+%format r = "\mathit{r}"
 %format m1 = "\id{m1}"
 %format mf = "\id{mf}"
 %format C = "\cl{C}"
@@ -1001,6 +1006,7 @@ In the second example, we have the class |Functor|, which is of kind |(TYPE -> T
 The argument to |Functor| is of kind |(TYPE -> TYPE)|, which requires that we eta-reduce one variable
 from |B b| to obtain |B|. We then check that |B| is kind of |(TYPE -> TYPE)|, which is true.
 %}
+%}
 
 \subsection{Code generation}
 
@@ -1117,17 +1123,22 @@ Another crucial fact about |Coercible| that we rely on is that it is transitive:
 unsurprising if one views |Coercible| as an equivalence relation, but it a fact that is worth
 highlighting, as the transitivity of |Coercible| is what allows us to |coerce|
 \emph{between newtypes}. For instance, if we have these two newtypes:
-%if style == newcode
+%if style /= newcode
+%format A = "\ty{A}"
+%format MkA = "\con{A}"
+%format B = "\ty{B}"
+%format MkB = "\con{B}"
+%else
 %format A = A2
 %format MkA = MkA2
 %format B = B2
 %format MkB = MkB2
 %endif
 
-> newtype A a = MkA [a]
-> newtype B = MkB [Int]
+> newtype A a  =  MkA [a]
+> newtype B    =  MkB [Int]
 
-Then \GHC\ is able to conclude that |Coercible (A Int) B| holds, because we have the following
+then \GHC\ is able to conclude that |Coercible (A Int) B| holds, because we have the following
 |Coercible| rules:
 
 < instance Coercible (A Int) [Int]
@@ -1162,8 +1173,12 @@ The only difference in the code that \GND\ and \DerivingVia\ generate
 is that in the former strategy, \GHC\ always picks the representation type for you, but in
 \DerivingVia, the \emph{user} has the power to choose this type. For example,
 if a programmer had written this instead:
+%if style /= newcode
+%format T = "\ty{T}"
+%format MkT = "\con{T}"
+%endif
 
-< newtype T = T Int
+< newtype T = MkT Int
 < instance Enum T where DOTS
 <
 < newtype Age = MkAge Int
@@ -1204,13 +1219,12 @@ Consider the following example:
 %if style /= newcode
 %format Bar = "\cl{Bar}"
 %format Baz = "\cl{Baz}"
-%format MkFoo = DOTS
+%format MkFooDots = DOTS
 %else
 %format Foo = Foo3
-%format MkFoo = MkFoo3
 %endif
 
-> data Foo a = MkFoo
+> data Foo a = MkFooDots
 >   deriving (Baz a b c) via (Bar a b)
 
 %if style == newcode
@@ -1223,7 +1237,7 @@ Where is each type variable quantified?
 
 \begin{itemize}
  \item |a| is bound by |Foo| itself in the declaration |data Foo a|.
-       These type variable binders scope over both the derived class,
+       Such a variable scopes over both the derived class,
        |Baz a b c|, as well as the |via| type, |Bar a b|.
  \item |b| is bound by the |via| type, |Bar a b|. Note that |b| is
        bound here but |a| is not, as it was bound earlier by the |data|
@@ -1243,6 +1257,11 @@ type variables bound by the derived classes to scope over the |via| type
 instead. However, this choice introduces additional complications that are
 tricky to resolve. For instance, consider a scenario where one attempts to
 derive multiple classes at once with a single |via| type:
+%if style /= newcode
+%format D = "\ty{D}"
+%format C1 = "\cl{C1}"
+%format C2 = "\cl{C2}"
+%endif
 
 > data D
 >   deriving (C1 a, C2 a) via (T a)
@@ -1280,16 +1299,17 @@ derived classes were bound in the same place.
 It might feel strange visually to see a variable being used
 \emph{before} of its binding site (assuming one reads code from left to right).
 However, this is not unprecedented within Haskell, as this is also legal:
+%{
+%if style /= newcode
+%format f = "\id{f}"
+%endif
 
-> f :: Int
-> f = g + h
->   where
->     g = 1
->     h = 2
+> f = g + h where g = 1; h = 2
 
-In this example, we have another scenario where things are bound (|f| and |g|)
+In this example, we have another scenario where things are bound (|g| and |h|)
 after their use sites. In this sense, the |via| keyword is continuing a rich
 tradition pioneered by |where| clauses.
+%}
 
 One alternative idea (which was briefly considered) was to put the |via| type
 \emph{before} the derived classes so as to avoid this ``zigzagging'' scoping.
@@ -1430,7 +1450,7 @@ this choice would force programmers to write additional parentheses.
 \section{More use cases}\label{sec:usecases}
 
 We have already seen in Section~\ref{sec:quickcheck} how \DerivingVia\
-facilitates greater code reuse in the context of QuickCheck. This far from
+facilitates greater code reuse in the context of \QuickCheck. This far from
 the only domain where \DerivingVia\ proves to be a natural fit, however. In
 fact, there are so many of these domains, there would be enought to fill
 pages upon pages!
@@ -1536,17 +1556,23 @@ instances---that is, instances defined in a separate module from the type
 class or data types being used. Sometimes, however, it's quite tempting to
 reach for orphan instances, as in the following example from
 ~\cite{equational-reasoning-at-scale}:
+%if style /= newcode
+%format Plugin = "\ty{Plugin}"
+%format MkPlugin = "\con{Plugin}"
+%endif
 
-< newtype Plugin = Plugin (IO (String -> IO ()))
+< newtype Plugin = MkPlugin (IO (String -> IO ()))
 <   deriving Monoid
 
+\alnote{The above does not compile because there is no |Semigroup|
+instance.}
 In order for this derived |Monoid| instance to typecheck, there must be a
 |Monoid| instance for |IO| available. Suppose for a moment that there was
 no such |Monoid| instance for |IO|. How can one work around this issue?
 
 \begin{itemize}
-\item One could patch the \texttt{base} library to add the instance for |IO|.
-      But given \texttt{base}'s slow release cycle, it would be a while
+\item One could patch the \Package{base} library to add the instance for |IO|.
+      But given \Package{base}'s slow release cycle, it would be a while
       before one could actually use this instance.
 \item Write an orphan instance for |IO|. This works, but is
       undesirable, as now anyone who uses |Plugin| must incur a
@@ -1554,7 +1580,7 @@ no such |Monoid| instance for |IO|. How can one work around this issue?
 \end{itemize}
 
 Luckily, \DerivingVia\ presents a more convenient third option: re-use a
-|Monoid| instance from a data type \textit{besides} |IO|. Recall the |App|
+|Monoid| instance from a data type \emph{besides} |IO|. Recall the |App|
 data type from Section~\ref{sec:introducingdv} that lets us define a
 |Monoid| instance by lifting through an |Applicative| instance. As luck would
 have it, |IO| already has an |Applicative| instance, so we can derive the
@@ -1616,30 +1642,42 @@ One example of this can be found in the |Applicative| class. The main
 workhorse of |Applicative| is the |(<*>)| method, but on occasion,
 it is more convenient to use the |(<*)| or |(*>)| methods, which
 sequence their actions but discard the result of one of their arguments:
+%{
+%if style == newcode
+%format Applicative = Applicative2
+%format pure = pure2
+%format <*> = .<*>
+%format <* = .<*
+%format *> = .*>
+%format liftA2 = liftA22
 
-< class Functor f => Applicative f where
-<   pure  :: a -> f a
-<   (<*>) :: f (a -> b) -> f a -> f b
-<
-<   (<*) :: f a -> f b -> f a
-<   (<*) = liftA2 (\ a _ -> a)
-<   (*>) :: f a -> f b -> f b
-<   (*>) = liftA2 (\ _ b -> b)
+> liftA2 f x y = pure f <*> x <*> y
+
+%endif
+
+> class Functor f => Applicative f where
+>   pure  :: a -> f a
+>   (<*>) :: f (a -> b) -> f a -> f b
+>
+>   (<*) :: f a -> f b -> f a
+>   (<*) = liftA2 (\ a _ -> a)
+>   (*>) :: f a -> f b -> f b
+>   (*>) = liftA2 (\ _ b -> b)
 
 As shown here, |(<*)| and |(*>)| have default implementations in terms of
 |liftA2|. This works for any |Applicative|, but is not as efficient as it
 could be in some cases. For certain classes of |Applicative|s, we can
-actually implement these methods in \textit{O}(1) time instead of using
+actually implement these methods in \(O(1)\) time instead of using
 |liftA2|, which can often run in superlinear time. One such
 |Applicative| is the function type |(->)|:
 
-< instance Applicative ((->) r) where
-<   pure = const
-<   (<*>) f g x = f x (g x)
-<
-<   f <*  _ = f
-<   _  *> g = g
+> instance Applicative ((->) r) where
+>   pure = const
+>   (<*>) f g x = f x (g x)
+>   f <*  _ = f
+>   _  *> g = g
 
+%}
 Note that we had to explicitly define |(<*)| and |(*>)|, as the default
 implementations would not have been as efficient. But |(->)| is not the
 only type for which this trick works---it also works for any data type
@@ -1662,8 +1700,12 @@ see how |Representable| works for |(->) r| itself:
 
 With |Representable|, we can codify the |Applicative| shortcut for |(<*)| and
 |(*>)| with a suitable newtype:
+%if style /= newcode
+%format WrapRep = "\ty{WrapRep}"
+%format MkWrapRep = "\con{WrapRep}"
+%endif
 
-> newtype WrapRep f a = WrapRep (f a)
+> newtype WrapRep f a = MkWrapRep (f a)
 >   deriving (Functor, Representable)
 >
 > instance Representable f => Applicative (WrapRep f) where
@@ -1673,11 +1715,15 @@ With |Representable|, we can codify the |Applicative| shortcut for |(<*)| and
 >   f <* _ = f
 >   _ *> g = g
 
-Now, instead of having to manually override |(<*)| and |(*>)| to get the
+Now, instead of having to manually override |(<*)| and \mbox{|(*>)|} to get the
 desired performance, one can accomplish in a more straightforward fashion
 by using \DerivingVia:
+%if style /= newcode
+%format IntConsumer = "\ty{IntConsumer}"
+%format MkIntConsumer = "\con{IntConsumer}"
+%endif
 
-> newtype IntConsumer a = IntConsumer (Int -> a)
+> newtype IntConsumer a = MkIntConsumer (Int -> a)
 >   deriving (Functor, Representable)
 >   deriving Applicative via (WrapRep IntConsumer)
 
@@ -1818,7 +1864,7 @@ move to a more categorical.\footnote{Such as Kmett's |hask|}
 %if style == newcode
 \subsection{Classes over Defunctionalization Symbols}
 
-\bbnote{TODO}: Using \emph{Singletons} library we can create
+\bbnote{TODO}: Using \Package{singletons} library we can create
 instances of actual functions of types, not just matchable
 constructors
 
@@ -1918,7 +1964,7 @@ pretty-printing data:
 Coming up with |Pretty| instances for the vast majority of ADTs is repetitive
 and tedious, so a common pattern is to abstract away this tedium using
 generic programming libraries, such as those found in |GHC.Generics|
-~\cite{gdmfh} or @generics-sop@~\cite{true-sums-of-products}. For example,
+~\cite{gdmfh} or \Package{generics-sop}~\cite{true-sums-of-products}. For example,
 it is possible using |GHC.Generics| to write:
 
 > genericPPrint :: (Generic a, GPretty (Rep a)) => a -> Doc
@@ -2018,9 +2064,13 @@ implementing |pPrint| as follows:
 
 With these |newtype|s in hand, picking between them is as simple as changing
 a single type:
+%if style /= newcode
+%format DataType1 = "\ty{Datatype1}"
+%format DataType2 = "\ty{Datatype2}"
+%endif
 
-< deriving Pretty via (GenericPPrint DataType1)
-< deriving Pretty via (ShowPPrint    DataType2)
+< deriving Pretty via (GenericPPrint  DataType1)
+< deriving Pretty via (ShowPPrint     DataType2)
 
 We have seen how \DerivingVia\ makes it quite simple to give names to
 particular defaults, and how toggling between defaults is a matter of
@@ -2060,7 +2110,7 @@ generalized even further. That is, we can derive through data types that are
 cap off the list of examples by showing how techniques from generic
 programming can let us accomplish this feat.
 
-Let us go back to QuickCheck (as in Section~\ref{sec:quickcheck}) once
+Let us go back to \QuickCheck\ (as in Section~\ref{sec:quickcheck}) once
 more and consider the datatype
 
 > data Track = MkTrack
@@ -2071,7 +2121,7 @@ more and consider the datatype
 for which we would like to define an |Arbitrary| instance. Let us further
 assume that we already have instance for both |Title| and |Duration|.
 
-The QuickCheck library defines an instance for pairs, so we could generate
+The \QuickCheck\ library defines an instance for pairs, so we could generate
 values of type |(Title, Duration)|, and in essence, this is exactly what
 we want. But alas, the two types are not inter-|Coercible|, even
 though they are isomorphic (in the sense that one can write a function from
@@ -2207,8 +2257,12 @@ has already invested significant effort into making type errors involving
 benefits from this work. For instance, if one inadvertently tries to
 derive through a type that is not inter-|Coercible| with the original
 data type, such as in the following example:
+%if style /= newcode
+%format UhOh = "\ty{UhOh}"
+%format MkUhOh = "\con{UhOh}"
+%endif
 
-< newtype UhOh = UhOh Char
+< newtype UhOh = MkUhOh Char
 <   deriving Ord via Int
 
 Then GHC will tell you exactly that, in plain language:
@@ -2286,6 +2340,8 @@ For example, one can write the following instance using
 %format MkA = "\con{A}"
 %format MkB = "\con{B}"
 %format MkC = "\con{C}"
+%format Triple = "\cl{Triple}"
+%format triple = "\id{triple}"
 %endif
 
 > class Triple a b c where
