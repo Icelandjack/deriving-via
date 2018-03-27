@@ -491,13 +491,13 @@ The paper is structured as follows:
 In Section~\ref{sec:quickcheck}, we use the QuickCheck library
 as a case study to explain in more detail how \DerivingVia can
 be used, and how it works.
-
+%
 In Section~\ref{sec:typechecking}, we explain in detail how to
 typecheck and translate \DerivingVia\ clauses.
-
+%
 In Section~\ref{sec:usecases}, we discuss several additional
 applications of \DerivingVia.
-
+%
 We discuss related ideas in Section~\ref{sec:related} and
 conclude in Section~\ref{sec:conclusions}.
 
