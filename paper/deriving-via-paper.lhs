@@ -151,72 +151,20 @@
 \begin{abstract}
 
 Haskell sports a simple yet incredibly powerful interface for generic
-programming, the |deriving| mechanism. Why write boring instances when
-the compiler can generate them for you?
+programming, the |deriving| mechanism. Many instances follow exactly
+the same pattern which we want to derive. Why write boring class
+instances when the compiler can generate them for you?
 
-The way instances are derived depends on 
+But what can be derived and do we always get the right functionality?
+Current best practice is coupling a type class with a single
+distinguished pattern: but we are at the mercy of the class author!
+There is no way to override the pattern they chose (if they chose one
+at all!) so the user must write copy-paste instances by hand.
 
-But what can be derived and is it always what we want? It is currently
-up to the author of the type class how to derive
+This paper seeks to de-couple the type class and the pattern to
+use. Instead we use standard Haskell practices and capture them as
+normal datatypes with instances.
 
-This choice is
-currently 
-
-of the type class declaration itself,
-
-which allows at
-most
-
-A library
-author must make generic instances a part of the type class,
-
-
-The current
-situation puts 
-
-Some are
-hardwired
-
-If an
-author wants to make their type class derivable they must remember
-
-
-Some We are at the mercy of the author of the type class: If
-
-which instance we
-get directly depends on the 
-
-
-
-
-
-if the author didn't use
-default methods we can't derive it. If they picked the wrong
-
-
-
-Haskell instance declarations fall into one of two categories:
-either we can use the |deriving| construct and get the instance
-generated for us for free, or we have to write the instance by
-hand, providing explicit implementations of the class methods.
-There is nothing in between.
-
-Many instances, however, can be defined for a reason, and that
-reason can be captured as a program. There might be a general
-rule that if a type is an instance of some classes, it can be
-made an instance of another class. Or there might be a rule that
-says that if we can define a class instance in a particular way,
-we can also define an instance of the same class in a slightly
-different way.
-
-In this paper, we describe how to capture such rules as Haskell
-newtypes, and we introduce \DerivingVia, a new language extension
-that allows us to use |deriving| on any instance that can be
-constructed using a rule. In this way, we
-vastly increase the fraction of type classes for which we
-can use |deriving|. This not only saves work, but also explains
-the intention behind the code better, as we can give names to
-recurring patterns.
 \end{abstract}
 
 % CCSXML to be inserted later:
