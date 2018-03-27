@@ -798,6 +798,7 @@ underlying \DerivingVia\ by giving a more precise description of:
 %format n = "\mathit{n}"
 %format p = "\mathit{p}"
 %format i = "\mathit{i}"
+%format r = "\mathit{r}"
 %format m1 = "\id{m1}"
 %format mf = "\id{mf}"
 %format C = "\cl{C}"
@@ -955,6 +956,7 @@ In the second example, we have the class |Functor|, which is of kind |(TYPE -> T
 The argument to |Functor| is of kind |(TYPE -> TYPE)|, which requires that we eta-reduce one variable
 from |B b| to obtain |B|. We then check that |B| is kind of |(TYPE -> TYPE)|, which is true.
 %}
+%}
 
 \subsection{Code generation}
 
@@ -1071,7 +1073,12 @@ Another crucial fact about |Coercible| that we rely on is that it is transitive:
 unsurprising if one views |Coercible| as an equivalence relation, but it a fact that is worth
 highlighting, as the transitivity of |Coercible| is what allows us to |coerce|
 \emph{between newtypes}. For instance, if we have these two newtypes:
-%if style == newcode
+%if style /= newcode
+%format A = "\ty{A}"
+%format MkA = "\con{A}"
+%format B = "\ty{B}"
+%format MkB = "\con{B}"
+%else
 %format A = A2
 %format MkA = MkA2
 %format B = B2
@@ -1081,7 +1088,7 @@ highlighting, as the transitivity of |Coercible| is what allows us to |coerce|
 > newtype A a = MkA [a]
 > newtype B = MkB [Int]
 
-Then \GHC\ is able to conclude that |Coercible (A Int) B| holds, because we have the following
+then \GHC\ is able to conclude that |Coercible (A Int) B| holds, because we have the following
 |Coercible| rules:
 
 < instance Coercible (A Int) [Int]
