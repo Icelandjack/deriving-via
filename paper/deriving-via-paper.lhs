@@ -153,10 +153,11 @@ says that if we can define a class instance in a particular way,
 we can also define an instance of the same class in a slightly
 different way.
 
-In this paper, we introduce \DerivingVia, a language extension
-that allows to capture such rules and use |deriving| on any
-instance that can be constructed using a rule. In this way, we
-can vastly increase the fraction of type classes for which we
+In this paper, we describe how to capture such rules as Haskell
+newtypes, and we introduce \DerivingVia, a new language extension
+that allows us to use |deriving| on any instance that can be
+constructed using a rule. In this way, we
+vastly increase the fraction of type classes for which we
 can use |deriving|. This not only saves work, but also explains
 the intention behind the code better, as we can give names to
 recurring patterns.
