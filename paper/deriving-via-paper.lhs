@@ -165,6 +165,29 @@ This paper seeks to de-couple the type class and the pattern to
 use. Instead we use standard Haskell practices and capture them as
 normal datatypes with instances.
 
+% Haskell instance declarations fall into one of two categories:
+% either we can use the |deriving| construct and get the instance
+% generated for us for free, or we have to write the instance by
+% hand, providing explicit implementations of the class methods.
+% There is nothing in between.
+% 
+% Many instances, however, can be defined for a reason, and that
+% reason can be captured as a program. There might be a general
+% rule that if a type is an instance of some classes, it can be
+% made an instance of another class. Or there might be a rule that
+% says that if we can define a class instance in a particular way,
+% we can also define an instance of the same class in a slightly
+% different way.
+% 
+% In this paper, we describe how to capture such rules as Haskell
+% newtypes, and we introduce \DerivingVia, a new language extension
+% that allows us to use |deriving| on any instance that can be
+% constructed using a rule. In this way, we
+% vastly increase the fraction of type classes for which we
+% can use |deriving|. This not only saves work, but also explains
+% the intention behind the code better, as we can give names to
+% recurring patterns.
+
 \end{abstract}
 
 % CCSXML to be inserted later:
