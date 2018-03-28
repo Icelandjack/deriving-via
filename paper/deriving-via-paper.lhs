@@ -239,7 +239,7 @@ In Haskell, type classes capture common interfaces. When we want
 to declare a datatype to be an instance
 of a type class, we end up in one of two possible situations:
 
-We might be lucky, and the type class we are writing and instance for is
+We might be lucky, and the type class we are writing an instance for is
 in the subset of classes that \GHC\ can derive automatically. Alternatively,
 the type class might already have a generic implementation~\cite{gdmfh},
 or we might be writing an instance for a newtype, and the
@@ -253,26 +253,25 @@ have no other choice but to write the instance by hand.
 This means that we have to provide explicit implementations of at
 least a minimal subset of the class methods.
 
-The difference between the two scenarios can be quite drastic. Especially if the
-class has many methods, it is extremely appealing if we can somehow
-derive the instance. But what if we want a variant of the class that
-would be derived automatically, rather than exactly the default? What
-if we know that there is a systematic way to explain how the instance
-can be built, but it's not the one corresponding to one of the existing
-deriving mechanisms? Then we are out of luck, and we still have to define
-the instance by hand.
+The difference between the two scenarios can be quite drastic---especially if the
+class has many methods---so it is extremely appealing if we can
+derive the instance instead. But what if we want a variation on the instance that
+would be derived automatically? What if we know that there is a systematic
+way to explain how the instance can be built, but it's not the one
+corresponding to one of the existing deriving mechanisms? Then we are out
+of luck, and we still have to define the instance by hand.
 
-In this paper, we introduce a new language extension that
-bridges this gap, called \DerivingVia. With \DerivingVia, we can vastly
-increase the fraction of type class instances that we can derive, in
-that we no longer rely on a few (if any at all) essentially
-pre-defined ways to define a particular class instance, but rather
-allow to teach the compiler new rules for deriving classes, and select
-the one we want using a high-level description.
+In this paper, we introduce \DerivingVia, a new language extension that
+bridges this gap. With \DerivingVia, we can vastly increase the number
+of type class instances that we can derive. As a result,
+we no longer have to rely on a few (if any at all) essentially
+pre-defined ways to define a particular class instance. Instead,
+we can teach the compiler new rules for deriving classes, and
+select the one we want using a high-level description.
 
 Our extension is light-weight in the sense that it is easy to
-impement and builds on concepts that are already in the language
-such as deriving strategies, newtypes, and safe coercions. It furthermore
+implement and builds on concepts that are already in the language
+such as deriving strategies, newtypes, and safe coercions. Furthermore, it
 naturally generalizes a number of language extensions such as
 generalized newtype deriving and default signatures.
 
