@@ -163,7 +163,7 @@ at all!) so the user must write copy-paste instances by hand.
 
 This paper seeks to de-couple the type class and the pattern to
 use. Instead we use standard Haskell practices and capture them as
-normal datatypes with instances.
+normal data types with instances.
 
 % Haskell instance declarations fall into one of two categories:
 % either we can use the |deriving| construct and get the instance
@@ -236,7 +236,7 @@ normal datatypes with instances.
 %endif
 
 In Haskell, type classes capture common interfaces. When we want
-to declare a datatype to be an instance
+to declare a data type to be an instance
 of a type class, we end up in one of two possible situations:
 
 We might be lucky, and the type class we are writing an instance for is
@@ -451,7 +451,7 @@ a more detailed discussion of this aspect.}:
 
 The \emph{second part} is to now use such a rule in our new form
 of |deriving| statement.
-We can do this when defining a new datatype, such as in
+We can do this when defining a new data type, such as in
 %{
 %if style == newcode
 %format Maybe = Maybe2
@@ -611,11 +611,11 @@ of an application. While we might be willing to use domain-specific newtypes for
 added type safety, such as |Age| or |Duration|, we might not be happy to add
 \QuickCheck\ modifiers everywhere. And what if we need more than one modifier?
 And what if other libraries export their own set of modifiers as well? We certainly
-do not want to change the actual definition of our datatypes (and corresponding
+do not want to change the actual definition of our data types (and corresponding
 code) whenever we start using a new library.
 
 With \DerivingVia, we have the option to reuse the existing infrastructure of
-modifiers without paying the price of cluttering up our datatype definitions.
+modifiers without paying the price of cluttering up our data type definitions.
 We can choose an actual domain-specific newtype such as
 %if style /= newcode
 %format ?? = "\hsindent{2}"
@@ -649,9 +649,9 @@ If we want to restrict ourselves to non-negative durations, we replace this by
 > ??deriving Arbitrary via (NonNegative Int)
 
 and now we get the |Arbitrary| instance for non-negative integers. Only the
-deriving clause changes, not the datatype itself. If we later decide we want
+deriving clause changes, not the data type itself. If we later decide we want
 only positive integers as durations, we replace |NonNegative| with |Positive|
-in the deriving clause. Again, the datatype itself is unaffected. In particular,
+in the deriving clause. Again, the data type itself is unaffected. In particular,
 we do not have to change any constructor names anywhere in our code.
 
 \subsection{Composition}
@@ -701,10 +701,10 @@ the instance can be reused.
 
 Of course, we can add add our own modifiers if the set of predefined modifiers
 is not sufficient. For example, it is difficult to provide a completely generic
-|Arbitrary| instance that works for all datatypes, simply because there are too
+|Arbitrary| instance that works for all data types, simply because there are too
 many assumptions about what makes good test data that need to be taken into account.
 
-But for certain subclasses of datatypes, there are quite reasonable strategies of
+But for certain subclasses of data types, there are quite reasonable strategies of
 coming up with a generic instance. For example, for enumeration type, one reasonable
 strategy is to simply desire a uniform distribution of the finite set of values.
 
@@ -1328,7 +1328,7 @@ this choice would force programmers to write additional parentheses.
 % |Y a|.
 %
 % \alnote{What if the via-clause refers to a variable that does not occur in the
-% datatype or before the via? Can this ever be correct (I think so)? Can we still
+% data type or before the via? Can this ever be correct (I think so)? Can we still
 % explicitly quantify over it, even if it looks totally silly?}
 %
 % \subsubsection{Multiple binding sites?}
@@ -1372,7 +1372,7 @@ this choice would force programmers to write additional parentheses.
 % < data Bar
 % <   deriving () via S
 %
-% To deal with this, we opt to desugar this declaration to a datatype with no |deriving|
+% To deal with this, we opt to desugar this declaration to a data type with no |deriving|
 % clauses whatsoever:
 %
 % < data Bar
@@ -2079,7 +2079,7 @@ cap off the list of examples by showing how techniques from generic
 programming can let us accomplish this feat.
 
 Let us go back to \QuickCheck\ (as in Section~\ref{sec:quickcheck}) once
-more and consider the datatype
+more and consider the data type:
 
 > data Track = MkTrack
 >     {  title     ::  Title
