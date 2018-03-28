@@ -170,7 +170,7 @@ normal datatypes with instances.
 % generated for us for free, or we have to write the instance by
 % hand, providing explicit implementations of the class methods.
 % There is nothing in between.
-% 
+%
 % Many instances, however, can be defined for a reason, and that
 % reason can be captured as a program. There might be a general
 % rule that if a type is an instance of some classes, it can be
@@ -178,7 +178,7 @@ normal datatypes with instances.
 % says that if we can define a class instance in a particular way,
 % we can also define an instance of the same class in a slightly
 % different way.
-% 
+%
 % In this paper, we describe how to capture such rules as Haskell
 % newtypes, and we introduce \DerivingVia, a new language extension
 % that allows us to use |deriving| on any instance that can be
