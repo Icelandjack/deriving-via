@@ -416,7 +416,7 @@ use case several years ago~\cite{applicative-numbers}.
 %endif
 
 Our approach to deal with this unfortunate lack of abstraction
-has two ingredients:
+has two parts:
 \begin{enumerate}
 \item We capture general rules for defining new instances using
   newtypes.
@@ -427,7 +427,7 @@ has two ingredients:
 
 For the \emph{first part},
 let us revisit the rule that explains how to lift a monoid
-instance through an applicative functor. We can turn the problematic
+instance through an |Applicative| functor. We can turn the problematic
 generic and overlapping instance for |Monoid (f a)| into an entirely
 unproblematic instance by defining a suitable \emph{adapter}
 newtype~\cite{iterator-pattern} and wrapping
@@ -479,7 +479,7 @@ for free.
 
 In the deriving clause, |via| is a new language construct that
 explains \emph{how} \GHC\
-should derive the instance, namely be reusing the instance already
+should derive the instance, namely by reusing the instance already
 available for the given type. It should be easy to see why this works:
 due to the use of a newtype, |App Maybe a| has the same internal
 representation as |Maybe a|, and any instance available on one type can
@@ -504,9 +504,9 @@ instance is already implemented in terms of |Alt|:%
 > instance Alternative f => Semigroup (Alt f a) where
 >   (<>) = mappend4
 
-Using adapters such as |App| and |Alt|, we can reduce a vast
+Using adapters such as |App| and |Alt|, a vast
 amount of |Monoid| instances that currently have to be defined
-by hand to instances that can be derived using the |via|
+by hand can instead be derived using the |via|
 construct.
 
 \subsection{Contributions and structure of the paper}
