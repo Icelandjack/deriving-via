@@ -914,7 +914,7 @@ In particular, the following conditions must hold:
 
  \item
    The kinds |V (sub v 1) DOTS (sub v p)| and |D (sub d 1) DOTS (sub d i)|, and the
-   kind of the argument of |C (sub c1) DOTS (sub c n)| must all unify.
+   kind of the argument of |C (sub c 1) DOTS (sub c n)| must all unify.
    This check rules out the earlier example of |deriving Eq via Maybe|, as it does
    not even make sense to talk about
    reusing the |Eq| instance for |Maybe|---which is of kind |(TYPE -> TYPE)|---as |Eq| instances
