@@ -783,6 +783,9 @@ of a generated natural number.
 >                  (  fromIntegral (natVal (MkProxy (TYAPP l)))
 >                  ,  fromIntegral (natVal (MkProxy (TYAPP u))))
 
+(Note that this instance makes use of visible type application in
+|MkProxy (TYAPP l)| and |MkProxy (TYAPP u)|~\cite{vta}.)
+
 We can then equip an application-specific type for years with
 a generator implementing respecting a plausible range:
 
