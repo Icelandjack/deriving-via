@@ -1173,7 +1173,7 @@ could equivalently have been written using \DerivingVia\ like so:
 
 < newtype Age = MkAge Int deriving Enum via Int
 
-\subsection{Type variable scoping}
+\subsection{Type variable scoping}\label{sec:typevariablescoping}
 
 In the remainder of this section, we will present an overview of how type
 variables are bound in \DerivingVia\ clauses, and over what types they scope.
@@ -2422,6 +2422,11 @@ ambiguity.
 % < instance Cons [a] [b] a b
 %
 % and deriving an instance for |Cons (ZipList a) (ZipList b) a b|.
+
+\section*{Acknowledgements}
+
+We would like to thank Richard Eisenberg for his discussion and feedback
+on Section~\ref{sec:typevariablescoping}.
 
 \bibliographystyle{includes/ACM-Reference-Format}
 
