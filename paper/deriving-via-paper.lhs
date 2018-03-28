@@ -235,8 +235,8 @@ normal datatypes with instances.
 %format ST = "\ty{ST}"
 %endif
 
-In Haskell, type classes capture common interfaces. When we are in
-the situation that we want to declare a datatype to be an instance
+In Haskell, type classes capture common interfaces. When we want
+to declare a datatype to be an instance
 of a type class, we end up in one of two possible situations:
 
 We might be lucky, and the type class we are writing and instance for is
