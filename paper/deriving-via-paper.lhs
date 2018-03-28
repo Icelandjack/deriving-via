@@ -292,11 +292,11 @@ we can find the following |Monoid| instances:
 While the definitions as given are specific to |IO| and |ST|, the
 principle is not: we can always lift a monoid~|a| over a type
 constructor~|f| as long as~|f| is an applicative
-functor. This is the case for~|IO| and |ST|, but it is also true for all the
-other applicative functors out there.
+functor. Thus, these definitions work not only for~|IO| and |ST|,
+but also for \textit{any} |Applicative| instance.
 
 It is tempting to avoid this obvious repetition by defining an
-instance for all applicatives, in one fell swoop.
+instance for all |Applicative|s in one fell swoop.
 
 > instance (Applicative f, Monoid a)
 >   => Monoid2 (f a) where
@@ -308,12 +308,12 @@ reasons:
 
 First, the instance overlaps with all other instances that match |Monoid (f
 a)|. Instance resolution will match the instance head before even
-considering the context, even if |f| is not applicative. Consider
+considering the context, even if |f| is not |Applicative|. Consider:
 
-> newtype Endo a = MkEndo (a -> a) -- Data.Monoid
+> newtype Endo a = MkEndo (a -> a) -- from Data.Monoid
 
-An |Endo| is not even a |Functor|, yet it admits a perfectly valid monoid
-instance that overlaps with the lifted instance above
+|Endo| is not an instance of |Applicative|, yet it admits a perfectly valid
+|Monoid| instance that overlaps with the lifted instance above:
 
 > instance overlapping (Monoid2 (Endo a)) where
 >   mempty2 = MkEndo id
@@ -322,10 +322,10 @@ instance that overlaps with the lifted instance above
 We can make \GHC\ accept this instance, but in practice, the presence
 of overlapping instances often leads to confusing behavior.
 
-Second, even if~|f| is an applicative functor, the lifted monoid
+Second, even if~|f| is an |Applicative| functor, the lifted |Monoid|
 instance may not be the only one, or the one we want to use. Most
 notably, lists are the \emph{free monoid} (the most `fundamental'
-monoid), and their monoid instance is as follows:
+monoid), and their |Monoid| instance is as follows:
 
 > instance Monoid2 [a] where
 >   mempty2   =  []
@@ -341,13 +341,13 @@ defining monoids, based on an |Alternative| instance for the type constructor:
 >   mappend3  =  (<|>)
 
 But clearly, we could not have both general instances in our program at the
-same time. The way that Haskell instance search works is to only look at the
+same time. The way that Haskell instance resolution works is to only look at the
 instance head when choosing an instance, and then to commit and never backtrack.
 So even with overlapping instances enabled, we could not define all the rules
 we wanted to in this way.
 
 Currently, the only viable workaround is to define individual
-instances for each datatype in spirit of the |Monoid (IO a)| instance
+instances for each data type in spirit of the |Monoid (IO a)| instance
 shown in the beginning, but that is extremely unsatisfactory:
 \begin{itemize}
 \item It is no longer obvious that we are, in fact, instantiating
@@ -357,13 +357,13 @@ shown in the beginning, but that is extremely unsatisfactory:
   and is difficult to discover.
 \item There are many such rules, some quite obvious, but
   some more surprising and easy to miss.
-\item While for monoids---which only have two methods---the work required to
+\item While for |Monoid|---which only has two methods---the work required to
   define the instance manually is perhaps acceptable, it quickly becomes
   extremely tedious and error-prone for classes with many methods.
 \end{itemize}
 
 As an illustration of the final point, consider |Num|. There is a way
-to lift a |Num| instance through any applicative
+to lift a |Num| instance through any |Applicative|
 functor\footnote{There are similar ways to lift |Floating| and |Fractional|.}:
 %{
 %if style == newcode
