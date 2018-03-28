@@ -1001,8 +1001,7 @@ wrapper around |Int| (which we will call the \emph{representation type}):
 %format MkAge = "\con{MkAge}"
 %endif
 
-> newtype Age = MkAge Int
->   deriving Enum
+> newtype Age = MkAge Int deriving Enum
 
 A na{\"i}ve way to generate code would be to manually wrap and unwrap the |MkAge| constructor
 wherever necessary, such as in the code below:
@@ -1110,14 +1109,13 @@ highlighting, as the transitivity of |Coercible| is what allows us to |coerce|
 > newtype B    =  MkB [Int]
 
 then \GHC\ is able to conclude that |Coercible (A Int) B| holds, because we have the following
-|Coercible| rules:
+|Coercible| rules
 
 < instance Coercible (A Int) [Int]
 < instance Coercible [Int] B
 
-Therefore, by the transitivity of |Coercible|, we have |Coercible (A Int) B|. \DerivingVia\
-in particular makes heavy use of the transitivity of |Coercible|, as we will
-see momentarily.
+as well as transitivity. As we will discuss momentarily, \DerivingVia\
+in particular makes heavy use of the transitivity of |Coercible|.
 
 \subsubsection{From \GND\ to \DerivingVia}
 
@@ -1125,14 +1123,14 @@ As we saw in Section \ref{sec:gnd}, the code which \GND\ generates
 relies on |coerce| to do the heavy lifting. In this section, we will generalize this
 technique slightly to give us a way to generate code for \DerivingVia.
 
-Recall that the following instance, which is derived through \GND:
+Recall the following \GND-derived instance:
 
-< newtype Age = MkAge Int
-<   deriving Enum
+< newtype Age = MkAge Int deriving Enum
 
-Generates the following code for |enumFrom|:
+As stated above, it generates the following code for |enumFrom|:
 
 < instance Enum Age where
+<   DDOTS
 <   enumFrom = coerce (enumFrom :: Int -> [Int]) :: Age -> [Age]
 
 Here, there are two crucially important types: the representation type, |Int|, and the
@@ -1150,31 +1148,28 @@ if a programmer had written this instead:
 %endif
 
 < newtype T = MkT Int
-< instance Enum T where DOTS
+< instance Enum T where DDOTS
 <
-< newtype Age = MkAge Int
-<   deriving Enum via T
+< newtype Age = MkAge Int deriving Enum via T
 
-Then the following code would be generated:
+then the following code would be generated:
 
 < instance Enum Age where
 <   enumFrom = coerce (enumFrom :: T -> [T]) :: Age -> [Age]
 
 This time, \GHC\ coerces from an |enumFrom| implementation for |T| (the |via| type) to
 an implementation for |Age|. (Recall from Section \ref{sec:coercible} that this is
-possible since we can |coerce| transitivity from |T| to |Int| to |Age|).
+possible since we can |coerce| transitively from |T| to |Int| to |Age|).
 
 Now we can see why the instances that \DerivingVia\ can generate are a strict superset of
 those that \GND\ can generate. For instance, our earlier
-\GND\ example:
+\GND\ example
 
-< newtype Age = MkAge Int
-<   deriving Enum
+< newtype Age = MkAge Int deriving Enum
 
-Could equivalently have been written using \DerivingVia\ like so:
+could equivalently have been written using \DerivingVia\ like so:
 
-< newtype Age = MkAge Int
-<   deriving Enum via Int
+< newtype Age = MkAge Int deriving Enum via Int
 
 \subsection{Type variable scoping}
 

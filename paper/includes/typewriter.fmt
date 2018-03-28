@@ -16,6 +16,7 @@
 \thickmuskip=8mu
 
 %if style /= newcode
+%subst space = "\linebreak[2]\;"
 %subst backquoted a = "\backquoted{\id{" a "}}"
 %format \  = "\mathord{\texttt{\textbackslash}\,}"
 %format [  = "\mathopen{\texttt{[}}"
