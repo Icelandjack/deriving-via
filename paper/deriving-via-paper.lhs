@@ -157,8 +157,8 @@ if a particular class lies outside of this subset, then one cannot derive it
 at all, leaving no alternative except to declare instances of it by hand, which
 is often tedious.
 
-To overcome this deficit, we introduce \DerivingVia, an extension to deriving
-that enables programmers derive instances by composing named programming
+To overcome this deficit, we introduce \DerivingVia, an extension to |deriving|
+that enables programmers to compose instances from named programming
 patterns, thereby turning |deriving| into a high-level domain-specific language for
 defining instances. \DerivingVia leverages newtypes---an already
 familiar tool of the Haskell trade---to give names to recurring patterns in a
@@ -321,7 +321,7 @@ considering the context, even if |f| is not |Applicative|. Consider:
 We can make \GHC\ accept this instance, but in practice, the presence
 of overlapping instances often leads to confusing behavior.
 
-Second, even if~|f| is an |Applicative| functor, the lifted |Monoid|
+Second, even if~|f| is an applicative functor, the lifted |Monoid|
 instance may not be the only one, or the one we want to use. Most
 notably, lists are the \emph{free monoid} (the most `fundamental'
 monoid), and their |Monoid| instance is as follows:
@@ -572,9 +572,9 @@ actual values of a type that are not sufficiently expressed in their types.
 Depending on the context and the situation, we might want to guarantee the
 generation of positive integers, or non-empty lists, or even sorted lists.
 
-The \QuickCheck\ library provides a mechanism of newtype-based adapters
+The \QuickCheck\ library provides a number of newtype-based adapters
 (called \emph{modifiers} in the library) for this purpose. As an example,
-\QuickCheck\ provides
+\QuickCheck\ defines
 %if style /= newcode
 %format Positive = "\ty{Positive}"
 %format NonNegative = "\ty{NonNegative}"
@@ -607,7 +607,7 @@ This approach, however, has a drastic disadvantage: we have to wrap each value
 in an extra constructor, and the newtype and constructor are \QuickCheck-specific.
 An implementation detail (the choice of testing library) leaks into the data model
 of an application. While we might be willing to use domain-specific newtypes for
-added type safety, such as |Age| or |Duration|, we might not be happy to add
+added type safety, such as |Age| or |Duration|, we might not be eager to add
 \QuickCheck\ modifiers everywhere. And what if we need more than one modifier?
 And what if other libraries export their own set of modifiers as well? We certainly
 do not want to change the actual definition of our data types (and corresponding
@@ -672,9 +672,14 @@ in size. It is defined as
 
 %endif
 with an instance
+%{
+%if style /= newcode
+%format => = "\mathbin{\texttt{=>}}"
+%endif
 
 > instance (Integral a, Bounded a) => Arbitrary (Large a)
 
+%}
 %if style == newcode
 
 >   where
@@ -867,7 +872,7 @@ into a \DerivingVia\ clause, such as:
 < newtype S = MkS Char
 <   deriving Eq via Maybe
 
-In this section, we will describe a general algorithm for when a \DerivingVia\ clause should
+In this section, we describe a general algorithm for when a \DerivingVia\ clause should
 typecheck, which will allow us to reject ill-formed examples like the one above.
 
 \subsubsection{Aligning kinds} \label{sec:kinds}
@@ -916,7 +921,7 @@ In particular, the following conditions must hold:
  \item
    The kinds |V (sub v 1) DOTS (sub v p)| and |D (sub d 1) DOTS (sub d i)|, and the
    kind of the argument of |C (sub c 1) DOTS (sub c n)| must all unify.
-   This check rules out the earlier example of |deriving Eq via Maybe|, as it does
+   This check rules out the above example of |deriving Eq via Maybe|, as it does
    not even make sense to talk about
    reusing the |Eq| instance for |Maybe|---which is of kind |(TYPE -> TYPE)|---as |Eq| instances
    can only exist for types of kind |TYPE|.
@@ -1737,8 +1742,8 @@ Parallel Legacy Languages as Theorem Provers (deriving
 %endif
 
 In the previous section, we saw an example of how relying too much on a type
-class's default implementations can backfire. Indeed, this is an unfortunately
-common trend with type classes in general. Many classes try to pick
+class's default implementations can backfire. This is an unfortunately
+common trend with type classes in general: Many classes try to pick
 one-size-fits-all defaults that don't work well in certain scenarios, but
 because Haskell allows specifying only one default per method, if the provided
 default doesn't work for a programmer's use case, then she is forced to
@@ -2001,7 +2006,7 @@ Note that the idea here is that |a| and |b| are isomorphic in some sense,
 but only |a| is used as the value of the type. So |SameRepAs a b| is
 inter-|Coercible| with |a|.
 
-We choose here to witness an isomorphism between the two types via
+We choose to witness an isomorphism between the two types via
 their generic representations: if two types have
 inter-|Coercible| generic representations, we can transform back and forth
 using the |from| and |to| methods of the |Generic| class
@@ -2329,7 +2334,7 @@ Multi-parameter type classes are extremely common in modern Haskell, to the
 point where we assumed the existence of them in Section \ref{sec:kinds}
 without further mention. However, multi-parameter type classes pose an
 intriguing design question when combined with \DerivingVia\ and
-\StandaloneDeriving, another GHC feature which allows one to write
+\StandaloneDeriving, another \GHC feature which allows one to write
 |deriving| declarations independently of a data type.
 
 For example, one can write the following instance using
@@ -2475,7 +2480,7 @@ ambiguity.
 In this paper, we have introduced the \DerivingVia\ language
 extension, explained how it is implemented, and shown a wide
 variety of use cases. We believe that \DerivingVia\ has
-the potential to drastically change the way we write instances:
+the potential to dramatically change the way we write instances:
 We are encouraged to give names to recurring patterns, and to
 reuse them where needed. It is our feeling that most instance
 declarations that occur in the wild can actually be derived
