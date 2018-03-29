@@ -154,8 +154,7 @@ Haskell's |deriving| construct is a cheap and cheerful way to quickly generate
 instances of type classes that follow common patterns. But at present, there
 are only a subset of such type class patterns that |deriving| supports, and
 if a particular class lies outside of this subset, then one cannot derive it
-at all, leaving no alternative except to declare instances of it by hand, which
-is often tedious.
+at all, with no alternative than to laboriously declare the instances by hand.
 
 To overcome this deficit, we introduce \DerivingVia, an extension to |deriving|
 that enables programmers to compose instances from named programming
@@ -304,9 +303,9 @@ distinct rules for~|Monoid (f a)|, even with overlapping instances.
 
 (TODO) It is worth noting that the monoid instance for |(Endo a)| is captured by a slightly different rule based on |Category|:
 
-> instance Category cat => Monoid3 (cat a a) where
->   mempty3  =  id
->   mempty3  =  (.)
+< instance Category cat => Monoid3 (cat a a) where
+<   mempty3  =  id
+<   mempty3  =  (.)
 
 The only viable workaround using the Haskell type class system is to
 write an instances for each data type by hand, each one with an
