@@ -301,11 +301,11 @@ In fact, the monoid instance for lists is captured by a
 Because instance resolution never backtracks we can't define these two
 distinct rules for~|Monoid (f a)|, even with overlapping instances.
 
-(TODO) It is worth noting that the monoid instance for |(Endo a)| is captured by a slightly different rule based on |Category|:
-
-< instance Category cat => Monoid3 (cat a a) where
-<   mempty3  =  id
-<   mempty3  =  (.)
+% (TODO) It is worth noting that the monoid instance for |(Endo a)| is captured by a slightly different rule based on |Category|:
+%
+% < instance Category cat => Monoid3 (cat a a) where
+% <   mempty3  =  id
+% <   mempty3  =  (.)
 
 The only viable workaround using the Haskell type class system is to
 write an instances for each data type by hand, each one with an
