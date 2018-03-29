@@ -1643,7 +1643,7 @@ sequence their actions but discard the result of one of their arguments:
 
 As shown here, |(<*)| and |(*>)| have default implementations in terms of
 |liftA2|. This works for any |Applicative|, but is not as efficient as it
-could be in some cases. For certain classes of |Applicative|s, we can
+could be in some cases. For some instances of |Applicative|, we can
 actually implement these methods in \(O(1)\) time instead of using
 |liftA2|, which can often run in superlinear time. One such
 |Applicative| is the function type |(->)|:
@@ -1685,7 +1685,8 @@ With |Representable|, we can codify the |Applicative| shortcut for |(<*)| and
 > newtype WrapRep f a = MkWrapRep (f a)
 >   deriving (Functor, Representable)
 >
-> instance Representable f => Applicative (WrapRep f) where
+> instance Representable f
+>   => Applicative (WrapRep f) where
 >   pure = tabulate . pure
 >   f <*> g = tabulate (index f <*> index g)
 >
@@ -1693,7 +1694,7 @@ With |Representable|, we can codify the |Applicative| shortcut for |(<*)| and
 >   _ *> g = g
 
 Now, instead of having to manually override |(<*)| and \mbox{|(*>)|} to get the
-desired performance, one can accomplish in a more straightforward fashion
+desired performance, one can accomplish this in a more straightforward fashion
 by using \DerivingVia:
 %if style /= newcode
 %format IntConsumer = "\ty{IntConsumer}"
@@ -1705,8 +1706,8 @@ by using \DerivingVia:
 >   deriving Applicative via (WrapRep IntConsumer)
 
 Not only does this save code in the long run, but it also gives a name to
-the optimization being used, which can make these sorts of tricks easier
-to spot ``in the wild'' for other programmers.
+the optimization being used, which allows it to be documented, exported
+from a library, and thereby easier to spot ``in the wild'' for other programmers.
 
 % There is a class of functors where the last two definitions always
 % hold,
