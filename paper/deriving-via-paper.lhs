@@ -1931,21 +1931,22 @@ can overcome the limitations of \DefaultSignatures.
 >   deriving (Show, Generic)
 
 %endif
-The typical use case for \DefaultSignatures\ when one has a type class method
-that has a frequently used default implementation at a different type.
+The typical use case for \DefaultSignatures\ is when one has a type class method
+that has a frequently used default implementation at a constrained type.
 For instance, consider a |Pretty| class with a method |pPrint| for
 pretty-printing data:
 
 > class Pretty a where
 >   pPrint :: a -> Doc
 
-Coming up with |Pretty| instances for the vast majority of ADTs is repetitive
+Coming up with |Pretty| instances for the vast majority of data types is repetitive
 and tedious, so a common pattern is to abstract away this tedium using
 generic programming libraries, such as those found in |GHC.Generics|
 ~\cite{gdmfh} or \Package{generics-sop}~\cite{true-sums-of-products}. For example,
-it is possible using |GHC.Generics| to write:
+using |GHC.Generics|, we can define
 
-> genericPPrint :: (Generic a, GPretty (Rep a)) => a -> Doc
+> genericPPrint ::
+>   (Generic a, GPretty (Rep a)) => a -> Doc
 
 %if style == newcode
 
@@ -1953,15 +1954,14 @@ it is possible using |GHC.Generics| to write:
 
 %endif
 The details of how |Generic|, |GPretty|, and |Rep| work are not important to
-understanding the example. What is important is to note that a typical
-default implementation of |pPrint| in terms of |genericPPrint| is infeasible:
+understanding the example. What is important is to note that we cannot
+just add
 
-< class Pretty a where
-<   pPrint :: a -> Doc
-<   pPrint = genericPPrint
+< ??pPrint = genericPPrint
 
-The code above will not typecheck, as |genericPPrint| requires extra
-constraints |(Generic a, GPretty (Rep a))| that |pPrint| does not provide.
+as a conventional default implementation to the |Pretty| class, because
+it does not typecheck due to the extra constraints.
+
 Before the advent of \DefaultSignatures, one had to work around this by
 defining |pPrint| to be |genericPPrint| in every |Pretty| instance, as in the
 examples below:
@@ -1971,13 +1971,17 @@ examples below:
 >
 > instance Pretty a => Pretty (Maybe a) where
 >   pPrint = genericPPrint
->
+
+%if style == newcode
+
 > instance (Pretty a, Pretty b) => Pretty (Either a b) where
 >   pPrint = genericPPrint
 
+%endif
+%
 To avoid this repetition, \DefaultSignatures allow one to provide a default
-implementation of a type class method using \emph{different} constraints
-than the method itself has. For instance:
+implementation of a type class method using \emph{additional} constraints
+on the method's type. For example:
 %if style == newcode
 %format Pretty = Pretty2
 %format pPrint = pPrint2
@@ -1985,38 +1989,45 @@ than the method itself has. For instance:
 
 > class Pretty a where
 >   pPrint :: a -> Doc
->   default pPrint :: (Generic a, GPretty (Rep a)) => a -> Doc
+>   default pPrint ::
+>     (Generic a, GPretty (Rep a)) => a -> Doc
 >   pPrint = genericPPrint
 
-Then, if any instances of |Pretty| are given without an explicit definition of
-|pPrint|, the |default| implementation is used. In order for this to typecheck,
+Now, if any instances of |Pretty| are given without an explicit definition of
+|pPrint|, the default implementation is used. For this to typecheck,
 the data type |a| used in the instance must satisfy the constraints
-|(Generic a, GPretty (Rep a))|. This allows us to reduce the three instances
-above to just:
+|(Generic a, GPretty (Rep a))|. Thus, we can reduce the instances above
+to just
 
 > instance Pretty Bool
 > instance Pretty a => Pretty (Maybe a)
+
+%if style == newcode
+
 > instance (Pretty a, Pretty b) => Pretty (Either a b)
+
+%endif
+%
 
 Although \DefaultSignatures\ remove the need for many occurrences of
 boilerplate code, it also imposes a significant limitation: every type class
-method can only have at most one default implementation. As a result,
+method can have at most one default implementation. As a result,
 \DefaultSignatures\ effectively endorse one default implementation as the
 canonical one. But in many scenarios, there is far more than just one way to
 do something. Our |pPrint| example is no exception. Instead of
 |genericPPrint|, one might one to:
 
 \begin{itemize}
- \item Leverage a |Show|-based default implementation instead of a
-       |Generic|-based one
- \item Swap out |genericPPrint| with a version that uses @generics-sop@ instead
-       of |GHC.Generics|
- \item Use a tweaked version of |genericPPrint| which displays extra debugging
-       information
+ \item leverage a |Show|-based default implementation instead of a
+       |Generic|-based one,
+ \item use a different generic programming library such as \Package{generics-sop}
+       instead of |GHC.Generics|,
+ \item use a tweaked version of |genericPPrint| which displays extra debugging
+       information.
 \end{itemize}
 
 All of these are perfectly reasonable choices a programmer might want to make,
-but alas, GHC only lets type classes bless each method with one default.
+but alas, \GHC\ only lets type classes bless each method with one default.
 
 Fortunately, \DerivingVia\ provides a convenient way of encoding default
 implementations with the ability to toggle between different choices:
