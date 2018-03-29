@@ -573,24 +573,24 @@ a number of powerful and equally surprising properties:
 %endif
 
 \QuickCheck~\cite{quickcheck} is a well-known Haskell library for randomized
-property-based testing.  At the core of \QuickCheck's test case generation
-functionality is the |Arbitrary| class. Its primary method |arbitrary|
+property-based testing.  At the core of \QuickCheck's test-case generation
+functionality is the |Arbitrary| class. Its primary method is |arbitrary|, which
 describes how to generate suitable random values of a given size and type. It
 also has a method |shrink| that is used to try to shrink failing
 counterexamples of test properties.
 
-Many standard Haskell types such as |Int| or lists are already an instance of
+Many standard Haskell types, such as |Int| and lists, are already instances of
 |Arbitrary|. This can be very convenient, because many properties
 involving these types can be quick-checked without any extra work.
 
 On the other hand, there are often additional constraints imposed on the
 actual values of a type that are not sufficiently expressed in their types.
-Depending on the context and the situation, we might want to guarantee the
-generation of positive integers, or non-empty lists, or even sorted lists.
+Depending on the context and the situation, we might want to guarantee that we
+generate positive integers, or non-empty lists, or even sorted lists.
 
 The \QuickCheck\ library provides a number of newtype-based adapters
 (called \emph{modifiers} in the library) for this purpose. As an example,
-\QuickCheck\ defines
+\QuickCheck\ defines:
 %if style /= newcode
 %format Positive = "\ty{Positive}"
 %format NonNegative = "\ty{NonNegative}"
@@ -663,8 +663,8 @@ If we want to restrict ourselves to non-negative durations, we replace this by
 
 > ??deriving Arbitrary via (NonNegative Int)
 
-and now we get the |Arbitrary| instance for non-negative integers. Only the
-deriving clause changes, not the data type itself. If we later decide we want
+This yields an |Arbitrary| instance which only generates non-negative
+integers. Only the deriving clause changes, not the data type itself. If we later decide we want
 only positive integers as durations, we replace |NonNegative| with |Positive|
 in the deriving clause. Again, the data type itself is unaffected. In particular,
 we do not have to change any constructor names anywhere in our code.
@@ -677,8 +677,8 @@ we do not have to change any constructor names anywhere in our code.
 %endif
 
 Multiple modifiers can be combined. For example, there is another modifier
-called |Large| that will scale up integral values being produced by a generator
-in size. It is defined as
+called |Large| that will scale up the size of integral values being produced
+by a generator. It is defined as
 
 > newtype Large a = MkLarge { getLarge :: a }
 
@@ -687,7 +687,7 @@ in size. It is defined as
 >   deriving (Eq, Ord, Num) via a
 
 %endif
-with an instance
+with a corresponding |Arbitrary| instance:
 %{
 %if style /= newcode
 %format => = "\mathbin{\texttt{=>}}"
@@ -713,9 +713,11 @@ For our |Duration| type, we can easily write
 
 > ??deriving Arbitrary via (NonNegative (Large Int))
 
-The types |NonNegative (Large Int)| and |Duration| still share
-the same run-time representation (namely that of~|Int|), so
-the instance can be reused.
+and derive an instance which only generates |Duration| values that are both
+non-negative \textit{and} large.
+This works because |Duration| still shares the same runtime representation as
+|NonNegative (Large Int)| (namely, that of~|Int|), so the latter's
+|Arbitrary| instance can still be reused.
 
 \subsection{Adding new modifiers}
 
