@@ -153,7 +153,7 @@ Haskell's |deriving| construct is a cheap and cheerful way to quickly generate
 instances of type classes that follow common patterns. But at present, there
 are only a subset of such type class patterns that |deriving| supports, and
 if a particular class lies outside of this subset, then one cannot derive it
-at all, with no alternative than to laboriously declare the instances by hand.
+at all, with no alternative except for laboriously declaring the instances by hand.
 
 To overcome this deficit, we introduce \DerivingVia, an extension to |deriving|
 that enables programmers to compose instances from named programming
@@ -242,9 +242,9 @@ way that both feels natural and allows a high degree of abstraction.
 %endif
 
 In Haskell, type classes capture common interfaces. When defining
-class instances we often happen upon repeated patterns where different
+class instances, we often discover repeated patterns where different
 instances have the same definition. For example, the following
-instance declarations appear in the \Package{base} package of
+instance declarations appear in the \Package{base} library of
 the Glasgow Haskell Compiler (\GHC):
 
 > instance Monoid a => Monoid2 (IO a) where
@@ -255,9 +255,8 @@ the Glasgow Haskell Compiler (\GHC):
 >   mempty2   =  pure mempty
 >   mappend2  =  liftA2 mappend
 
-They have identical instance bodies. The underlying pattern is
-not limited to |IO|
-and |ST s| but will work for any applicative functor~|f|.
+These have completely identical instance bodies. The underlying pattern works
+not only for |IO| and |ST s|, but also for any applicative functor~|f|.
 
 It is tempting to avoid this obvious repetition by defining an
 instance for all such types in one fell swoop:
@@ -270,19 +269,19 @@ instance for all such types in one fell swoop:
 Unfortunately, this general instance is undesirable as it overlaps
 with all other |(f a)|-instances. Instance resolution will match the
 instance head first before considering the context, whether |f| is
-applicative or not. Once it has commited to an instance it will never
+applicative or not. Once \GHC has commited to an instance, it will never
 backtrack. Consider:
 
 > newtype Endo a = MkEndo (a -> a) -- Data.Monoid
 
-While |Endo| is not even a |Functor|, it still admits a perfectly valid
+|Endo| is not an applicative functor, but it still admits a perfectly valid
 |Monoid| instance that overlaps with the general instance above:
 
 > instance overlapping (Monoid2 (Endo a)) where
 >   mempty2 = MkEndo id
 >   mappend2 (MkEndo f) (MkEndo g) = MkEndo (f . g)
 
-Even if we have an applicative functor~|f| on our hands, there is no
+Moreover, even if we have an applicative functor~|f| on our hands, there is no
 guarantee that this is the definition we want. Notably, lists are the
 \emph{free monoid} (the most `fundamental' monoid) but that instance
 does not coincide with the rule above and in particular, imposes no
@@ -300,7 +299,7 @@ In fact, the monoid instance for lists is captured by a
 >   mappend3  =  (<|>)
 
 Because instance resolution never backtracks, we can't define these two
-distinct rules for~|Monoid (f a)|, not even with overlapping instances.
+distinct rules for~|Monoid (f a)| simultaneously, even with overlapping instances.
 
 % (TODO) It is worth noting that the monoid instance for |(Endo a)| is captured by a slightly different rule based on |Category|:
 %
@@ -310,20 +309,21 @@ distinct rules for~|Monoid (f a)|, not even with overlapping instances.
 
 The only viable workaround using the Haskell type class system is to
 write the instances for each data type by hand, each one with an
-identical definition (like the instances for |IO a| and |ST s a|)
+identical definition (like the instances for |IO a| and |ST s a|),
 which is extremely unsatisfactory:
 
 \begin{itemize}
 \item It is not obvious that we are instantiating a general principle.
 \item Because the general principle is not written down in code
-  with a name and documentation, it has to be communicated by folklore
+  with a name and documentation, it has to be communicated through folklore
   or in comments and is difficult to discover and search for. Our code
   has lost a connection to its origin.
 \item There are many such rules, some quite obvious, but
   others more surprising and easy to overlook.
-\item While for |Monoid|---which only has two methods---the work required to
-  define the instance manually is perhaps acceptable, it quickly becomes
-  extremely tedious and error-prone for classes with many methods.
+\item While the work required to define instances manually for
+  |Monoid|---which only has two methods---is perhaps acceptable,
+  it quickly becomes extremely tedious and error-prone for classes
+  with many methods.
 \end{itemize}
 
 As an illustration of the final point, consider |Num|. There is a way
@@ -363,8 +363,8 @@ functor:\footnote{There are similar ways to lift |Floating| and |Fractional|.}
 >   fromInteger = pure . fromInteger
 
 %}
-Defining such a boilerplate instance manually for a concrete type constructor
-is so annoying that Conal Elliott has introduced a preprocessor~\cite{applicative-numbers}
+Defining such boilerplate instances manually for concrete type constructors
+is so annoying that Conal Elliott introduced a preprocessor~\cite{applicative-numbers}
 for this particular use case several years ago.
 % \alnote{And Conal is by no means alone: see
 % https://gist.github.com/Icelandjack/e1ddefb0d5a79617a81ee98c49fbbdc4\#a-lot-of-things-we-can-find-with-define
@@ -375,37 +375,36 @@ for this particular use case several years ago.
 
 Those familiar with Haskell's deriving mechanism may wonder why we
 cannot simply derive all the instances we just discussed.
-But in reality, our options are very limited.
+Unfortunately, our options are very limited.
 
 To start, |Monoid| is not one of the few blessed type classes that GHC has
 built-in support to derive. It so happens that |(IO a)|, |(ST s a)|
 and |(Endo a)| are all newtypes, so they are in principle eligible for
-\emph{generalized newtype deriving} (\GND) where they would derive
-their instance via the instance of their underlying
-type~\cite{zero-cost-coercions}. However, this would give us the
+\emph{generalized newtype deriving} (\GND), in which they could derive
+their instances by reusing the instances of their underlying
+types~\cite{zero-cost-coercions}. However, this would give us the
 wrong definition in all three cases.
 % (even if it worked for the first two, which it
 % doesn't).
 
-Our last hope is that the the |Monoid| type class has the right
-generic implementation~\cite{gdmfh}. If that were the case, we could
-use a deriving clause using the @DeriveAnyClass@ extension, and
+Our last hope is that the the |Monoid| type class has a suitable,
+generic default implementation~\cite{gdmfh}. If that were the case,
+we could use a deriving clause using the @DeriveAnyClass@ extension, and
 thereby get the compiler to generate an instance for us.
 
-However, there is no generic implementation for
-|Monoid|, a class from \Package{base} that is very difficult to change.
-But even if a generic instance existed, it would capture a \emph{single}
+However, there is no generic default for |Monoid|, a standard class from the
+\Package{base} library (which would be difficult to change). But even if
+a generic instance existed, it would still capture a \emph{single}
 rule over all others, so we couldn't ever use it to derive both the
 monoid instance for lists and that for |ST s a|.
 
 We thus have no other choice but to write some
 instances by hand. This means that we have to provide explicit
 implementations of at least a minimal subset of the class methods.
-
-There is no middle ground, and the additional work required
-compared with |deriving| can be
+There is no middle ground here, and the additional work required
+compared to |deriving| can be
 drastic---especially if the class has many methods---so the option of
-using |deriving| remains tantalizing.
+using |deriving| remains an appealing alternative.
 
 \subsection{Introducing \DerivingVia}\label{sec:introducingdv}
 
