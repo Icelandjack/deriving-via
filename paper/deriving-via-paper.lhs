@@ -1524,25 +1524,23 @@ change their definitions to be identical to |fmap| and |(<*>)|, respectively.}
 \subsection{Avoiding orphan instances}\label{sec:orphaninstances}
 
 Not only can \DerivingVia\ quickly procure type class instances, in some
-cases, it can eliminate the need for some instances altogether. One variety
-of instance that Haskell programmers often want to avoid is orphan
-instances---that is, instances defined in a separate module from the type
-class or data types being used. Sometimes, however, it's quite tempting to
-reach for orphan instances, as in the following example from
-~\cite{equational-reasoning-at-scale}:
+cases, it can eliminate the need for certain instances altogether.
+Haskell programmers often want to avoid \emph{orphan instances}: instances
+defined in a separate module from both the type class and data types being
+used. Sometimes, however, it's quite tempting to
+reach for orphan instances, as in the following example adapted
+from a blog post by Gonzalez~\cite{equational-reasoning-at-scale}:
 %if style /= newcode
 %format Plugin = "\ty{Plugin}"
 %format MkPlugin = "\con{Plugin}"
 %endif
 
-< newtype Plugin = MkPlugin (IO (String -> IO ()))
-<   deriving Monoid
+> newtype Plugin = MkPlugin (IO (String -> IO ()))
+>   deriving Semigroup
 
-\alnote{The above does not compile because there is no |Semigroup|
-instance.}
-In order for this derived |Monoid| instance to typecheck, there must be a
-|Monoid| instance for |IO| available. Suppose for a moment that there was
-no such |Monoid| instance for |IO|. How can one work around this issue?
+In order for this derived |Semigroup| instance to typecheck, there must be a
+|Semigroup| instance for |IO| available. Suppose for a moment that there was
+no such instance for |IO|. How can one work around this issue?
 
 \begin{itemize}
 \item One could patch the \Package{base} library to add the instance for |IO|.
@@ -1550,19 +1548,23 @@ no such |Monoid| instance for |IO|. How can one work around this issue?
       before one could actually use this instance.
 \item Write an orphan instance for |IO|. This works, but is
       undesirable, as now anyone who uses |Plugin| must incur a
-      possibly unwated orphan instance.
+      possibly unwanted orphan instance.
 \end{itemize}
 
 Luckily, \DerivingVia\ presents a more convenient third option: re-use a
-|Monoid| instance from a data type \emph{besides} |IO|. Recall the |App|
+|Semigroup| instance from \emph{another} data type. Recall the |App|
 data type from Section~\ref{sec:introducingdv} that lets us define a
-|Monoid| instance by lifting through an |Applicative| instance. As luck would
+|Semigroup| instance by lifting through an |Applicative| instance. As luck would
 have it, |IO| already has an |Applicative| instance, so we can derive the
 desired |Monoid| instance for |Plugin| like so:
+%if style == newcode
+%format Plugin = Plugin2
+%format MkPlugin = MkPlugin2
+%endif
 
-< newtype Plugin = Plugin (IO (String -> IO ()))
-<  deriving Monoid
-<    via (App IO (String -> App IO ()))
+> newtype Plugin = MkPlugin (IO (String -> IO ()))
+>  deriving Semigroup
+>    via (App IO (String -> App IO ()))
 
 % RGS: I'm leaving this off
 % If, like \cite{twist-pointers}
@@ -1589,10 +1591,11 @@ desired |Monoid| instance for |Plugin| like so:
 % < newtype ParseAction a = PA (Ptr -> IO a)
 % <   deriving (Functor, Applicative) via
 % <     (Compose ((->) Ptr) IO)
-
-Here, we completely bypass the need for a |Monoid| instance for |IO|, as
-|App IO| (which is representationally equal to |IO|) gives us exactly
-the monoidal behavior we seek.
+%
+Note that we have to use |App| twice in the |via| type, corresponding
+to the two occurences of |IO| in the |Plugin| type. This is ok, because
+|App IO| has the same representation as |IO|.
+As desired, we completely bypass the need for a |Semigroup| instance for |IO|.
 
 % %if style == newcode
 %
