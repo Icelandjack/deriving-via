@@ -1453,7 +1453,7 @@ this choice would force programmers to write additional parentheses.
 \section{More use cases}\label{sec:usecases}
 
 We have already seen in Section~\ref{sec:quickcheck} how \DerivingVia\
-facilitates greater code reuse in the context of \QuickCheck. This far from
+facilitates greater code reuse in the context of \QuickCheck. This is far from
 the only domain where \DerivingVia\ proves to be a natural fit, however. In
 fact, there are so many of these domains, there would be enough to fill
 pages upon pages!
@@ -1894,11 +1894,11 @@ do something. Our |pPrint| example is no exception. Instead of
 |genericPPrint|, one might one to:
 
 \begin{itemize}
- \item leverage a |Show|-based default implementation instead of a
+ \item Leverage a |Show|-based default implementation instead of a
        |Generic|-based one,
- \item use a different generic programming library such as \Package{generics-sop}
-       instead of |GHC.Generics|,
- \item use a tweaked version of |genericPPrint| which displays extra debugging
+ \item Use a different generic programming library, such as \Package{generics-sop},
+       instead of |GHC.Generics|, or
+ \item Use a tweaked version of |genericPPrint| which displays extra debugging
        information.
 \end{itemize}
 
@@ -1962,9 +1962,9 @@ to bless one particular default, and forces programmers to consider which
 default is best suited to their use case, instead of blindly trusting the
 type class's blessed default to always do the right thing.
 
-An additional advantage is that it allows to decouple the definition of
+An additional advantage is that it allows decoupling the definition of
 such defaults from the site of the class definition. Hence, if a package
-author is hesitant to add a default because that might incur and
+author is hesitant to add a default because that might incur an
 unwanted additional dependency, nothing is lost, and the default can
 simply be added in a separate package.
 
