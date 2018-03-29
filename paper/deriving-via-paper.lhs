@@ -257,7 +257,7 @@ the Glasgow Haskell Compiler (\GHC):
 
 They have identical instance bodies. The underlying pattern is
 not limited to |IO|
-and |(ST s)| but will work for any applicative functor~|f|.
+and |ST s| but will work for any applicative functor~|f|.
 
 It is tempting to avoid this obvious repetition by defining an
 instance for all such types in one fell swoop:
@@ -310,7 +310,7 @@ distinct rules for~|Monoid (f a)|, not even with overlapping instances.
 
 The only viable workaround using the Haskell type class system is to
 write the instances for each data type by hand, each one with an
-identical definition (like the instances for |(IO a)| and |(ST s a)|)
+identical definition (like the instances for |IO a| and |ST s a|)
 which is extremely unsatisfactory:
 
 \begin{itemize}
