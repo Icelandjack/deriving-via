@@ -2433,7 +2433,20 @@ ambiguity.
 %
 % and deriving an instance for |Cons (ZipList a) (ZipList b) a b|.
 
-\section*{Acknowledgements}
+\subsection{Conclusions}
+
+In this paper, we have introduced the \DerivingVia\ language
+extension, explained how it is implemented, and shown a wide
+variety of use cases. We believe that while \DerivingVia\ has
+the potential to drastically change the way we write instances.
+We are encouraged to give names to recurring patterns, and to
+reuse them where needed. It is our feeling that most instance
+declarations that occur in the wild are actually the
+instantiation of a pattern that deserves to be known and named,
+and that instances defined manually should become an anti-pattern
+in all but some rare situations.
+
+\subsection*{Acknowledgements}
 
 We would like to thank Richard Eisenberg for his discussion and feedback
 on Section~\ref{sec:typevariablescoping}.
