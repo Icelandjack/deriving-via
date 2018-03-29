@@ -1466,23 +1466,16 @@ abstract over them in a convenient way. We demonstrate how to:
 %endif
 
 On occasion, the need arises to retrofit an existing type class with a
-superclass. One notable example of this was the Ap\-plicative-Monad Proposal,
-in which the long-established |Monad| type class was changed to have
-|Applicative| as its superclass (which, in turn, has |Functor| as a
-superclass).
+superclass, such as when |Monad| was changed to have |Applicative| as
+a superclass (which in turn has |Functor| as a superclass).
 
-One especially tedious aspect of this proposal was that at the time, many
-libraries provided |Monad| instances but \textit{not} |Functor| or
-|Applicative| instances. Therefore, after the proposal was adopted, all of
-these libraries were now broken and now had to be retrofitted with |Functor|
-and |Applicative| instances in order to build again. Much of the work to
-add these instances was sheer boilerplate, as most of the time one can
-straightforwardly define the class methods of |Functor| and |Applicative|
-using the methods from |Monad|.
+One disadvantage of such a change is that if the primary goal is to
+define the |Monad| instance for a type, one now has to write two
+additional instances, for |Functor| and |Applicative|, even though
+these instances are actually determined by the |Monad| instance.
 
-With \DerivingVia, we can make this process much less tedious.
-We can encode the ability to extract |Functor| and |Applicative|
-methods from |Monad| using a newtype:
+With \DerivingVia, we can capture this fact as a newtype, thereby
+making the process of defining such instances much less tedious:
 
 > newtype FromMonad m a = MkFromMonad (m a)
 >   deriving Monad
@@ -1494,7 +1487,7 @@ methods from |Monad| using a newtype:
 >   pure   =  return
 >   (<*>)  =  ap
 
-Now, if we now have a data type with a |Monad| instance, we can simply derive
+Now, if we have a data type with a |Monad| instance, we can simply derive
 the corresponding |Functor| and |Applicative| instances by
 referring to |FromMonad|:
 
@@ -1508,9 +1501,9 @@ referring to |FromMonad|:
 >   Yield a k >>= f  =  Yield a (k >>= f)
 >   Done b    >>= f  =  f b
 
-A similar newtype could also be defined to quickly implement the |(<>)| method
-from the |Semigroup| class in terms of an existing |Monoid| instance
-(of which |Semigroup| is a superclass).
+% A similar newtype could also be defined to quickly implement the |(<>)| method
+% from the |Semigroup| class in terms of an existing |Monoid| instance
+% (of which |Semigroup| is a superclass).
 
 % \alnote{Several other mechanisms have been proposed to deal with this situation.
 % We should go through them and point out whether they're subsumed by this or not.}
@@ -1521,7 +1514,7 @@ Another proposal~\cite{monad-no-return} has been put forth
 the |Monad| class and make it a synonym for |pure| from |Applicative|.
 The argument is that |return| is redundant, given that |pure| does the
 same thing with a more general type signature. All other prior discussion about
-the  proposal aside, it should be noted that removing |return| from the |Monad|
+the proposal aside, it should be noted that removing |return| from the |Monad|
 class would prevent |FromMonad| from working, as then |Monad| instances would
 not have any way to define |pure|.
 ~\footnote{A similar, yet somewhat weaker, argument applies to suggested changes
