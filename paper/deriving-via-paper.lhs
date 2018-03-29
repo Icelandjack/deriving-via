@@ -1526,7 +1526,7 @@ actually implement these methods in \(O(1)\) time instead of using
 Note that we had to explicitly define |(<*)| and |(*>)|, as the default
 implementations would not have been as efficient. But |(->)| is not the
 only type for which this trick works---it also works for any data type
-that is isomorphic to |(->) r| (for some |r|)!.
+that is isomorphic to |(->) r| (for some |r|).
 These ‘function-like’ types are characterized by the |Representable|
 type class:
 
