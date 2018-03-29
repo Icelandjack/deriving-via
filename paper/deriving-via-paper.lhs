@@ -164,6 +164,15 @@ defining instances. \DerivingVia leverages newtypes---an already
 familiar tool of the Haskell trade---to give names to recurring patterns in a
 way that both feels natural and allows a high degree of abstraction.
 
+% In this paper, we describe how to capture such rules as Haskell
+% newtypes, and we introduce \DerivingVia, a new language extension
+% that allows us to use |deriving| on any instance that can be
+% constructed using a rule. In this way, we
+% vastly increase the fraction of type classes for which we
+% can use |deriving|. This not only saves work, but also explains
+% the intention behind the code better, as we can give names to
+% recurring patterns.
+
 % Haskell instance declarations fall into one of two categories:
 % either we can use the |deriving| construct and get the instance
 % generated for us for free, or we have to write the instance by
@@ -234,51 +243,9 @@ way that both feels natural and allows a high degree of abstraction.
 %format ST = "\ty{ST}"
 %endif
 
-In Haskell, type classes capture common interfaces. When we want
-to declare a data type to be an instance
-of a type class, we end up in one of two possible situations:
-
-We might be lucky, and the type class we are writing an instance for is
-in the subset of classes that \GHC\ can derive automatically. Alternatively,
-the type class might already have a generic implementation~\cite{gdmfh},
-or we might be writing an instance for a newtype, and the
-underlying type already supports this instance~\cite{zero-cost-coercions}.
-In these cases, we can use a deriving clause, and with nearly no work,
-we get the compiler to generate the instance for us.
-
-However, if the above conditions are not met, or if the instance that
-would be generated when using deriving is not the instance we want, we
-have no other choice but to write the instance by hand.
-This means that we have to provide explicit implementations of at
-least a minimal subset of the class methods.
-
-The difference between the two scenarios can be quite drastic---especially if the
-class has many methods---so it is extremely appealing if we can
-derive the instance instead. But what if we want a variation on the instance that
-would be derived automatically? What if we know that there is a systematic
-way to explain how the instance can be built, but it's not the one
-corresponding to one of the existing deriving mechanisms? Then we are out
-of luck, and we still have to define the instance by hand.
-
-In this paper, we introduce \DerivingVia, a new language extension that
-bridges this gap. With \DerivingVia, we can vastly increase the number
-of type class instances that we can derive. As a result,
-we no longer have to rely on a few (if any at all) essentially
-pre-defined ways to define a particular class instance. Instead,
-we can teach the compiler new rules for deriving classes, and
-select the one we want using a high-level description.
-
-Our extension is light-weight in the sense that it is easy to
-implement and builds on concepts that are already in the language
-such as deriving strategies, newtypes, and safe coercions. Furthermore, it
-naturally generalizes a number of language extensions such as
-generalized newtype deriving and default signatures.
-
-\subsection{Example: Lifting monoids}
-
-Before we explain our approach in more detail, let us first
-look at a concrete example: in the \GHC \Package{base} package,
-we can find the following |Monoid| instances:
+In Haskell, type classes capture common interfaces. When defining
+class instances we often happen upon repeated patterns where different
+instances have the same definition.
 
 > instance Monoid a => Monoid2 (IO a) where
 >   mempty2   =  pure mempty
@@ -288,72 +255,70 @@ we can find the following |Monoid| instances:
 >   mempty2   =  pure mempty
 >   mappend2  =  liftA2 mappend
 
-While the definitions as given are specific to |IO| and |ST|, the
-principle is not: we can always lift a monoid~|a| over a type
-constructor~|f| as long as~|f| is an applicative
-functor. Thus, these definitions work not only for~|IO| and |ST|,
-but also for \textit{any} |Applicative| instance.
+These instance declarations appear in the \GHC \Package{base} package
+and have identical instance bodies. This rule is not limited to |IO|
+and |(ST s)| but will work for any applicative functor~|f|.
 
 It is tempting to avoid this obvious repetition by defining an
-instance for all |Applicative|s in one fell swoop.
+instance for all such types in one fell swoop.
 
 > instance (Applicative f, Monoid a)
 >   => Monoid2 (f a) where
 >   mempty2   =  pure mempty
 >   mappend2  =  liftA2 mappend
 
-Unfortunately, this general instance is undesirable for several
-reasons:
+Unfortunately, this general instance is undesirable as it overlaps
+with all other |(f a)|-instances. Instance resolution will match the
+instance head first before considering the context: whether |f| is
+applicative or not. Once it has commited to an instance it will never
+backtrack. Consider:
 
-First, the instance overlaps with all other instances that match |Monoid (f
-a)|. Instance resolution will match the instance head before even
-considering the context, even if |f| is not |Applicative|. Consider:
+> newtype Endo a = MkEndo (a -> a) -- Data.Monoid
 
-> newtype Endo a = MkEndo (a -> a) -- from Data.Monoid
-
-|Endo| is not an instance of |Applicative|, yet it admits a perfectly valid
-|Monoid| instance that overlaps with the lifted instance above:
+|Endo| is not even a |Functor|, yet it admits a perfectly valid monoid
+instance that overlaps with the lifted instance above.
 
 > instance overlapping (Monoid2 (Endo a)) where
 >   mempty2 = MkEndo id
 >   mappend2 (MkEndo f) (MkEndo g) = MkEndo (f . g)
 
-We can make \GHC\ accept this instance, but in practice, the presence
-of overlapping instances often leads to confusing behavior.
-
-Second, even if~|f| is an applicative functor, the lifted |Monoid|
-instance may not be the only one, or the one we want to use. Most
-notably, lists are the \emph{free monoid} (the most `fundamental'
-monoid), and their |Monoid| instance is as follows:
+Even if we have an |Applicative| functor~|f| on our hands there is no
+guarantee that this is the definition we want. Lists are notably the
+\emph{free monoid} (the most `fundamental' monoid) but that instance
+does not coincide with the rule above and in particular, imposes no
+|(Monoid a)| constraint.
 
 > instance Monoid2 [a] where
 >   mempty2   =  []
 >   mappend2  =  (++)
 
-This instance does not coincide with the instantiation of the rule above
-(and in particular, imposes no constraint on the type |a| to be a monoid).
-In fact, lists are an example of applying a \textit{different} rule for
-defining monoids, based on an |Alternative| instance for the type constructor:
+In fact, the monoid instance for lists is captured by a
+\textit{different} rule based on |Alternative|:
 
 > instance Alternative f => Monoid3 (f a) where
 >   mempty3   =  empty
 >   mappend3  =  (<|>)
 
-But clearly, we could not have both general instances in our program at the
-same time. The way that Haskell instance resolution works is to only look at the
-instance head when choosing an instance, and then to commit and never backtrack.
-So even with overlapping instances enabled, we could not define all the rules
-we wanted to in this way.
+Because instance resolution never backtracks we can't define these two
+distinct rules for~|Monoid (f a)|, even with overlapping instances.
 
-Currently, the only viable workaround is to define individual
-instances for each data type in spirit of the |Monoid (IO a)| instance
-shown in the beginning, but that is extremely unsatisfactory:
+(TODO) It is worth noting that the monoid instance for |(Endo a)| is captured by a slightly different rule based on |Category|:
+
+> instance Category cat => Monoid3 (cat a a) where
+>   mempty3  =  id
+>   mempty3  =  (.)
+
+The only viable workaround using the Haskell type class system is to
+write an instances for each data type by hand, each one with an
+identical definition (like the instances for |(IO a)| and |(ST s a)|)
+which is extremely unsatisfactory:
+
 \begin{itemize}
-\item It is no longer obvious that we are, in fact, instantiating
-  a general principle.
-\item Because the general principle is not written down in code and
-  given a name, it has to be communicated by folklore or in comments,
-  and is difficult to discover.
+\item It is not obvious that we are instantiating a general principle.
+\item Because the general principle is not written down in code 
+  with a name and documentation it has to be communicated by folklore 
+  or in comments and is difficult to discover and search for. Our code
+  has lost a connection to its origin.
 \item There are many such rules, some quite obvious, but
   some more surprising and easy to miss.
 \item While for |Monoid|---which only has two methods---the work required to
@@ -361,9 +326,10 @@ shown in the beginning, but that is extremely unsatisfactory:
   extremely tedious and error-prone for classes with many methods.
 \end{itemize}
 
+
 As an illustration of the final point, consider |Num|. There is a way
 to lift a |Num| instance through any |Applicative|
-functor\footnote{There are similar ways to lift |Floating| and |Fractional|.}:
+functor:\footnote{There are similar ways to lift |Floating| and |Fractional|.}
 %{
 %if style == newcode
 %format Num = Num2
@@ -400,11 +366,56 @@ functor\footnote{There are similar ways to lift |Floating| and |Fractional|.}:
 %}
 Defining such a boilerplate instance manually for a concrete type constructor
 is so annoying that Conal Elliott has introduced a preprocessor for this particular
-use case several years ago~\cite{applicative-numbers}.
+use case several years ago.~\cite{applicative-numbers}
 % \alnote{And Conal is by no means alone: see
 % https://gist.github.com/Icelandjack/e1ddefb0d5a79617a81ee98c49fbbdc4\#a-lot-of-things-we-can-find-with-define
 % We cannot put a gist dump like this into a paper. We might want to make a selection,
 % or just describe the situation in words.}
+
+\subsection{Deriving}
+
+Those familiar with Haskell's deriving mechanism may wonder why this
+cannot simply be derived but in reality our options are very limited.
+
+|Monoid| is not one of the few blessed type classes that GHC has
+built-in support to derive. It so happens that |(IO a)|, |(ST s a)|
+and |(Endo a)| are all newtypes so they are eligible for
+\emph{generalized newtype deriving} (GND) where they would derive
+their instance via the instance of their underlying
+type~\cite{zero-cost-coercions} but this gives us the wrong definition
+in all three cases (even if it worked for the first two (which it
+doesn't)).
+
+Our last hope is that the the |Monoid| type class has the right
+generic implementation ~\cite{gdmfh}. If that were the case we could
+use a deriving clause, and with nearly no work, we get the compiler to
+generate the an instance of that rule for us.
+
+However, that is not the case. There is no generic implementation for
+|Monoid|, a class from \Package{base} that we have no control over
+it. But a generic instance, if it exists, captures a single rule over
+all others, so we couldn't use it to derive a monoid instance for
+lists as well as |(ST s a)|. We have no other choice but to write some
+instances by hand. This means that we have to provide explicit
+implementations of at least a minimal subset of the class methods.
+
+There is no middle ground and the difference can be
+drastic---especially if the class has many methods---so the option of
+|deriving| remains tantalizing. 
+
+In this paper, we introduce \DerivingVia, a new language extension that
+bridges this gap. With \DerivingVia, we can vastly increase the number
+of type class instances that we can derive. As a result,
+we no longer have to rely on a few (if any at all) essentially
+pre-defined ways to define a particular class instance. Instead,
+we can teach the compiler new rules for deriving classes, and
+select the one we want using a high-level description.
+
+Our extension is light-weight in the sense that it is easy to
+implement and builds on concepts that are already in the language
+such as deriving strategies, newtypes, and safe coercions. Furthermore, it
+naturally generalizes a number of language extensions such as
+generalized newtype deriving and default signatures.
 
 \subsection{Introducing \DerivingVia}\label{sec:introducingdv}
 %if style /= newcode
@@ -490,7 +501,7 @@ the rule that obtains a |Monoid| instance from an |Alternative|
 instance is already implemented in terms of |Alt|:%
 % \footnote{The |Monoid4| and |Semigroup| instance for |App| and |Alt|
 % can be made even more concise if additionally employ
-% \emph{generalized newtype deriving} (GND), but we refrain from
+% \emph{generalized newtype deriving}, but we refrain from
 % this here for clarity. There is more discussion about the relation
 % to GND in Section~\ref{sec:gnd}.}
 
