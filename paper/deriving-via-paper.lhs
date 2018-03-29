@@ -1052,17 +1052,29 @@ casted to type |b|.
 
 Armed with |coerce|, we can show what code \GND\ would actually
 generate for the |Enum Age| instance above:
+%if style == newcode
+%format Age = Age3
+%format MkAge = MkAge3
 
-< instance Enum Age where
-<   toEnum = coerce (toEnum :: Int -> Int) :: Int -> Age
-<   fromEnum = coerce (fromEnum :: Int -> Int) :: Age -> Int
-<   enumFrom = coerce (enumFrom :: Int -> [Int]) :: Age -> [Age]
+> newtype Age = MkAge Int
+
+%endif
+
+> instance Enum Age where
+>   toEnum =
+>     coerce (TYAPP (Int -> Int)) (TYAPP (Int -> Age)) toEnum
+>   fromEnum =
+>     coerce (TYAPP (Int -> Int)) (TYAPP (Age -> Int)) fromEnum
+>   enumFrom =
+>     coerce (TYAPP (Int -> [Int])) (TYAPP (Age -> [Age])) enumFrom
 
 Now we have a strong guarantee that the |Enum| instance for |Age| has exactly the same
 runtime characteristics as the instance for |Int|. As an added benefit, the code ends up
 being simpler, as every method can be implemented as a straightforward application of
-|coerce|. The only interesting part is generating the two type signatures: one for the
-representation type, and one for the newtype.
+|coerce|.
+The only interesting part is generating the two explicit type arguments~\cite{vta}
+that are being used to specify the source type (using the representation type)
+and the target type (using the newtype) of |coerce|.
 
 \subsubsection{The |Coercible| constraint} \label{sec:coercible}
 
@@ -1133,12 +1145,13 @@ As stated above, it generates the following code for |enumFrom|:
 
 < instance Enum Age where
 <   DDOTS
-<   enumFrom = coerce (enumFrom :: Int -> [Int]) :: Age -> [Age]
+<   enumFrom =
+<     coerce (TYAPP (Int -> [Int])) (TYAPP (Age -> [Age])) enumFrom
 
 Here, there are two crucially important types: the representation type, |Int|, and the
 original newtype itself, |Age|. The implementation of |enumFrom| simply sets up an
-invocation of |coerce enumFrom|, with explicit type annotations to indicate that we should
-reuse the existing |enumFrom| implementation for |Int| and reappropriate it for |Age.|
+invocation of |coerce enumFrom|, with explicit type arguments to indicate that we should
+reuse the existing |enumFrom| implementation for |Int| and reappropriate it for |Age|.
 
 The only difference in the code that \GND\ and \DerivingVia\ generate
 is that in the former strategy, \GHC\ always picks the representation type for you, but in
@@ -1156,8 +1169,8 @@ if a programmer had written this instead:
 
 then the following code would be generated:
 
-< instance Enum Age where
-<   enumFrom = coerce (enumFrom :: T -> [T]) :: Age -> [Age]
+< ??  enumFrom =
+<       coerce (TYAPP (T -> [T])) (TYAPP (Age -> [Age])) enumFrom
 
 This time, \GHC\ coerces from an |enumFrom| implementation for |T| (the |via| type) to
 an implementation for |Age|. (Recall from Section \ref{sec:coercible} that this is
