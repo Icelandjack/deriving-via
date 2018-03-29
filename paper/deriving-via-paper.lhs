@@ -1438,170 +1438,24 @@ pages upon pages!
 Unfortunately, we do not have enough space to document all of these use cases,
 so in this section, we present a cross-section of scenarios in which
 \DerivingVia\ can capture interesting patterns and allow programmers to
-abstract over them in a convenient way. We demonstrate how to:
+abstract over them in a convenient way.
 
-\begin{itemize}
-\item Swiftly define instances of classes in a superclass hierarchy
-      (Section~\ref{sec:superclasses}) and avoid orphan instances
-      (Section~\ref{sec:orphaninstances}).
-\item Codify techniques to achieve asymptotic performance improvements
-      in default implementations of class methods
-      (Section~\ref{sec:asymptotic}).
-\item Generalize the concept of default signatures to allow for
-      \textit{multiple} defaults
-      (Section~\ref{sec:defaultsignatures}).
-\item Share code between types that are \textit{isomorphic}, not just
-      representationally equivalent
-      (Section~\ref{sec:isomorphisms}).
-\end{itemize}
-
-\subsection{Retrofitting superclasses}\label{sec:superclasses}
-%if style /= newcode
-%format FromMonad = "\ty{FromMonad}"
-%format MkFromMonad = "\con{FromMonad}"
-%format Stream = "\ty{Stream}"
-%format Yield = "\con{Yield}"
-%format Done = "\con{Done}"
-%endif
-
-On occasion, the need arises to retrofit an existing type class with a
-superclass, such as when |Monad| was changed to have |Applicative| as
-a superclass (which in turn has |Functor| as a superclass).
-
-One disadvantage of such a change is that if the primary goal is to
-define the |Monad| instance for a type, one now has to write two
-additional instances, for |Functor| and |Applicative|, even though
-these instances are actually determined by the |Monad| instance.
-
-With \DerivingVia, we can capture this fact as a newtype, thereby
-making the process of defining such instances much less tedious:
-
-> newtype FromMonad m a = MkFromMonad (m a)
->   deriving Monad
->
-> instance Monad m => Functor (FromMonad m) where
->   fmap  =  liftM
->
-> instance Monad m => Applicative (FromMonad m) where
->   pure   =  return
->   (<*>)  =  ap
-
-Now, if we have a data type with a |Monad| instance, we can simply derive
-the corresponding |Functor| and |Applicative| instances by
-referring to |FromMonad|:
-
-> data Stream a b = Done b | Yield a (Stream a b)
->   deriving (Functor, Applicative)
->     via (FromMonad (Stream a))
->
-> instance Monad (Stream a) where
->   return = Done
->
->   Yield a k >>= f  =  Yield a (k >>= f)
->   Done b    >>= f  =  f b
-
-% A similar newtype could also be defined to quickly implement the |(<>)| method
-% from the |Semigroup| class in terms of an existing |Monoid| instance
-% (of which |Semigroup| is a superclass).
-
-% \alnote{Several other mechanisms have been proposed to deal with this situation.
-% We should go through them and point out whether they're subsumed by this or not.}
-
-One potentially problematic aspect remains.
-Another proposal~\cite{monad-no-return} has been put forth
-(but has not been implemented, as of now) to remove the |return| method from
-the |Monad| class and make it a synonym for |pure| from |Applicative|.
-The argument is that |return| is redundant, given that |pure| does the
-same thing with a more general type signature. All other prior discussion about
-the proposal aside, it should be noted that removing |return| from the |Monad|
-class would prevent |FromMonad| from working, as then |Monad| instances would
-not have any way to define |pure|.
-~\footnote{A similar, yet somewhat weaker, argument applies to suggested changes
-to relax the constraints of |liftM| and |ap| to merely |Applicative| and to
-change their definitions to be identical to |fmap| and |(<*>)|, respectively.}
-
-\subsection{Avoiding orphan instances}\label{sec:orphaninstances}
-
-Not only can \DerivingVia\ quickly procure type class instances, in some
-cases, it can eliminate the need for certain instances altogether.
-Haskell programmers often want to avoid \emph{orphan instances}: instances
-defined in a separate module from both the type class and data types being
-used. Sometimes, however, it's quite tempting to
-reach for orphan instances, as in the following example adapted
-from a blog post by Gonzalez~\cite{equational-reasoning-at-scale}:
-%if style /= newcode
-%format Plugin = "\ty{Plugin}"
-%format MkPlugin = "\con{Plugin}"
-%endif
-
-> newtype Plugin = MkPlugin (IO (String -> IO ()))
->   deriving Semigroup
-
-In order for this derived |Semigroup| instance to typecheck, there must be a
-|Semigroup| instance for |IO| available. Suppose for a moment that there was
-no such instance for |IO|. How can one work around this issue?
-
-\begin{itemize}
-\item One could patch the \Package{base} library to add the instance for |IO|.
-      But given \Package{base}'s slow release cycle, it would be a while
-      before one could actually use this instance.
-\item Write an orphan instance for |IO|. This works, but is
-      undesirable, as now anyone who uses |Plugin| must incur a
-      possibly unwanted orphan instance.
-\end{itemize}
-
-Luckily, \DerivingVia\ presents a more convenient third option: re-use a
-|Semigroup| instance from \emph{another} data type. Recall the |App|
-data type from Section~\ref{sec:introducingdv} that lets us define a
-|Semigroup| instance by lifting through an |Applicative| instance. As luck would
-have it, |IO| already has an |Applicative| instance, so we can derive the
-desired |Monoid| instance for |Plugin| like so:
-%if style == newcode
-%format Plugin = Plugin2
-%format MkPlugin = MkPlugin2
-%endif
-
-> newtype Plugin = MkPlugin (IO (String -> IO ()))
->  deriving Semigroup
->    via (App IO (String -> App IO ()))
-
-% RGS: I'm leaving this off
-% If, like \cite{twist-pointers}
-% we wanted to sequential composion for |IO ()| rather than lifted
-% behaviour all we need to do is write an adapter type
+% We demonstrate how to:
 %
-% > newtype Seq f = Seq (f ())
-% >
-% > instance Applicative f => Monoid (Seq f) where
-% >   mempty :: Seq f
-% >   mempty = Seq (pure ())
-% >
-% >   mappend :: Seq f -> Seq f -> Seq f
-% >   Seq fs `mappend` Seq gs = Seq (fs *> gs)
-%
-% and derive via
-%
-% <     via (IO (String -> Seq IO))
-%
-% Another example from the same paper can be derived as well:
-%
-% < data Ptr
-% <
-% < newtype ParseAction a = PA (Ptr -> IO a)
-% <   deriving (Functor, Applicative) via
-% <     (Compose ((->) Ptr) IO)
-%
-Note that we have to use |App| twice in the |via| type, corresponding
-to the two occurences of |IO| in the |Plugin| type. This is ok, because
-|App IO| has the same representation as |IO|.
-As desired, we completely bypass the need for a |Semigroup| instance for |IO|.
-
-% %if style == newcode
-%
-% > instance Applicative f => Semigroup (Seq f) where
-% >   (<>) = mappend
-%
-% %endif
+% \begin{itemize}
+% \item Swiftly define instances of classes in a superclass hierarchy
+%       (Section~\ref{sec:superclasses}) and avoid orphan instances
+%       (Section~\ref{sec:orphaninstances}).
+% \item Codify techniques to achieve asymptotic performance improvements
+%       in default implementations of class methods
+%       (Section~\ref{sec:asymptotic}).
+% \item Generalize the concept of default signatures to allow for
+%       \textit{multiple} defaults
+%       (Section~\ref{sec:defaultsignatures}).
+% \item Share code between types that are \textit{isomorphic}, not just
+%       representationally equivalent
+%       (Section~\ref{sec:isomorphisms}).
+% \end{itemize}
 
 \subsection{Asymptotic improvements with ease}\label{sec:asymptotic}
 %if style /= newcode
@@ -2051,24 +1905,45 @@ implementing |pPrint| as follows:
 > instance Show a => Pretty (ShowPPrint a) where
 >   pPrint (MkShowPPrint x) = stringToDoc (show x)
 
-With these |newtype|s in hand, picking between them is as simple as changing
+With these newtypes in hand, choosing between them is as simple as changing
 a single type:
 %if style /= newcode
-%format DataType1 = "\ty{Datatype1}"
-%format DataType2 = "\ty{Datatype2}"
+%format DataType1 = "\ty{DataType1}"
+%format DataType2 = "\ty{DataType2}"
+%else
+
+> data DataType1 = MkDataType1
+>   deriving (Generic)
+
+%endif
+\begin{joincode}%
+
+> ??deriving Pretty via (GenericPPrint  DataType1)
+
+%if style == newcode
+
+> data DataType2 = MkDataType2
+>   deriving (Show)
+
 %endif
 
-< deriving Pretty via (GenericPPrint  DataType1)
-< deriving Pretty via (ShowPPrint     DataType2)
+> ??deriving Pretty via (ShowPPrint     DataType2)
 
+\end{joincode}
 We have seen how \DerivingVia\ makes it quite simple to give names to
 particular defaults, and how toggling between defaults is a matter of
 choosing a name. In light of this, we believe that many current uses of
 \DefaultSignatures\ ought to be removed entirely and replaced with the
-\DerivingVia--based idiom presented in this section. This avoids the need
+\DerivingVia-based idiom presented in this section. This avoids the need
 to bless one particular default, and forces programmers to consider which
 default is best suited to their use case, instead of blindly trusting the
 type class's blessed default to always do the right thing.
+
+An additional advantage is that it allows to decouple the definition of
+such defaults from the site of the class definition. Hence, if a package
+author is hesitant to add a default because that might incur and
+unwanted additional dependency, nothing is lost, and the default can
+simply be added in a separate package.
 
 \subsection{Deriving via isomorphisms}\label{sec:isomorphisms}
 %if style /= newcode
@@ -2091,30 +1966,29 @@ type class's blessed default to always do the right thing.
 
 %endif
 
-So far, all of the examples presented thus far in the paper rely on deriving
+All of the examples presented thus far in the paper rely on deriving
 through data types that have the same runtime representation as the original
-data type. It is worth pointing out, however, that this technique can be
-generalized even further. That is, we can derive through data types that are
-\textit{isomorphic}, not just representationally equal! In this section, we
-cap off the list of examples by showing how techniques from generic
-programming can let us accomplish this feat.
+data type. In the following, however, we point out that---perhaps
+surprisingly---we can also derive through datatypes are are \emph{isomorphic},
+not just representationally equal. To accomplish this feat, we rely
+on techniques from generic programming.
 
 Let us go back to \QuickCheck\ (as in Section~\ref{sec:quickcheck}) once
-more and consider the data type:
+more and consider the data type
 
-> data Track = MkTrack
->     {  title     ::  Title
->     ,  duration  ::  Duration
->     }
+> data Track = MkTrack Title Duration
 
 for which we would like to define an |Arbitrary| instance. Let us further
-assume that we already have instance for both |Title| and |Duration|.
+assume that we already have |Arbitrary| instances for both |Title| and |Duration|.
 
 The \QuickCheck\ library defines an instance for pairs, so we could generate
 values of type |(Title, Duration)|, and in essence, this is exactly what
-we want. But alas, the two types are not inter-|Coercible|, even
-though they are isomorphic (in the sense that one can write a function from
-|Track| to |(Title, Duration)|, and vice versa).
+we want. But unfortunately, the two types are not inter-|Coercible|, even
+though they are isomorphic\footnote{Isomorphic in the sense that we can
+define a function from |Track| to |(Title, Duration)| and vice versa.
+Depending on the class we want to derive, sometimes an even weaker relationship
+between the types is sufficient, but we will focus on the case of isomorphism
+here for reasons of space.}.
 
 However, we can exploit the isomorphism and still get an instance for free,
 and the technique we apply is quite widely applicable in similar situations.
@@ -2130,9 +2004,12 @@ inter-|Coercible| with |a|.
 We choose here to witness an isomorphism between the two types via
 their generic representations: if two types have
 inter-|Coercible| generic representations, we can transform back and forth
-using the |from| and |to| methods of the |Generic| class from |GHC.Generics|.
-~\cite{gdmfh}
+using the |from| and |to| methods of the |Generic| class
+from |GHC.Generics|~\cite{gdmfh}.
 We can use this to define a suitable |Arbitrary| instance for |SameRepAs|:
+%if style /= newcode
+%format Gen = "\ty{Gen}"
+%endif
 
 > instance
 >   (  Generic a, Generic b, Arbitrary b
@@ -2144,7 +2021,8 @@ We can use this to define a suitable |Arbitrary| instance for |SameRepAs|:
 >       coerceViaRep =
 >         to . (coerce :: Rep b () -> Rep a ()) . from
 
-Here, we first use |arbitrary| to give us a |Gen b|, then coerce
+Here, we first use |arbitrary| to give us a generator of type
+|Gen b|, then coerce
 this via the generic representations into an |arbitrary| value
 of type |Gen a|.
 
@@ -2165,12 +2043,160 @@ to obtain the desired |Arbitrary| instance:
 %endif
 
 
->   deriving Generic
->   deriving Arbitrary
->     via (Track `SameRepAs` (String, Duration))
+> ??  deriving Generic
+> ??  deriving Arbitrary
+>       via (Track `SameRepAs` (String, Duration))
 
 With this technique, we can significantly expand the ``equivalence classes''
 of data types that can be used when picking suitable types to derive through.
+
+\subsection{Retrofitting superclasses}\label{sec:superclasses}
+%if style /= newcode
+%format FromMonad = "\ty{FromMonad}"
+%format MkFromMonad = "\con{FromMonad}"
+%format Stream = "\ty{Stream}"
+%format Yield = "\con{Yield}"
+%format Done = "\con{Done}"
+%endif
+
+On occasion, the need arises to retrofit an existing type class with a
+superclass, such as when |Monad| was changed to have |Applicative| as
+a superclass (which in turn has |Functor| as a superclass).
+
+One disadvantage of such a change is that if the primary goal is to
+define the |Monad| instance for a type, one now has to write two
+additional instances, for |Functor| and |Applicative|, even though
+these instances are actually determined by the |Monad| instance.
+
+With \DerivingVia, we can capture this fact as a newtype, thereby
+making the process of defining such instances much less tedious:
+
+> newtype FromMonad m a = MkFromMonad (m a)
+>   deriving Monad
+>
+> instance Monad m => Functor (FromMonad m) where
+>   fmap  =  liftM
+>
+> instance Monad m => Applicative (FromMonad m) where
+>   pure   =  return
+>   (<*>)  =  ap
+
+Now, if we have a data type with a |Monad| instance, we can simply derive
+the corresponding |Functor| and |Applicative| instances by
+referring to |FromMonad|:
+
+> data Stream a b = Done b | Yield a (Stream a b)
+>   deriving (Functor, Applicative)
+>     via (FromMonad (Stream a))
+>
+> instance Monad (Stream a) where
+>   return = Done
+>
+>   Yield a k >>= f  =  Yield a (k >>= f)
+>   Done b    >>= f  =  f b
+
+% A similar newtype could also be defined to quickly implement the |(<>)| method
+% from the |Semigroup| class in terms of an existing |Monoid| instance
+% (of which |Semigroup| is a superclass).
+
+% \alnote{Several other mechanisms have been proposed to deal with this situation.
+% We should go through them and point out whether they're subsumed by this or not.}
+
+One potentially problematic aspect remains.
+Another proposal~\cite{monad-no-return} has been put forth
+(but has not been implemented, as of now) to remove the |return| method from
+the |Monad| class and make it a synonym for |pure| from |Applicative|.
+The argument is that |return| is redundant, given that |pure| does the
+same thing with a more general type signature. All other prior discussion about
+the proposal aside, it should be noted that removing |return| from the |Monad|
+class would prevent |FromMonad| from working, as then |Monad| instances would
+not have any way to define |pure|.
+~\footnote{A similar, yet somewhat weaker, argument applies to suggested changes
+to relax the constraints of |liftM| and |ap| to merely |Applicative| and to
+change their definitions to be identical to |fmap| and |(<*>)|, respectively.}
+
+\subsection{Avoiding orphan instances}\label{sec:orphaninstances}
+
+Not only can \DerivingVia\ quickly procure type class instances, in some
+cases, it can eliminate the need for certain instances altogether.
+Haskell programmers often want to avoid \emph{orphan instances}: instances
+defined in a separate module from both the type class and data types being
+used. Sometimes, however, it's quite tempting to
+reach for orphan instances, as in the following example adapted
+from a blog post by Gonzalez~\cite{equational-reasoning-at-scale}:
+%if style /= newcode
+%format Plugin = "\ty{Plugin}"
+%format MkPlugin = "\con{Plugin}"
+%endif
+
+> newtype Plugin = MkPlugin (IO (String -> IO ()))
+>   deriving Semigroup
+
+In order for this derived |Semigroup| instance to typecheck, there must be a
+|Semigroup| instance for |IO| available. Suppose for a moment that there was
+no such instance for |IO|. How can one work around this issue?
+
+\begin{itemize}
+\item One could patch the \Package{base} library to add the instance for |IO|.
+      But given \Package{base}'s slow release cycle, it would be a while
+      before one could actually use this instance.
+\item Write an orphan instance for |IO|. This works, but is
+      undesirable, as now anyone who uses |Plugin| must incur a
+      possibly unwanted orphan instance.
+\end{itemize}
+
+Luckily, \DerivingVia\ presents a more convenient third option: re-use a
+|Semigroup| instance from \emph{another} data type. Recall the |App|
+data type from Section~\ref{sec:introducingdv} that lets us define a
+|Semigroup| instance by lifting through an |Applicative| instance. As luck would
+have it, |IO| already has an |Applicative| instance, so we can derive the
+desired |Monoid| instance for |Plugin| like so:
+%if style == newcode
+%format Plugin = Plugin2
+%format MkPlugin = MkPlugin2
+%endif
+
+> newtype Plugin = MkPlugin (IO (String -> IO ()))
+>  deriving Semigroup
+>    via (App IO (String -> App IO ()))
+
+% RGS: I'm leaving this off
+% If, like \cite{twist-pointers}
+% we wanted to sequential composion for |IO ()| rather than lifted
+% behaviour all we need to do is write an adapter type
+%
+% > newtype Seq f = Seq (f ())
+% >
+% > instance Applicative f => Monoid (Seq f) where
+% >   mempty :: Seq f
+% >   mempty = Seq (pure ())
+% >
+% >   mappend :: Seq f -> Seq f -> Seq f
+% >   Seq fs `mappend` Seq gs = Seq (fs *> gs)
+%
+% and derive via
+%
+% <     via (IO (String -> Seq IO))
+%
+% Another example from the same paper can be derived as well:
+%
+% < data Ptr
+% <
+% < newtype ParseAction a = PA (Ptr -> IO a)
+% <   deriving (Functor, Applicative) via
+% <     (Compose ((->) Ptr) IO)
+%
+Note that we have to use |App| twice in the |via| type, corresponding
+to the two occurences of |IO| in the |Plugin| type. This is ok, because
+|App IO| has the same representation as |IO|.
+As desired, we completely bypass the need for a |Semigroup| instance for |IO|.
+
+% %if style == newcode
+%
+% > instance Applicative f => Semigroup (Seq f) where
+% >   (<>) = mappend
+%
+% %endif
 
 \section{Related Ideas}\label{sec:related}
 
