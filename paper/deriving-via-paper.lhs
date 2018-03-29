@@ -160,7 +160,7 @@ To overcome this deficit, we introduce \DerivingVia, an extension to |deriving|
 that enables programmers to compose instances from named programming
 patterns, thereby turning |deriving| into a high-level domain-specific language for
 defining instances. \DerivingVia leverages newtypes---an already
-familiar tool of the Haskell trade---to give names to recurring patterns in a
+familiar tool of the Haskell trade---to declare recurring patterns in a
 way that both feels natural and allows a high degree of abstraction.
 
 % In this paper, we describe how to capture such rules as Haskell
