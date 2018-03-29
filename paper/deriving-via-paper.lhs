@@ -316,16 +316,15 @@ which is extremely unsatisfactory:
 \begin{itemize}
 \item It is not obvious that we are instantiating a general principle.
 \item Because the general principle is not written down in code
-  with a name and documentation it has to be communicated by folklore
+  with a name and documentation, it has to be communicated by folklore
   or in comments and is difficult to discover and search for. Our code
   has lost a connection to its origin.
 \item There are many such rules, some quite obvious, but
-  some more surprising and easy to miss.
+  others more surprising and easy to overlook.
 \item While for |Monoid|---which only has two methods---the work required to
   define the instance manually is perhaps acceptable, it quickly becomes
   extremely tedious and error-prone for classes with many methods.
 \end{itemize}
-
 
 As an illustration of the final point, consider |Num|. There is a way
 to lift a |Num| instance through any |Applicative|
@@ -365,8 +364,8 @@ functor:\footnote{There are similar ways to lift |Floating| and |Fractional|.}
 
 %}
 Defining such a boilerplate instance manually for a concrete type constructor
-is so annoying that Conal Elliott has introduced a preprocessor for this particular
-use case several years ago.~\cite{applicative-numbers}
+is so annoying that Conal Elliott has introduced a preprocessor~\cite{applicative-numbers}
+for this particular use case several years ago.
 % \alnote{And Conal is by no means alone: see
 % https://gist.github.com/Icelandjack/e1ddefb0d5a79617a81ee98c49fbbdc4\#a-lot-of-things-we-can-find-with-define
 % We cannot put a gist dump like this into a paper. We might want to make a selection,
@@ -374,50 +373,60 @@ use case several years ago.~\cite{applicative-numbers}
 
 \subsection{Deriving}
 
-Those familiar with Haskell's deriving mechanism may wonder why this
-cannot simply be derived but in reality our options are very limited.
+Those familiar with Haskell's deriving mechanism may wonder why we
+cannot simply derive all the instances we just discussed.
+But in reality, our options are very limited.
 
-|Monoid| is not one of the few blessed type classes that GHC has
+To start, |Monoid| is not one of the few blessed type classes that GHC has
 built-in support to derive. It so happens that |(IO a)|, |(ST s a)|
-and |(Endo a)| are all newtypes so they are eligible for
-\emph{generalized newtype deriving} (GND) where they would derive
+and |(Endo a)| are all newtypes, so they are in principle eligible for
+\emph{generalized newtype deriving} (\GND) where they would derive
 their instance via the instance of their underlying
-type~\cite{zero-cost-coercions} but this gives us the wrong definition
-in all three cases (even if it worked for the first two, which it
-doesn't).
+type~\cite{zero-cost-coercions}. However, this would give us the
+wrong definition in all three cases.
+% (even if it worked for the first two, which it
+% doesn't).
 
 Our last hope is that the the |Monoid| type class has the right
-generic implementation ~\cite{gdmfh}. If that were the case we could
-use a deriving clause, and with nearly no work, we get the compiler to
-generate the an instance of that rule for us.
+generic implementation~\cite{gdmfh}. If that were the case, we could
+use a deriving clause using the @DeriveAnyClass@ extension, and
+thereby get the compiler to generate an instance for us.
 
-However, that is not the case. There is no generic implementation for
-|Monoid|, a class from \Package{base} that we have no control over.
-But a generic instance, if it exists, captures a single rule over
-all others, so we couldn't use it to derive a monoid instance for
-lists as well as |(ST s a)|. We have no other choice but to write some
+However, there is no generic implementation for
+|Monoid|, a class from \Package{base} that is very difficult to change.
+But even if a generic instance existed, it would capture a \emph{single}
+rule over all others, so we couldn't ever use it to derive both the
+monoid instance for lists and that for |ST s a|.
+
+We thus have no other choice but to write some
 instances by hand. This means that we have to provide explicit
 implementations of at least a minimal subset of the class methods.
 
-There is no middle ground and the difference can be
+There is no middle ground, and the additional work required
+compared with |deriving| can be
 drastic---especially if the class has many methods---so the option of
-|deriving| remains tantalizing.
-
-In this paper, we introduce \DerivingVia, a new language extension that
-bridges this gap. With \DerivingVia, we can vastly increase the number
-of type class instances that we can derive. As a result,
-we no longer have to rely on a few (if any at all) essentially
-pre-defined ways to define a particular class instance. Instead,
-we can teach the compiler new rules for deriving classes, and
-select the one we want using a high-level description.
-
-Our extension is light-weight in the sense that it is easy to
-implement and builds on concepts that are already in the language
-such as deriving strategies, newtypes, and safe coercions. Furthermore, it
-naturally generalizes a number of language extensions such as
-generalized newtype deriving and default signatures.
+using |deriving| remains tantalizing.
 
 \subsection{Introducing \DerivingVia}\label{sec:introducingdv}
+
+We are now going to address this unfortunate lack of abstraction
+and try to bridge the gap between manually defined instances and
+the few available |deriving| mechanisms we have at our disposal.
+
+Our approach has two parts:
+\begin{enumerate}
+\item We capture general rules for defining new instances using
+  newtypes.
+\item We introduce \DerivingVia, a new language construct
+  that allows us to use such newtypes to explain to the compiler
+  exactly how to construct the instance without having to write
+  it by hand.
+\end{enumerate}
+
+As a result, we are no longer limited to a fixed set of predefined
+ways to define a particular class instances, but can teach the
+compiler new rules for deriving classes, selecting the one we want
+using a high-level description.
 %if style /= newcode
 %format App = "\ty{App}"
 %format Alt = "\ty{Alt}"
@@ -425,18 +434,9 @@ generalized newtype deriving and default signatures.
 %format MkAlt = "\con{Alt}"
 %endif
 
-Our approach to deal with this unfortunate lack of abstraction
-has two parts:
-\begin{enumerate}
-\item We capture general rules for defining new instances using
-  newtypes.
-\item We use such newtypes in a new \DerivingVia language
-  construct to explain to the compiler how to construct the
-  instance without having to write it manually.
-\end{enumerate}
-
+Let us look at examples.
 For the \emph{first part},
-let us revisit the rule that explains how to lift a monoid
+we revisit the rule that explains how to lift a monoid
 instance through an applicative functor. We can turn the problematic
 generic and overlapping instance for |Monoid (f a)| into an entirely
 unproblematic instance by defining a suitable \emph{adapter}
@@ -522,7 +522,7 @@ construct.
 \subsection{Contributions and structure of the paper}
 
 The paper is structured as follows:
-
+%
 In Section~\ref{sec:quickcheck}, we use the \QuickCheck\ library
 as a case study to explain in more detail how \DerivingVia can
 be used, and how it works.
