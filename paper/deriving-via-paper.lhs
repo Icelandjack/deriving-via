@@ -157,10 +157,10 @@ if a particular class lies outside of this subset, then one cannot derive it
 at all, leaving no alternative except to declare instances of it by hand, which
 is often tedious.
 
-To overcome this deficit, we introduct \DerivingVia\, an extension to deriving
-that enables programmers to codify programming patterns and derive them for
-type classes of their choosing, making the |deriving| keyword feel more like
-typical higher-order programming. \DerivingVia leverages newtypes---an already
+To overcome this deficit, we introduce \DerivingVia, an extension to deriving
+that enables programmers derive instances by composing named programming
+patterns, thereby turning |deriving| into a high-level domain-specific language for
+defining instances. \DerivingVia leverages newtypes---an already
 familiar tool of the Haskell trade---to give names to recurring patterns in a
 way that both feels natural and allows a high degree of abstraction.
 
