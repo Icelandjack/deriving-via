@@ -243,7 +243,9 @@ way that both feels natural and allows a high degree of abstraction.
 
 In Haskell, type classes capture common interfaces. When defining
 class instances we often happen upon repeated patterns where different
-instances have the same definition.
+instances have the same definition. For example, the following
+instance declarations appear in the \Package{base} package of
+the Glasgow Haskell Compiler (\GHC):
 
 > instance Monoid a => Monoid2 (IO a) where
 >   mempty2   =  pure mempty
@@ -253,12 +255,12 @@ instances have the same definition.
 >   mempty2   =  pure mempty
 >   mappend2  =  liftA2 mappend
 
-These instance declarations appear in the \GHC \Package{base} package
-and have identical instance bodies. This rule is not limited to |IO|
+They have identical instance bodies. The underlying pattern is
+not limited to |IO|
 and |(ST s)| but will work for any applicative functor~|f|.
 
 It is tempting to avoid this obvious repetition by defining an
-instance for all such types in one fell swoop.
+instance for all such types in one fell swoop:
 
 > instance (Applicative f, Monoid a)
 >   => Monoid2 (f a) where
@@ -273,32 +275,32 @@ backtrack. Consider:
 
 > newtype Endo a = MkEndo (a -> a) -- Data.Monoid
 
-|Endo| is not even a |Functor|, yet it admits a perfectly valid monoid
-instance that overlaps with the lifted instance above.
+While |Endo| is not even a |Functor|, it still admits a perfectly valid
+|Monoid| instance that overlaps with the general instance above:
 
 > instance overlapping (Monoid2 (Endo a)) where
 >   mempty2 = MkEndo id
 >   mappend2 (MkEndo f) (MkEndo g) = MkEndo (f . g)
 
-Even if we have an |Applicative| functor~|f| on our hands there is no
-guarantee that this is the definition we want. Lists are notably the
+Even if we have an applicative functor~|f| on our hands, there is no
+guarantee that this is the definition we want. Notably, lists are the
 \emph{free monoid} (the most `fundamental' monoid) but that instance
 does not coincide with the rule above and in particular, imposes no
-|(Monoid a)| constraint.
+|(Monoid a)| constraint:
 
 > instance Monoid2 [a] where
 >   mempty2   =  []
 >   mappend2  =  (++)
 
 In fact, the monoid instance for lists is captured by a
-\textit{different} rule based on |Alternative|:
+\emph{different} rule based on |Alternative|:
 
 > instance Alternative f => Monoid3 (f a) where
 >   mempty3   =  empty
 >   mappend3  =  (<|>)
 
-Because instance resolution never backtracks we can't define these two
-distinct rules for~|Monoid (f a)|, even with overlapping instances.
+Because instance resolution never backtracks, we can't define these two
+distinct rules for~|Monoid (f a)|, not even with overlapping instances.
 
 % (TODO) It is worth noting that the monoid instance for |(Endo a)| is captured by a slightly different rule based on |Category|:
 %
@@ -307,7 +309,7 @@ distinct rules for~|Monoid (f a)|, even with overlapping instances.
 % <   mempty3  =  (.)
 
 The only viable workaround using the Haskell type class system is to
-write an instances for each data type by hand, each one with an
+write the instances for each data type by hand, each one with an
 identical definition (like the instances for |(IO a)| and |(ST s a)|)
 which is extremely unsatisfactory:
 
@@ -435,7 +437,7 @@ has two parts:
 
 For the \emph{first part},
 let us revisit the rule that explains how to lift a monoid
-instance through an |Applicative| functor. We can turn the problematic
+instance through an applicative functor. We can turn the problematic
 generic and overlapping instance for |Monoid (f a)| into an entirely
 unproblematic instance by defining a suitable \emph{adapter}
 newtype~\cite{iterator-pattern} and wrapping
@@ -1984,7 +1986,7 @@ simply be added in a separate package.
 All of the examples presented thus far in the paper rely on deriving
 through data types that have the same runtime representation as the original
 data type. In the following, however, we point out that---perhaps
-surprisingly---we can also derive through datatypes are are \emph{isomorphic},
+surprisingly---we can also derive through data types that are \emph{isomorphic},
 not just representationally equal. To accomplish this feat, we rely
 on techniques from generic programming.
 
