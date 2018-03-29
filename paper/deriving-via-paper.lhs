@@ -532,8 +532,9 @@ typecheck and translate \DerivingVia\ clauses.
 In Section~\ref{sec:usecases}, we discuss several additional
 applications of \DerivingVia.
 %
-We discuss related ideas in Section~\ref{sec:related} and
-conclude in Section~\ref{sec:conclusions}.
+We discuss related ideas in Section~\ref{sec:related}, describe
+the current status of our extension in Section~\ref{sec:status}
+and conclude in Section~\ref{sec:conclusions}.
 
 Our extension is fully implemented in a \GHC\
 branch\footnote{\url{https://github.com/RyanGlScott/ghc/tree/deriving-via}},
@@ -2259,7 +2260,7 @@ solve---resolving ambiguity in implicit arguments---almost never arises
 in \DerivingVia, as the programmer must specify all the types involved
 in the process.
 
-\section{Current status}\label{sec:conclusions}
+\section{Current status}\label{sec:status}
 
 We have implemented \DerivingVia\ within \GHC.
 Our implementation also interacts well with other \GHC\ features that were
@@ -2485,7 +2486,7 @@ ambiguity.
 %
 % and deriving an instance for |Cons (ZipList a) (ZipList b) a b|.
 
-\subsection{Conclusions}
+\section{Conclusions}\label{sec:conclusions}
 
 In this paper, we have introduced the \DerivingVia\ language
 extension, explained how it is implemented, and shown a wide
