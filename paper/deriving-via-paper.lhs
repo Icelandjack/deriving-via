@@ -2157,7 +2157,7 @@ from a blog post by Gonzalez~\cite{equational-reasoning-at-scale}:
 
 In order for this derived |Semigroup| instance to typecheck, there must be a
 |Semigroup| instance for |IO| available. Suppose for a moment that there was
-no such instance for |IO|. How can one work around this issue?
+no such instance for |IO|. How could one work around this issue?
 
 \begin{itemize}
 \item One could patch the \Package{base} library to add the instance for |IO|.
@@ -2253,7 +2253,7 @@ normally implicit dictionary arguments corresponding to type class instances
 ~\cite{implicit-params-explicit}. Unlike in \DerivingVia, where going between
 class instances is a process that is carefully guided by the compiler,
 permitting explicit dictionary arguments would allow users to actually
-coerce concrete instance values and pass them around as first-class objects.
+coerce concrete instance values and pass them around as first-class values.
 In this sense, explicit dictionary arguments could be thought of as a further
 generalization of the technique that \DerivingVia\ uses.
 
@@ -2498,9 +2498,9 @@ ambiguity.
 In this paper, we have introduced the \DerivingVia\ language
 extension, explained how it is implemented, and shown a wide
 variety of use cases. We believe that \DerivingVia\ has
-the potential to dramatically change the way we write instances:
-We are encouraged to give names to recurring patterns, and to
-reuse them where needed. It is our feeling that most instance
+the potential to dramatically change the way we write instances,
+as it encourages giving names to recurring patterns and reusing them
+where needed. It is our feeling that most instance
 declarations that occur in the wild can actually be derived
 by using a pattern that deserves to be known and named,
 and that instances defined manually should become an anti-pattern
