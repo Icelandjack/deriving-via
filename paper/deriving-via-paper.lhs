@@ -1885,9 +1885,9 @@ Parallel Legacy Languages as Theorem Provers (deriving
 
 In the previous section, we saw an example of how relying too much on a type
 class's default implementations can backfire. Indeed, this is an unfortunately
-common trend with type classes in general. Many classes try to pick a
+common trend with type classes in general. Many classes try to pick
 one-size-fits-all defaults that don't work well in certain scenarios, but
-because Haskell allows specifying one default per method, if the provided
+because Haskell allows specifying only one default per method, if the provided
 default doesn't work for a programmer's use case, then she is forced to
 implement her own implementations by hand.
 
@@ -1900,10 +1900,6 @@ Here, we demonstrate how one can scrap uses of
 \DefaultSignatures\ in favor of \DerivingVia, and show how \DerivingVia\
 can overcome the limitations of \DefaultSignatures.
 
-The typical use case for \DefaultSignatures\ when one has a type class method
-that has a frequently used default implementation at a different type.
-For instance, consider a |Pretty| class with a method |pPrint| for
-pretty-printing data:
 %if style /= newcode
 %format Pretty = "\cl{Pretty}"
 %format pPrint = "\id{pPrint}"
@@ -1935,6 +1931,10 @@ pretty-printing data:
 >   deriving (Show, Generic)
 
 %endif
+The typical use case for \DefaultSignatures\ when one has a type class method
+that has a frequently used default implementation at a different type.
+For instance, consider a |Pretty| class with a method |pPrint| for
+pretty-printing data:
 
 > class Pretty a where
 >   pPrint :: a -> Doc
