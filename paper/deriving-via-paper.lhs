@@ -269,7 +269,7 @@ instance for all such types in one fell swoop.
 
 Unfortunately, this general instance is undesirable as it overlaps
 with all other |(f a)|-instances. Instance resolution will match the
-instance head first before considering the context: whether |f| is
+instance head first before considering the context, whether |f| is
 applicative or not. Once it has commited to an instance it will never
 backtrack. Consider:
 
@@ -315,8 +315,8 @@ which is extremely unsatisfactory:
 
 \begin{itemize}
 \item It is not obvious that we are instantiating a general principle.
-\item Because the general principle is not written down in code 
-  with a name and documentation it has to be communicated by folklore 
+\item Because the general principle is not written down in code
+  with a name and documentation it has to be communicated by folklore
   or in comments and is difficult to discover and search for. Our code
   has lost a connection to its origin.
 \item There are many such rules, some quite obvious, but
@@ -383,8 +383,8 @@ and |(Endo a)| are all newtypes so they are eligible for
 \emph{generalized newtype deriving} (GND) where they would derive
 their instance via the instance of their underlying
 type~\cite{zero-cost-coercions} but this gives us the wrong definition
-in all three cases (even if it worked for the first two (which it
-doesn't)).
+in all three cases (even if it worked for the first two, which it
+doesn't).
 
 Our last hope is that the the |Monoid| type class has the right
 generic implementation ~\cite{gdmfh}. If that were the case we could
@@ -392,8 +392,8 @@ use a deriving clause, and with nearly no work, we get the compiler to
 generate the an instance of that rule for us.
 
 However, that is not the case. There is no generic implementation for
-|Monoid|, a class from \Package{base} that we have no control over
-it. But a generic instance, if it exists, captures a single rule over
+|Monoid|, a class from \Package{base} that we have no control over.
+But a generic instance, if it exists, captures a single rule over
 all others, so we couldn't use it to derive a monoid instance for
 lists as well as |(ST s a)|. We have no other choice but to write some
 instances by hand. This means that we have to provide explicit
@@ -401,7 +401,7 @@ implementations of at least a minimal subset of the class methods.
 
 There is no middle ground and the difference can be
 drastic---especially if the class has many methods---so the option of
-|deriving| remains tantalizing. 
+|deriving| remains tantalizing.
 
 In this paper, we introduce \DerivingVia, a new language extension that
 bridges this gap. With \DerivingVia, we can vastly increase the number
