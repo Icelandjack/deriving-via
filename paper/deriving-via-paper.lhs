@@ -937,7 +937,7 @@ In particular, the following conditions must hold:
 
  \item
    The kinds |V (sub v 1) DOTS (sub v p)| and |D (sub d 1) DOTS (sub d i)|, and the
-   kind of the argument of |C (sub c 1) DOTS (sub c n)| must all unify.
+   kind of the argument to |C (sub c 1) DOTS (sub c n)| must all unify.
    This check rules out the above example of |deriving Eq via Maybe|, as it does
    not even make sense to talk about
    reusing the |Eq| instance for |Maybe|---which is of kind |(TYPE -> TYPE)|---as |Eq| instances
@@ -946,8 +946,9 @@ In particular, the following conditions must hold:
 
 \subsubsection{Eta-reducing the data type}\label{sec:eta}
 
-Note that the conditions above, |D (sub d 1) DOTS (sub d i)| (for some |i|), instead of
-|D (sub d 1) DOTS (sub d m)|. That is because in general, the kind of
+Note that in the conditions above, we specify
+|D (sub d 1) DOTS (sub d i)| (for some |i|), instead of
+|D (sub d 1) DOTS (sub d m)|. That is because in general, the kind of the argument to
 |C (sub c 1) DOTS (sub c n)| is allowed to be different from the kind of
 |D (sub d 1) DOTS (sub d m)|! For instance, the following example is perfectly legitimate:
 %if style == newcode
@@ -969,7 +970,7 @@ because the code that actually gets generated has the following shape:
 < instance Functor Foo where DOTS
 
 To put it differently, we have \emph{eta-reduced} away the |a| in |Foo a| before applying
-|Functor| to it. The power to eta-reduce variables from the data types is part of what
+|Functor| to it. The power to eta-reduce variables from the data type is part of what
 makes deriving clauses so flexible.
 
 To determine how many variables to eta-reduce,
