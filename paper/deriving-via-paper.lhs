@@ -1070,7 +1070,7 @@ which can break programs if used carelessly, |coerce| is completely type-safe du
 use of the |Coercible| constraint. We will explain |Coercible| in more detail later, but for now,
 it suffices to say that a |Coercible a b| constraint witnesses the fact that two types |a|
 and |b| have the same representation at runtime, and thus any value of type |a| can be
-casted to type |b|.
+safely casted to type |b|.
 
 Armed with |coerce|, we can show what code \GND\ would actually
 generate for the |Enum Age| instance above:
@@ -1107,7 +1107,7 @@ automatically as part of its built-in constraint solver, much like it can solve 
 constraints. (Indeed, |Coercible| can be thought of as a broader notion of equality among
 types.)
 
-As mentioned in the previous section, a newtype can be safely cast to and from its
+As mentioned in the previous section, a newtype can be safely casted to and from its
 representation type, so \GHC\ treats them as inter-|Coercible|. Continuing our earlier example,
 this would mean that \GHC\ would be able to conclude that:
 
@@ -1277,22 +1277,22 @@ derive multiple classes at once with a single |via| type:
 
 %endif
 
-Suppose we first quantified the variables in the derived classes and
-\emph{then} the variables in the |via| type. Because each derived class
-has its own type variable scope, the |a| in |C1 a| is bound independently from
-the |a| in |C2 a|. In other words, we have something like this (using a
+Suppose we first quantified the variables in the derived classes and made them
+scope over the |via| type. Because each derived class
+has its own type variable scope, the |a| in |C1 a| would be bound independently from
+the |a| in |C2 a|. In other words, we would have something like this (using a
 hypothetical |forall| syntax):
 
 < ??deriving (forall a. C1 a, forall a. C2 a) via (T a)
 
 Now we are faced with a thorny question: which |a| is used in the |via| type,
 |T a|? There are multiple choices here, since the |a| variables in
-|C1 a| and |C2 a| are distinct! This is an important choice, since the kinds
+|C1 a| and |C2 a| are distinct! This is an important decision, since the kinds
 of |C1| and |C2| might differ, so the choice of |a| could affect whether
 |T a| kind-checks or not.
 
-On the other hand, if one binds the |a| in |T a| first, then this becomes a
-non-issue. We would instead have this:
+On the other hand, if one binds the |a| in |T a| first and has it scope over
+the derived classes, then this becomes a non-issue. We would instead have this:
 
 < ??deriving (C1 a, C2 a) via (forall a. T a)
 
@@ -1300,7 +1300,7 @@ Now, there is no ambiguity regarding |a|, as both |a| variables in the list of
 derived classes were bound in the same place.
 
 It might feel strange visually to see a variable being used
-\emph{before} of its binding site (assuming one reads code from left to right).
+\emph{before} its binding site (assuming one reads code from left to right).
 However, this is not unprecedented within Haskell, as this is also legal:
 %{
 %if style /= newcode
