@@ -12,6 +12,5 @@ executable deriving-via-paper
   build-depends:
     base,
     mtl,
-    profunctors,
     QuickCheck,
     transformers-compat < 0.6

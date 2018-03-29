@@ -81,7 +81,6 @@
 > import Control.Monad.ST
 > import Data.Coerce
 > import Data.Kind
-> import Data.Profunctor
 > import Data.Proxy
 > import GHC.Generics hiding (C, C1, Rep)
 > import qualified GHC.Generics as GHC
