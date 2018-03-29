@@ -541,16 +541,16 @@ and conclude in Section~\ref{sec:conclusions}.
 
 Our extension is fully implemented in a \GHC\
 branch\footnote{\url{https://github.com/RyanGlScott/ghc/tree/deriving-via}},
-and we are working on a proposal to include it into \GHC, so it will hopefully
-be available in one of the next releases of \GHC.
+and we are working on a proposal to incorporate it into \GHC proper,
+so it will hopefully be available in a future release of \GHC.
 
 The idea of \DerivingVia\ is surprisingly simple, yet it has
-a number of powerful and perhaps surprising properties:
+a number of powerful and equally surprising properties:
 \begin{itemize}
-\item It generalizes the \emph{generalized newtype deriving}
+\item It further generalizes the \emph{generalized newtype deriving}
   extension. (Section~\ref{sec:gnd}).
 
-\item It generalizes the concept of \emph{default signatures}.
+\item It additionally generalizes the concept of \emph{default signatures}.
   (Section~\ref{sec:defaultsignatures}).
 
 \item It provides a possible solution to the problem of
@@ -558,9 +558,10 @@ a number of powerful and perhaps surprising properties:
   new superclasses (such as |Applicative| for |Monad|,
   Section~\ref{sec:superclasses}).
 
-\item It allows to reuse instances not just from representationtally
-  equal, but also from isomorphic or similarly related
-  types~\ref{sec:isomorphisms}).
+\item It allows for reusing instances not just between
+  representationtally equal types,
+  but also between isomorphic or similarly related
+  types (Section~\ref{sec:isomorphisms}).
 \end{itemize}
 
 \section{Case study: \QuickCheck}\label{sec:quickcheck}
