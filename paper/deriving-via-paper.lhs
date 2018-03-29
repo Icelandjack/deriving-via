@@ -244,7 +244,7 @@ way that both feels natural and allows a high degree of abstraction.
 In Haskell, type classes capture common interfaces. When defining
 class instances, we often discover repeated patterns where different
 instances have the same definition. For example, the following
-instance declarations appear in the \Package{base} library of
+instances appear in the \Package{base} library of
 the Glasgow Haskell Compiler (\GHC):
 
 > instance Monoid a => Monoid2 (IO a) where
@@ -299,7 +299,7 @@ In fact, the monoid instance for lists is captured by a
 >   mappend3  =  (<|>)
 
 Because instance resolution never backtracks, we can't define these two
-distinct rules for~|Monoid (f a)| simultaneously, even with overlapping instances.
+distinct rules for~|Monoid (f a)| at the same time, even with overlapping instances.
 
 % (TODO) It is worth noting that the monoid instance for |(Endo a)| is captured by a slightly different rule based on |Category|:
 %
@@ -389,8 +389,9 @@ wrong definition in all three cases.
 
 Our last hope is that the the |Monoid| type class has a suitable,
 generic default implementation~\cite{gdmfh}. If that were the case,
-we could use a deriving clause using the @DeriveAnyClass@ extension, and
-thereby get the compiler to generate an instance for us.
+we could use a deriving clause in conjunction with the
+@DeriveAnyClass@ extension, and thereby get the compiler to generate
+an instance for us.
 
 However, there is no generic default for |Monoid|, a standard class from the
 \Package{base} library (which would be difficult to change). But even if
@@ -489,7 +490,7 @@ for free.
 In the deriving clause, |via| is a new language construct that
 explains \emph{how} \GHC\
 should derive the instance, namely by reusing the |Monoid| instance
-already available for the given |via| type, |App Maybe a|.
+already available for the |via| type, |App Maybe a|.
 It should be easy to see why this works:
 due to the use of a newtype, |App Maybe a| has the same internal
 representation as |Maybe a|, and any instance available on one type can
