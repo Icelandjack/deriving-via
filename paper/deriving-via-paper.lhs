@@ -773,10 +773,10 @@ enumeration type:
 \subsection{Parameterized modifiers}
 
 Sometimes, we might want to parameterize a generator with extra data.
-We can do so by using a modifier that has extra arguments, and using
-the extra arguments in the associated |Arbitrary| instance.
+We can do so by defining a modifier that has extra arguments and using
+those extra arguments in the associated |Arbitrary| instance.
 
-An extreme case that also makes use from type-level programming features
+An extreme case that also makes use of type-level programming features
 in \GHC\ is a modifier that allows us to specify a lower and an upper bound
 of a generated natural number.
 %if style /= newcode
@@ -807,7 +807,7 @@ of a generated natural number.
 |MkProxy (TYAPP l)| and |MkProxy (TYAPP u)|.)
 
 We can then equip an application-specific type for years with
-a generator implementing respecting a plausible range:
+a generator that lies within a plausible range:
 
 > newtype Year = MkYear Int
 >   deriving Show
