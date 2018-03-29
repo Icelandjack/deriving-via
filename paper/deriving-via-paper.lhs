@@ -2043,7 +2043,8 @@ implementing |pPrint| as follows:
 
 > newtype GenericPPrint a = MkGenericPPrint a
 >
-> instance (Generic a, GPretty (Rep a)) => Pretty (GenericPPrint a) where
+> instance (Generic a, GPretty (Rep a))
+>     => Pretty (GenericPPrint a) where
 >   pPrint (MkGenericPPrint x) = genericPPrint x
 >
 > newtype ShowPPrint a = MkShowPPrint a
