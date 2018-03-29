@@ -150,20 +150,19 @@
 
 \begin{abstract}
 
-Haskell sports a simple yet incredibly powerful interface for generic
-programming, the |deriving| mechanism. Many instances follow exactly
-the same pattern which we want to derive. Why write boring class
-instances when the compiler can generate them for you?
+Haskell's |deriving| construct is a cheap and cheerful way to quickly generate
+instances of type classes that follow common patterns. But at present, there
+are only a subset of such type class patterns that |deriving| supports, and
+if a particular class lies outside of this subset, then one cannot derive it
+at all, leaving no alternative except to declare instances of it by hand, which
+is often tedious.
 
-But what can be derived and do we always get the right functionality?
-Current best practice is coupling a type class with a single
-distinguished pattern: but we are at the mercy of the class author!
-There is no way to override the pattern they chose (if they chose one
-at all!) so the user must write copy-paste instances by hand.
-
-This paper seeks to de-couple the type class and the pattern to
-use. Instead we use standard Haskell practices and capture them as
-normal data types with instances.
+To overcome this deficit, we introduct \DerivingVia\, an extension to deriving
+that enables programmers to codify programming patterns and derive them for
+type classes of their choosing, making the |deriving| keyword feel more like
+typical higher-order programming. \DerivingVia leverages newtypes---an already
+familiar tool of the Haskell trade---to give names to recurring patterns in a
+way that both feels natural and allows a high degree of abstraction.
 
 % Haskell instance declarations fall into one of two categories:
 % either we can use the |deriving| construct and get the instance
