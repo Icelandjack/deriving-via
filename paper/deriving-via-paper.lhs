@@ -423,8 +423,8 @@ Our approach has two parts:
 \end{enumerate}
 
 As a result, we are no longer limited to a fixed set of predefined
-ways to define a particular class instances, but can teach the
-compiler new rules for deriving classes, selecting the one we want
+ways to define particular class instances, but can instead teach the
+compiler new rules for deriving instances, selecting the one we want
 using a high-level description.
 %if style /= newcode
 %format App = "\ty{App}"
@@ -449,7 +449,7 @@ the instance head in it:
 >   mempty4 = MkApp (pure mempty4)
 >   mappend4 (MkApp f) (MkApp g) = MkApp (liftA2 mappend4 f g)
 
-Since \GHC\ 8.4, we also need a |Semigroup| instance, because it just became
+Since \GHC\ 8.4, we also need a |Semigroup| instance, because it is now
 a superclass of |Monoid|\footnote{See Section~\ref{sec:superclasses} for
 a more detailed discussion of this aspect.}:
 
@@ -488,16 +488,19 @@ for free.
 
 In the deriving clause, |via| is a new language construct that
 explains \emph{how} \GHC\
-should derive the instance, namely by reusing the instance already
-available for the given type. It should be easy to see why this works:
+should derive the instance, namely by reusing the |Monoid| instance
+already available for the given |via| type, |App Maybe a|.
+It should be easy to see why this works:
 due to the use of a newtype, |App Maybe a| has the same internal
 representation as |Maybe a|, and any instance available on one type can
-be made to work on a representationally equal type as well.
+be made to work on the other by suitably wrapping or unwrapping a newtype.
+In more precise language, |App Maybe a| and |Maybe a| are
+\textit{representationally equal}.
 
 The |MODULE Data.Monoid| module defines many further
 adapters that can readily be used with \DerivingVia. For example,
 the rule that obtains a |Monoid| instance from an |Alternative|
-instance is already implemented in terms of |Alt|:%
+instance is already available through the |Alt| newtype:%
 % \footnote{The |Monoid4| and |Semigroup| instance for |App| and |Alt|
 % can be made even more concise if additionally employ
 % \emph{generalized newtype deriving}, but we refrain from
