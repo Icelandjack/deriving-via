@@ -257,7 +257,7 @@ the Glasgow Haskell Compiler (\GHC):
 >   mappend2  =  liftA2 mappend
 
 These have completely identical instance bodies. The underlying pattern works
-not only for |IO| and |ST s|, but also for any applicative functor~|f|.
+not only for |IO| and |ST s|, but for any applicative functor~|f|.
 
 It is tempting to avoid this obvious repetition by defining an
 instance for all such types in one fell swoop:
@@ -275,7 +275,7 @@ backtrack. Consider:
 
 > newtype Endo a = MkEndo (a -> a) -- Data.Monoid
 
-|Endo| is not an applicative functor, but it still admits a perfectly valid
+Here, |Endo| is not an applicative functor, but it still admits a perfectly valid
 |Monoid| instance that overlaps with the general instance above:
 
 > instance overlapping (Monoid2 (Endo a)) where
@@ -381,14 +381,14 @@ Unfortunately, our options are very limited.
 To start, |Monoid| is not one of the few blessed type classes that GHC has
 built-in support to derive. It so happens that |(IO a)|, |(ST s a)|
 and |(Endo a)| are all newtypes, so they are in principle eligible for
-\emph{generalized newtype deriving} (\GND), in which they could derive
-their instances by reusing the instances of their underlying
+\emph{generalized newtype deriving} (\GND), in which their instances
+could be derived by reusing the instances of their underlying
 types~\cite{zero-cost-coercions}. However, this would give us the
 wrong definition in all three cases.
 % (even if it worked for the first two, which it
 % doesn't).
 
-Our last hope is that the the |Monoid| type class has a suitable,
+Our last hope is that the the |Monoid| type class has a suitable
 generic default implementation~\cite{gdmfh}. If that were the case,
 we could use a deriving clause in conjunction with the
 @DeriveAnyClass@ extension, and thereby get the compiler to generate
@@ -718,7 +718,7 @@ and derive an instance which only generates |Duration| values that are both
 non-negative \emph{and} large.
 This works because |Duration| still shares the same runtime representation as
 |NonNegative (Large Int)| (namely, that of~|Int|), so the latter's
-|Arbitrary| instance can still be reused.
+|Arbitrary| instance can be reused.
 
 \subsection{Adding new modifiers}
 
