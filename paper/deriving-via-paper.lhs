@@ -2392,7 +2392,6 @@ For example, one can write the following instance using
 
 > class Triple a b c where
 >   triple :: (a, b, c)
->
 > instance Triple () () () where
 >   triple = ((), (), ())
 >
