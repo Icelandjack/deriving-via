@@ -335,7 +335,7 @@ which is extremely unsatisfactory:
 
 As an illustration of the final point, consider |Num|. There is a way
 to lift a |Num| instance through any applicative
-functor:\footnote{Similarly |Floating| and |Fractional|: numeric type
+functor:\footnote{Similarly for |Floating| and |Fractional|, numeric type
 classes with a combined number of 25 methods (15 for a minimal
 definition).}
 
@@ -831,7 +831,7 @@ a generator that lies within a plausible range:
 In general, we can use this technique of adding extra parameters to a newtype
 to support additional ways to configure the behavior of derived instances.
 
-\section{Typechecking}\label{sec:typechecking}
+\section{Typechecking and translation}\label{sec:typechecking}
 
 Seeing enough examples of \DerivingVia\ can give the impression that it is
 a somewhat magical feature. In this section, we aim to explain the magic
@@ -2520,9 +2520,10 @@ in all but some rare situations.
 
 \subsection*{Acknowledgements}
 
-We would like to thank Richard Eisenberg for their discussion and
-feedback on Section~\ref{sec:typevariablescoping} as well as employees
-of Standard Chartered Bank for refining the idea.
+We would like to thank Richard Eisenberg for his
+feedback on Section~\ref{sec:typevariablescoping}, as well as
+the first author's former colleagues
+at Standard Chartered Bank for their feedback.
 
 \bibliographystyle{includes/ACM-Reference-Format}
 
