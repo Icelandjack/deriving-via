@@ -398,7 +398,7 @@ However, there is no generic default for |Monoid|, a standard class from the
 \Package{base} library (which would be difficult to change). But even if
 a generic instance existed, it would still capture a \emph{single}
 rule over all others, so we couldn't ever use it to derive both the
-monoid instance for lists and that for |ST s a|.
+monoid instance for lists and that for \mbox{|ST s a|}.
 
 We thus have no other choice but to write some
 instances by hand. This means that we have to provide explicit
@@ -820,6 +820,11 @@ a generator that lies within a plausible range:
 
 %endif
 
+In general,
+we can use this technique of adding extra parameters to a newtype
+that are then used in the instance declaration whenever we want
+to add configuration options to some derivable behavior.
+
 \section{Typechecking}\label{sec:typechecking}
 
 Seeing enough examples of \DerivingVia\ can give the impression that it is
@@ -1026,7 +1031,8 @@ wrapper around |Int| (which we will call the \emph{representation type}):
 %format MkAge = "\con{MkAge}"
 %endif
 
-> newtype Age = MkAge Int deriving Enum
+> newtype Age = MkAge Int
+>   deriving Enum
 
 A na{\"i}ve way to generate code would be to manually wrap and unwrap the |MkAge| constructor
 wherever necessary, such as in the code below:
