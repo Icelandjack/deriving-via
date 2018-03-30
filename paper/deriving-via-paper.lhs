@@ -1071,7 +1071,7 @@ which can break programs if used carelessly, |coerce| is completely type-safe du
 use of the |Coercible| constraint. We will explain |Coercible| in more detail later, but for now,
 it suffices to say that a |Coercible a b| constraint witnesses the fact that two types |a|
 and |b| have the same representation at runtime, and thus any value of type |a| can be
-safely casted to type |b|.
+safely cast to type |b|.
 
 Armed with |coerce|, we can show what code \GND\ would actually
 generate for the |Enum Age| instance above:
@@ -1108,7 +1108,7 @@ automatically as part of its built-in constraint solver, much like it can solve 
 constraints. (Indeed, |Coercible| can be thought of as a broader notion of equality among
 types.)
 
-As mentioned in the previous section, a newtype can be safely casted to and from its
+As mentioned in the previous section, a newtype can be safely cast to and from its
 representation type, so \GHC\ treats them as inter-|Coercible|. Continuing our earlier example,
 this would mean that \GHC\ would be able to conclude that:
 
