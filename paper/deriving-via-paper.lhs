@@ -497,7 +497,7 @@ due to the use of a newtype, |App Maybe a| has the same internal
 representation as |Maybe a|, and any instance available on one type can
 be made to work on the other by suitably wrapping or unwrapping a newtype.
 In more precise language, |App Maybe a| and |Maybe a| are
-\textit{representationally equal}.
+\emph{representationally equal}.
 
 The |MODULE Data.Monoid| module defines many further
 adapters that can readily be used with \DerivingVia. For example,
@@ -715,7 +715,7 @@ For our |Duration| type, we can easily write
 > ??deriving Arbitrary via (NonNegative (Large Int))
 
 and derive an instance which only generates |Duration| values that are both
-non-negative \textit{and} large.
+non-negative \emph{and} large.
 This works because |Duration| still shares the same runtime representation as
 |NonNegative (Large Int)| (namely, that of~|Int|), so the latter's
 |Arbitrary| instance can still be reused.
