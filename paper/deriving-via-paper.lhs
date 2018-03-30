@@ -820,10 +820,8 @@ a generator that lies within a plausible range:
 
 %endif
 
-In general,
-we can use this technique of adding extra parameters to a newtype
-that are then used in the instance declaration whenever we want
-to add configuration options to some derivable behavior.
+In general, we can use this technique of adding extra parameters to a newtype
+to support additional ways to configure the behavior of derived instances.
 
 \section{Typechecking}\label{sec:typechecking}
 
