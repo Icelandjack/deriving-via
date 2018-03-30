@@ -13,6 +13,7 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{xspace}
+\usepackage[silent]{polytable}
 
 %include general.fmt
 
@@ -1016,7 +1017,7 @@ The process by which \DerivingVia\ generates code is heavily based off of the ap
 the \GND\ takes, so it is informative to first explain how
 \GND\ works. From there, \DerivingVia\ is a straightforward
 generalization---so much so that \DerivingVia\ could be thought of as
-"generalized \GND".
+``generalized \GND''.
 
 Our running example in this section will be the newtype |Age|, which is a simple
 wrapper around |Int| (which we will call the \emph{representation type}):
