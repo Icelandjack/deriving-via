@@ -48,7 +48,7 @@
 
 %\acmDOI{...}
 %\acmISBN{...}
-%\acmConference[acro]{name}{month/year}{location}
+\acmConference[Haskell]{Haskell Symposium}{09/2018}{St.~Lois, MO, USA}
 %\acmYear{...}
 %\copyrightyear{...}
 %\acmPrice{...}
