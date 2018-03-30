@@ -1,0 +1,23 @@
+Feedback
+
+* D
+The kinds V, D and C must unify
+
+"Oh, the kind of C's argument
+I think I get it now"
+* H
+This is a great improvement on the first draft. Some notes:
+
+- The focus on QuickCheck in the chapter 2 title is distracting. I’d
+  move section 1.2 into chapter 2 and rename that whole section
+  ”Introducing DerivingVia” (you can retain the QuickCheck example,
+  but remember the primary purpose of chapter 2 is to explain
+  DerivingVia informally).
+
+- I’d rename chapter 3 to ”Implementation” or something, as it’s not
+  just about typechecking.
+
+Content-wise I’m missing a formal specification of desugaring DV into
+coerce/type applications (e.g. a nice square with rewrite rules). This
+would make the paper more readable for the more theoretical readers
+and be more informative than any number of examples.

@@ -813,7 +813,7 @@ of a generated natural number.
 >     choose (  natVal (TYAPP l) MkProxy,  natVal (TYAPP u) MkProxy)
 
 (Note that this instance makes use of visible type application~\cite{vta} in
-|MkProxy (TYAPP l)| and |MkProxy (TYAPP u)|.)
+|natVal (TYAPP l)| and |natVal (TYAPP u)|.)
 
 We can then equip an application-specific type for years with
 a generator that lies within a plausible range:
