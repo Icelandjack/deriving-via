@@ -21,3 +21,8 @@ Content-wise I’m missing a formal specification of desugaring DV into
 coerce/type applications (e.g. a nice square with rewrite rules). This
 would make the paper more readable for the more theoretical readers
 and be more informative than any number of examples.
+* T
+on first glance I would make a bigger deal out of this work enabling
+derived typeclasses to be "modular"
+
+I'll send over an annotated pdf when I'm done
