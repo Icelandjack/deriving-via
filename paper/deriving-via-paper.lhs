@@ -333,7 +333,10 @@ which is extremely unsatisfactory:
 
 As an illustration of the final point, consider |Num|. There is a way
 to lift a |Num| instance through any |Applicative|
-functor:\footnote{There are similar ways to lift |Floating| and |Fractional|.}
+functor:\footnote{Similarly |Floating| and |Fractional|: numeric type
+classes with a combined number of 25 methods (15 for a minimal
+definition).}
+
 %{
 %if style == newcode
 %format Num = Num2
@@ -378,7 +381,7 @@ for this particular use case several years ago.
 
 \subsection{Deriving}
 
-Those familiar with Haskell's deriving mechanism may wonder why we
+Readers familiar with Haskell's deriving mechanism may wonder why we
 cannot simply derive all the instances we just discussed.
 Unfortunately, our options are very limited.
 
@@ -800,13 +803,12 @@ of a generated natural number.
 %format MkProxy = Proxy
 %endif
 
-> newtype Between (l :: Nat) (u :: Nat) = MkBetween Int
+> newtype Between (l :: Nat) (u :: Nat) = MkBetween Integer
 >
 > instance (KnownNat l, KnownNat u)
 >   => Arbitrary (Between l u) where
->   arbitrary =  MkBetween <$> choose
->                  (  fromIntegral (natVal (MkProxy (TYAPP l)))
->                  ,  fromIntegral (natVal (MkProxy (TYAPP u))))
+>   arbitrary =  MkBetween <$> 
+>     choose (  natVal (TYAPP l) MkProxy,  natVal (TYAPP u) MkProxy)
 
 (Note that this instance makes use of visible type application~\cite{vta} in
 |MkProxy (TYAPP l)| and |MkProxy (TYAPP u)|.)
@@ -814,7 +816,7 @@ of a generated natural number.
 We can then equip an application-specific type for years with
 a generator that lies within a plausible range:
 
-> newtype Year = MkYear Int
+> newtype Year = MkYear Integer
 >   deriving Show
 >   deriving Arbitrary via (Between 1900 2100)
 
@@ -2516,8 +2518,9 @@ in all but some rare situations.
 
 \subsection*{Acknowledgements}
 
-We would like to thank Richard Eisenberg for his discussion and feedback
-on Section~\ref{sec:typevariablescoping}.
+We would like to thank Richard Eisenberg for their discussion and
+feedback on Section~\ref{sec:typevariablescoping} as well as employees
+of Standard Chartered Bank for refining the idea.
 
 \bibliographystyle{includes/ACM-Reference-Format}
 
