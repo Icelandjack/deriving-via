@@ -978,8 +978,8 @@ To determine how many variables to eta-reduce,
 we must examine the kind of
 |C (sub c 1) DOTS (sub c n)|, which by condition (1) is of the form
 |(((sub k 1) -> ... -> (sub k r) -> *) -> Constraint)| for some kinds
-|(sub k 1), DOTS, (sub k r)|. Then the number of variables to eta-reduce is simply |r|,
-so to compute the |i| in |D (sub d 1) DOTS (sub d i)|, we take \(|i| = |m| - |r|\).
+|(sub k 1), DOTS, (sub k r)|. Then the number of variables to eta-reduce is simply \(r\),
+so to compute the \(i\) in |D (sub d 1) DOTS (sub d i)|, we take \(i = m - r\).
 
 This is better explained by example, so consider the following two scenarios,
 both of which typecheck:
