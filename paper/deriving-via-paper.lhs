@@ -332,7 +332,7 @@ which is extremely unsatisfactory:
 \end{itemize}
 
 As an illustration of the final point, consider |Num|. There is a way
-to lift a |Num| instance through any |Applicative|
+to lift a |Num| instance through any applicative
 functor:\footnote{Similarly |Floating| and |Fractional|: numeric type
 classes with a combined number of 25 methods (15 for a minimal
 definition).}
@@ -807,7 +807,7 @@ of a generated natural number.
 >
 > instance (KnownNat l, KnownNat u)
 >   => Arbitrary (Between l u) where
->   arbitrary =  MkBetween <$> 
+>   arbitrary =  MkBetween <$>
 >     choose (  natVal (TYAPP l) MkProxy,  natVal (TYAPP u) MkProxy)
 
 (Note that this instance makes use of visible type application~\cite{vta} in
