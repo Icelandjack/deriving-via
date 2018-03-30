@@ -213,6 +213,8 @@ way that both feels natural and allows a high degree of abstraction.
 % structures that we exploit.''\footnote{Taken from unknown position:
 % https://www.youtube.com/watch?v=3U3lV5VPmOU}
 
+\vspace*{\bigskipamount}
+
 \section{Introduction}
 %if style /= newcode
 %format via = "\keyw{via}"
