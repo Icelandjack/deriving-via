@@ -728,8 +728,8 @@ is not sufficient. For example, it is difficult to provide a completely generic
 many assumptions about what makes good test data that need to be taken into account.
 
 But for certain groups of data types, there are quite reasonable strategies of
-coming up with generic instances. For example, for enumeration types, one reasonable
-strategy is to simply desire a uniform distribution of the finite set of values.
+coming up with generic instances. For example, for enumeration types, one
+strategy is to desire a uniform distribution of the finite set of values.
 \QuickCheck\ even offers such a generator, but it does not expose it as a newtype
 modifier:
 %if style /= newcode
