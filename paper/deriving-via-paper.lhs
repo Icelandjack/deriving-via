@@ -4,11 +4,11 @@
   review=true,% review mode / enables line numbers
   anonymous=false,% enable to remove author names
   timestamp=true,% adds timestamps to the pages
-  authordraft=true,% development mode
+  %authordraft=true,% development mode
   ]{acmart}
 
 % disable the watermark
-\SetWatermarkText{}%
+% \SetWatermarkText{}%
 
 \usepackage{booktabs}
 \usepackage{hyperref}
@@ -42,13 +42,13 @@
 \newcommand\rsnote[1]{}%
 %endif
 
-\setcopyright{rightsretained}
+\setcopyright{none}
 
 % Data to be filled in later:
 
 %\acmDOI{...}
 %\acmISBN{...}
-\acmConference[Haskell]{Haskell Symposium}{09/2018}{St.~Lois, MO, USA}
+\acmConference[Submitted to Haskell]{Haskell Symposium}{09/2018}{St.~Louis, MO, USA}
 %\acmYear{...}
 %\copyrightyear{...}
 %\acmPrice{...}
@@ -259,6 +259,8 @@ the Glasgow Haskell Compiler (\GHC):
 These have completely identical instance bodies. The underlying pattern works
 not only for |IO| and |ST s|, but for any applicative functor~|f|.
 
+\pagebreak
+
 It is tempting to avoid this obvious repetition by defining an
 instance for all such types in one fell swoop:
 
@@ -312,6 +314,8 @@ The only viable workaround using the Haskell type class system is to
 write the instances for each data type by hand, each one with an
 identical definition (like the instances for |IO a| and |ST s a|),
 which is extremely unsatisfactory:
+
+\pagebreak
 
 \begin{itemize}
 \item It is not obvious that we are instantiating a general principle.
