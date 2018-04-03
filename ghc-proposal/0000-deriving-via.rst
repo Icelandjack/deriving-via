@@ -98,12 +98,12 @@ This algorithm need only be tweaked slightly to describe how ``DerivingVia``
 generates code. In ``GeneralizedNewtypeDeriving``:
 
 1. We start with an instance for the representational type.
-2. GHC ``coerce``s it to an instance for the newtype.
+2. GHC coerces it to an instance for the newtype.
 
 In ``DerivingVia``, however:
 
 1. We start with an instance for a ``via`` type.
-2. GHC ``coerce``s it to an instance for the data type.
+2. GHC coerces it to an instance for the data type.
 
 For instance, this earlier example: ::
 
