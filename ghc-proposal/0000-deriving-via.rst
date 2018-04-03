@@ -42,24 +42,24 @@ Syntax changes
 --------------
 Currently, there are three deriving strategies in GHC: ``stock``, ``newtype``,
 and ``anyclass``. For example, one can use the ``stock`` strategy in a
-``deriving`` clause like so ::
+``deriving`` clause like so: ::
 
     data Foo = MkFoo
       deriving stock Eq
 
-Or in a standalone ``deriving`` declaration ::
+Or in a standalone ``deriving`` declaration: ::
 
     deriving stock instance Eq Foo
 
 We propose a fourth deriving strategy, which uses the ``via`` keyword. Unlike
 other deriving strategies, ``via`` requires specifying a type
 (referred to as the ``via`` type) in addition to a derived class.
-For instance, here is how one would use ``via`` in a ``deriving`` clause ::
+For instance, here is how one would use ``via`` in a ``deriving`` clause: ::
 
     newtype T = MkT Int
       deriving Monoid via (Sum Int)
 
-Or in a standalone ``deriving`` declaration ::
+Or in a standalone ``deriving`` declaration: ::
 
     deriving via (Sum Int) instance Show T
 
@@ -76,12 +76,12 @@ Code generation
 The process by which ``DerivingVia`` generates instances is a strict
 generalization of ``GeneralizedNewtypeDeriving``. For instance, the
 following ``Age`` newtype, which has an underlying representation type
-of ``Int`` ::
+of ``Int``: ::
 
     newtype Age = MkAge Int
       deriving newtype Enum
 
-Would generate the following instance ::
+Would generate the following instance: ::
 
     instance Enum Age where
       toEnum   = coerce @(Int -> Int)   @(Int -> Age)   toEnum
@@ -105,12 +105,12 @@ In ``DerivingVia``, however:
 1. We start with an instance for a ``via`` type.
 2. GHC ``coerce``s it to an instance for the data type.
 
-For instance, this earlier example ::
+For instance, this earlier example: ::
 
     newtype T = MkT Int
       deriving Monoid via (Sum Int)
 
-Would generate the following instance ::
+Would generate the following instance: ::
 
     instance Monoid T where
       mempty  = coerce @(Sum Int) @T mempty
@@ -119,12 +119,12 @@ Would generate the following instance ::
                        mappend
 
 To make it evident that ``DerivingVia`` is in fact a generalization of
-``GeneralizedNewtypeDeriving``, note that this ::
+``GeneralizedNewtypeDeriving``, note that this: ::
 
     newtype Age = MkAge Int
       deriving newtype Enum
 
-Is wholly equivalent to this ::
+Is wholly equivalent to this: ::
 
     newtype Age = MkAge Int
       deriving Enum via Int
@@ -132,7 +132,7 @@ Is wholly equivalent to this ::
 Note that while ``GeneralizedNewtypeDeriving`` has a strict requirement that
 the data type for which we're deriving an instance must be a newtype, there
 is no such requirement for ``DerivingVia``. For example, this is a perfectly
-valid use of ``DerivingVia`` ::
+valid use of ``DerivingVia``: ::
 
     TODO RGS Data type example here
 
