@@ -1,5 +1,5 @@
-Proposal title
-==============
+Deriving Via
+============
 
 .. proposal-number:: Leave blank. This will be filled in when the proposal is
                      accepted.
@@ -33,6 +33,7 @@ Motivation
 ==========
 Give a strong reason for why the community needs this change. Describe the use case as clearly as possible and give an example. Explain how the status quo is insufficient or not ideal.
 
+TODO
 
 Proposed Change Specification
 =============================
@@ -210,7 +211,7 @@ Give an estimate on development and maintenance costs. List how this effects lea
 
 There are currently no known drawbacks to this feature. Implementing this
 feature was a straightforward extension of the machinery already in place
-to support ``deriving``.
+to support ``deriving``, so it will not impose significant maintenance costs.
 
 Alternatives
 ============
