@@ -61,7 +61,7 @@ For instance, here is how one would use ``via`` in a ``deriving`` clause: ::
 
 Or in a standalone ``deriving`` declaration: ::
 
-    deriving via (Sum Int) instance Show T
+    deriving via (Sum Int) instance Monoid T
 
 (TODO RGS: How much about the discrepancy between the two syntaxes should we
 mention?)
@@ -91,8 +91,8 @@ Would generate the following instance: ::
 
 Here, each method of ``Enum`` is derived by taking the implementation of
 the method in the ``Enum Int`` instance and coercing all occurrences of
-``Int`` to ``Age`` using the ``coerce`` function from ``Data.Coerce``.
-(TODO RGS: Provide a link here.)
+``Int`` to ``Age`` using the ``coerce`` function from
+`Data.Coerce <http://hackage.haskell.org/package/base-4.11.0.0/docs/Data-Coerce.html>`_.
 
 This algorithm need only be tweaked slightly to describe how ``DerivingVia``
 generates code. In ``GeneralizedNewtypeDeriving``:
