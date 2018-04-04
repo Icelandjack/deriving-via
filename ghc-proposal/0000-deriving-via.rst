@@ -156,9 +156,94 @@ valid use of ``DerivingVia``: ::
 ``DerivingVia`` only imposes the requirement that the generated code
 typechecks. (See the "Typechecking generated code" section for more on this.)
 
+Renaming source syntax
+----------------------
+``DerivingVia`` introduces a new place where types can go (the ``via`` type),
+and as a result, introduces a new place where type variables can be bound. To
+understand how this works, consider the following example that uses a
+``deriving`` clause: ::
+
+    data Foo a = ...
+      deriving (Baz a b c) via (Bar a b)
+
+* ``a`` is bound by ``Foo`` itself in the declaration ``data Foo a``.
+  ``a`` scopes over both the ``via`` type, ``Bar a b``,
+  as well as the derived class, ``Baz a b c``.
+* ``b`` is bound by the ``via`` type ``Bar a b``. Note that ``b`` is bound
+  here but ``a`` is not, as it was bound earlier by the ``data`` declaration.
+  ``b`` also scopes over the derived class ``Baz a b c``.
+* ``c`` is bound by the derived class ``Baz a b c``, as it was not bound
+  earlier.
+
+For ``StandaloneDeriving``, the scoping works similarly.
+In the following example: ::
+
+    deriving via (V a) instance C a (D a b)
+
+* ``a`` is bound by the ``via`` type ``V a``, and scopes over the instance
+  type ``C a (D a b)``.
+* ``b`` is bound the instance type ``C a (D a b)``, as it was not bound
+  earlier.
+
+Note that ``DerivingVia`` requires that all type variables bound by a ``via``
+type must be used in each derived class (for ``deriving`` clauses) or
+in the instance type (for ``StandaloneDeriving``). If a ``via`` type binds
+a type variable and does not use it accordingly, then it is *floating*,
+and rejected with an error. To see why this is the case, consider the
+following example: ::
+
+  data Quux
+    deriving Eq via (Const a Quux)
+
+This would generate the following instance: ::
+
+  instance Eq Quux where
+    (==) = coerce @(Quux         -> Quux         -> Bool)
+                  @(Const a Quux -> Const a Quux -> Bool)
+                  (==)
+    ...
+
+This instance is ill-formed, as the ``a`` in ``Const a Quux`` is unbound! One
+could conceivably "fix" this by explicitly quantifying the ``a`` at the top
+of the instance: ::
+
+  instance forall a. Eq Quux where ...
+
+But this would not be much better, as now the ``a`` is ambiguous. We avoid
+these complications by making floating type variables in ``via`` types an
+explicit error.
+
 Typechecking source syntax
 --------------------------
-TODO RGS
+In this example: ::
+
+  newtype Age = MkAge Int
+    deriving Eq
+
+GHC requires that the kind of the argument to the class must unify with the
+kind of the data type. (In this example, both of these kinds are ``Type``, so
+it passes this check.) This is done to ensure that the generated code makes
+sense. For instance, one could not derive ``Functor`` for ``Age``, as the
+kind of the argument to ``Functor`` is ``Type -> Type``, which does not
+unify with ``Age``'s kind (``Type``).
+
+``DerivingVia`` extends this check ever-so-slightly. In this example: ::
+
+  newtype Age = MkAge Int
+    deriving Eq via (Sum Int)
+
+Not only must the kind of the argument to ``Eq`` unify with the kind of
+``Age``, it must also be the case that those two kinds unify with the kind
+of the ``via`` type, ``Sum Int``. (``Sum Int :: Type``, so it passes that
+check.)
+
+``DerivingVia`` also supports higher-kinded scenarios, such as: ::
+
+  newtype I a = MkI a
+    deriving Functor via Identity
+
+For more details on how this featurette works, refer to Section 3.1.2
+of `the paper https://www.kosmikus.org/DerivingVia/deriving-via-paper.pdf>`_.
 
 Typechecking generated code
 ---------------------------
@@ -190,8 +275,6 @@ Effect and Interactions
 Detail how the proposed change addresses the original problem raised in the motivation.
 
 Discuss possibly contentious interactions with existing language or compiler features.
-
-(TODO RGS: Should we just merge this with the previous section?)
 
 Other ``deriving``-related language extensions, such as
 ``GeneralizedNewtypeDeriving`` and ``DeriveAnyClass``, are selected
