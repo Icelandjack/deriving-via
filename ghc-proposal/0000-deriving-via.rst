@@ -171,11 +171,19 @@ Costs and Drawbacks
 ===================
 Give an estimate on development and maintenance costs. List how this effects learnability of the language for novice users. Define and list any remaining drawbacks that cannot be resolved.
 
+There are currently no known drawbacks to this feature. Implementing this
+feature was a straightforward extension of the machinery already in place
+to support ``deriving``.
 
 Alternatives
 ============
 List existing alternatives to your proposed change as they currently exist and discuss why they are insufficient.
 
+The closest existing alternatives to this feature are various preprocessor hacks
+that people have cooked up to "copy-and-paste" code patterns in various places,
+such as in Conal Elliott's
+`applicative-numbers <http://hackage.haskell.org/package/applicative-numbers>`_
+package. But this is far from a satisfying solution to the problem.
 
 Unresolved questions
 ====================
@@ -183,10 +191,12 @@ Explicitly list any remaining issues that remain in the conceptual design and sp
 
 Hopefully this section will be empty by the time the proposal is brought to the steering committee.
 
-
 Implementation Plan
 ===================
 (Optional) If accepted who will implement the change? Which other ressources and prerequisites are required for implementation?
+
+There is feature is fully implemented in our GHC fork
+`here <https://github.com/RyanGlScott/ghc/tree/deriving-via-8.5>`_.
 
 TODOs
 =====
