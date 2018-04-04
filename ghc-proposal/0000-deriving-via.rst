@@ -134,7 +134,12 @@ the data type for which we're deriving an instance must be a newtype, there
 is no such requirement for ``DerivingVia``. For example, this is a perfectly
 valid use of ``DerivingVia``: ::
 
-    TODO RGS Data type example here
+    newtype BoundedEnum a = BoundedEnum a
+    instance (Bounded a, Enum a) => Arbitrary (BoundedEnum a) where ...
+
+    data Weekday = Mo | Tu | We | Th | Fr | Sa | Su
+      deriving (Enum, Bounded)
+      deriving Arbitrary via (BoundedEnum Weekday)
 
 ``DerivingVia`` only imposes the requirement that the generated code
 typechecks. (See the "Typechecking generated code" section for more on this.)
@@ -145,7 +150,28 @@ TODO RGS
 
 Typechecking generated code
 ---------------------------
-TODO RGS
+Once ``DerivingVia`` generates instances, they are fed back into GHC's
+typechecker as one final sanity check. In order for the generated code to
+typecheck, the original data type and the ``via`` type must have the same
+runtime representations. The use of ``coerce`` is what guarantees this.
+
+For instance, if a user tried to derive ``via`` a type that was not
+representationally equal to the original data type, as in this example: ::
+
+    newtype UhOh = UhOh Char
+      deriving Ord via Int
+
+Then GHC will give an error message stating as such:
+
+    • Couldn't match representation of type ‘Char’ with that of ‘Int’
+        arising from the coercion of the method ‘compare’
+          from type ‘Int -> Int -> Ordering’
+            to type ‘UhOh -> UhOh -> Ordering’
+    • When deriving the instance for (Ord UhOh)
+
+Fortunately, GHC has invested considerable effort into making error messages
+involving ``coerce`` easy to understand, so ``DerivingVia`` benefits from this
+as well.
 
 Effect and Interactions
 =======================
