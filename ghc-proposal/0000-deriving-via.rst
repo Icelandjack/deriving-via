@@ -29,6 +29,8 @@ for this proposal.
 There is a prototype implementation already available in our GHC fork
 `here <https://github.com/RyanGlScott/ghc/tree/deriving-via-8.5>`_.
 
+TODO: Other sources? (Blog posts, Reddit discussion, etc.)
+
 Motivation
 ==========
 Give a strong reason for why the community needs this change. Describe the use case as clearly as possible and give an example. Explain how the status quo is insufficient or not ideal.
@@ -243,7 +245,7 @@ check.)
     deriving Functor via Identity
 
 For more details on how this featurette works, refer to Section 3.1.2
-of `the paper https://www.kosmikus.org/DerivingVia/deriving-via-paper.pdf>`_.
+of `the paper <https://www.kosmikus.org/DerivingVia/deriving-via-paper.pdf>`_.
 
 Typechecking generated code
 ---------------------------
