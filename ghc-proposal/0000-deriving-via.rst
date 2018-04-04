@@ -161,7 +161,7 @@ representationally equal to the original data type, as in this example: ::
     newtype UhOh = UhOh Char
       deriving Ord via Int
 
-Then GHC will give an error message stating as such:
+Then GHC will give an error message stating as such: ::
 
     • Couldn't match representation of type ‘Char’ with that of ‘Int’
         arising from the coercion of the method ‘compare’
