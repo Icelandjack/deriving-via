@@ -15,8 +15,19 @@ Proposal title
 .. sectnum::
 .. contents::
 
-Here you should write a short abstract motivating and briefly summarizing the proposed change.
+We propose ``DerivingVia``, a new
+`deriving strategy <https://downloads.haskell.org/~ghc/8.4.1/docs/html/users_guide/glasgow_exts.html#extension-DerivingStrategies>`_
+that significantly increases the expressive power of Haskell's ``deriving`` construct.
 
+TODO: Give a prototypical example here
+
+The paper `Deriving Via; or, How to Turn Hand-Written Instances into an Anti-Pattern
+<https://www.kosmikus.org/DerivingVia/deriving-via-paper.pdf>`_ describes this feature
+in great detail, with many accompanying examples, and so is a primary reference source
+for this proposal.
+
+There is a prototype implementation already available in our GHC fork
+`here <https://github.com/RyanGlScott/ghc/tree/deriving-via-8.5>`_.
 
 Motivation
 ==========
@@ -223,7 +234,3 @@ Implementation Plan
 
 There is feature is fully implemented in our GHC fork
 `here <https://github.com/RyanGlScott/ghc/tree/deriving-via-8.5>`_.
-
-TODOs
-=====
-* Add a link to the users' guide section on ``DerivingStrategies`` somewhere.
