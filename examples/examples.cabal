@@ -21,7 +21,7 @@ library
                      , base                >= 4.10   && < 5
                      , mtl                 >= 2.2    && < 2.3
                      , singletons          >= 2.3    && < 2.5
-                     , QuickCheck          >= 2.5    && < 2.11
+                     , QuickCheck          >= 2.5    && < 2.12
                      , linear              >= 1.18   && < 1.21
                      , stm                 >= 2.2    && < 2.5
                      , profunctors         >= 3.0    && < 5.3
@@ -29,7 +29,7 @@ library
                      , contravariant       >= 0.2    && < 1.5
                      , adjunctions         >= 0.9    && < 4.5
                      , constraints         >= 0.3    && < 0.11
-                     , transformers-compat >= 0.5    && < 0.6
+                     , transformers-compat >= 0.5    && < 0.7
                      -- , generics-sop  >= 0.1    && <= 0.3
 
   hs-source-dirs:      .
