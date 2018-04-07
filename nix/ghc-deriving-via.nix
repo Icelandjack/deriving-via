@@ -80,26 +80,6 @@ in
             commit = "ead2f6ac232225e987b3fbbe30d88b134a3ff954"; # commit we want
             sha256 = "10i5n4sjijzvnlbd2rpy3z17xqpxz0dm0l9z7zfkh8yf3ksq25qy";
           };
-
-          # # Set build flavour to devel2.
-          #
-          # preConfigure = old.preConfigure + ''
-          #   sed 's|#BuildFlavour.*=.*quickest|BuildFlavour = devel2|' mk/build.mk.sample > mk/build.mk
-          # '';
-
-          # # Mostly copied from head.nix, but removed the paxmarking of haddock,
-          # # because it does not exist in a devel2 build.
-          #
-          # postInstall =
-          #   with lib.strings;
-          #   let
-          #     newPaxmark = ''
-          #       paxmark m $out/lib/${old.name}/bin/ghc
-          #     '';
-          #     modifiedOld =
-          #       concatStringsSep "\n" (lib.drop 1 (splitString "\n" old.postInstall));
-          #   in
-          #     newPaxmark + modifiedOld;
         }
       )
 
