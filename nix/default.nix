@@ -26,11 +26,11 @@ let
     ghc-deriving-via-pkgs.ghcWithPackages ( pkgs : [
       pkgs.aeson
       pkgs.generic-deriving
-      pkgs.generic-lens
+      # pkgs.generic-lens
       pkgs.generics-sop
-      pkgs.lens
+      # pkgs.lens
       pkgs.mtl
-      pkgs.profunctors
+      # pkgs.profunctors
       pkgs.QuickCheck
       pkgs.semigroups
     ]);
