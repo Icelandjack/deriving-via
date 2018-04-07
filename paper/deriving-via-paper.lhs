@@ -2048,7 +2048,7 @@ We can use this to define a suitable |Arbitrary| instance for |SameRepAs|:
 %endif
 
 > instance
->   (  Generic a, Generic b, Arbitrary b
+>   (  Generic a, Generic b
 >   ,  Coercible (Rep a ()) (Rep b ()), Arbitrary b
 >   ) => Arbitrary (a `SameRepAs` b) where
 >   arbitrary = MkSameRepAs . coerceViaRep <$> arbitrary
