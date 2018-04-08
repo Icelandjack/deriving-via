@@ -2186,7 +2186,7 @@ Luckily, \DerivingVia\ presents a more convenient third option: re-use a
 data type from Section~\ref{sec:introducingdv} that lets us define a
 |Semigroup| instance by lifting through an |Applicative| instance. As luck would
 have it, |IO| already has an |Applicative| instance, so we can derive the
-desired |Monoid| instance for |Plugin| like so:
+desired |Semigroup| instance for |Plugin| like so:
 %if style == newcode
 %format Plugin = Plugin2
 %format MkPlugin = MkPlugin2
