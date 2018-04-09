@@ -29,13 +29,20 @@ for this proposal.
 There is a prototype implementation already available in our GHC fork
 `here <https://github.com/RyanGlScott/ghc/tree/deriving-via-8.5>`_.
 
-TODO: Other sources? (Blog posts, Reddit discussion, etc.)
-
 Motivation
 ==========
 Give a strong reason for why the community needs this change. Describe the use case as clearly as possible and give an example. Explain how the status quo is insufficient or not ideal.
 
-TODO
+TODO: Baldur
+
+Here is a list of other sources about this idea:
+
+* The
+ `original blog post <https://gist.github.com/Icelandjack/d258b88a0e0b3be2c0b3711fdd833045>`_
+  proposing this idea, and the
+  `accompanying Reddit discussion <https://www.reddit.com/r/haskell/comments/6ksr76/rfc_part_1_deriving_instances_of/>`_.
+
+* A `Reddit post <https://www.reddit.com/r/haskell/comments/8aa81q/deriving_via_or_how_to_turn_handwritten_instances/>`_ discussing the paper.
 
 Proposed Change Specification
 =============================
