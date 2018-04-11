@@ -293,6 +293,9 @@ Costs and Drawbacks
 There are currently no known drawbacks to this feature. Implementing this
 feature was a straightforward extension of the machinery already in place
 to support ``deriving``, so it will not impose significant maintenance costs.
+(Moreover, the maintainer of this part of the codebase,
+`@RyanGlScott <https://github.com/RyanGlScott>`_, is also the person who wrote
+much of the code for ``DerivingVia``.)
 
 Alternatives
 ============
@@ -308,4 +311,6 @@ Unresolved questions
 Implementation Plan
 ===================
 There is feature is fully implemented in our GHC fork
-`here <https://github.com/RyanGlScott/ghc/tree/deriving-via-8.5>`_.
+`here <https://github.com/RyanGlScott/ghc/tree/deriving-via-8.5>`_. I
+(`@RyanGlScott <https://github.com/RyanGlScott>`_) volunteer to work to get
+this fork into GHC proper.
