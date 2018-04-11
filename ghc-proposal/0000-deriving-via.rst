@@ -31,8 +31,6 @@ There is a prototype implementation already available in our GHC fork
 
 Motivation
 ==========
-Give a strong reason for why the community needs this change. Describe the use case as clearly as possible and give an example. Explain how the status quo is insufficient or not ideal.
-
 TODO: Baldur
 
 Here is a list of other sources about this idea:
@@ -278,10 +276,6 @@ as well.
 
 Effect and Interactions
 =======================
-Detail how the proposed change addresses the original problem raised in the motivation.
-
-Discuss possibly contentious interactions with existing language or compiler features.
-
 Other ``deriving``-related language extensions, such as
 ``GeneralizedNewtypeDeriving`` and ``DeriveAnyClass``, are selected
 automatically in certain cases, even without the use of explicit ``newtype``
@@ -296,16 +290,12 @@ other language features. No existing code will break because of
 
 Costs and Drawbacks
 ===================
-Give an estimate on development and maintenance costs. List how this effects learnability of the language for novice users. Define and list any remaining drawbacks that cannot be resolved.
-
 There are currently no known drawbacks to this feature. Implementing this
 feature was a straightforward extension of the machinery already in place
 to support ``deriving``, so it will not impose significant maintenance costs.
 
 Alternatives
 ============
-List existing alternatives to your proposed change as they currently exist and discuss why they are insufficient.
-
 The closest existing alternatives to this feature are various preprocessor hacks
 that people have cooked up to "copy-and-paste" code patterns in various places,
 such as in Conal Elliott's
@@ -314,13 +304,8 @@ package. But this is far from a satisfying solution to the problem.
 
 Unresolved questions
 ====================
-Explicitly list any remaining issues that remain in the conceptual design and specification. Be upfront and trust that the community will help. Please do not list *implementation* issues.
-
-Hopefully this section will be empty by the time the proposal is brought to the steering committee.
 
 Implementation Plan
 ===================
-(Optional) If accepted who will implement the change? Which other ressources and prerequisites are required for implementation?
-
 There is feature is fully implemented in our GHC fork
 `here <https://github.com/RyanGlScott/ghc/tree/deriving-via-8.5>`_.
