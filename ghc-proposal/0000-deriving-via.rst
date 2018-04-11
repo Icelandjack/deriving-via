@@ -24,8 +24,8 @@ One example of a use case for this is the following: ::
     newtype T = MkT Int
       deriving Monoid via (Sum Int)
 
-One should read this as "derive a ``Monoid`` instance for ``T`` by *reusing* the
-existing ``Monoid`` instance for ``Sum Int``".
+One can interpret this as "derive a ``Monoid`` instance for ``T`` by *reusing*
+the existing ``Monoid`` instance for ``Sum Int``".
 
 The paper `Deriving Via; or, How to Turn Hand-Written Instances into an Anti-Pattern
 <https://www.kosmikus.org/DerivingVia/deriving-via-paper.pdf>`_ describes this feature
@@ -93,21 +93,15 @@ be able to use ``via`` as a variable name in other contexts, even if the
 ``DerivingVia`` extension is enabled.
 
 Note that in ``deriving`` clauses, we put the ``via`` keyword *after* the
-derived class instead of before it. We do so to avoid potential parsing
-ambiguities. For example, consider the following example with two different
-orderings of the ``via`` type: ::
+derived class instead of before it. We do so primarly because we find it
+makes the distinction between the derived class and the ``via`` type more
+obvious. If we had put the ``via`` type *before* the derived class, as
+in the following two examples: ::
 
-    deriving Z via X Y
-    deriving via X Y Z
-
-The derived class and ``via`` type are unambiguous in the former example. In
-the latter example, however, there are at least two different ways to parse
-it: ::
-
-    deriving via (X Y) Z
     deriving via X (Y Z)
+    deriving via (X Y) Z
 
-Putting the ``via`` type after the derived class avoids this complication.
+Then the distinction is harder to see from a glance.
 
 Code generation
 ---------------
