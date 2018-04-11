@@ -19,7 +19,13 @@ We propose ``DerivingVia``, a new
 `deriving strategy <https://downloads.haskell.org/~ghc/8.4.1/docs/html/users_guide/glasgow_exts.html#extension-DerivingStrategies>`_
 that significantly increases the expressive power of Haskell's ``deriving`` construct.
 
-TODO: Give a prototypical example here
+One example of a use case for this is the following: ::
+
+    newtype T = MkT Int
+      deriving Monoid via (Sum Int)
+
+One should read this as "derive a ``Monoid`` instance for ``T`` by *reusing* the
+existing ``Monoid`` instance for ``Sum Int``".
 
 The paper `Deriving Via; or, How to Turn Hand-Written Instances into an Anti-Pattern
 <https://www.kosmikus.org/DerivingVia/deriving-via-paper.pdf>`_ describes this feature
@@ -95,7 +101,8 @@ orderings of the ``via`` type: ::
     deriving via X Y Z
 
 The derived class and ``via`` type are unambiguous in the former example. In
-the latter example, however, there are two different ways to parse it: ::
+the latter example, however, there are at least two different ways to parse
+it: ::
 
     deriving via (X Y) Z
     deriving via X (Y Z)
