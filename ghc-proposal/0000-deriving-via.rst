@@ -67,10 +67,12 @@ Or in a standalone ``deriving`` declaration: ::
 
     deriving stock instance Eq Foo
 
-We propose a fourth deriving strategy, which uses the ``via`` keyword. Unlike
-other deriving strategies, ``via`` requires specifying a type
-(referred to as the ``via`` type) in addition to a derived class.
-For instance, here is how one would use ``via`` in a ``deriving`` clause: ::
+We propose a fourth deriving strategy, which requires enabling the
+``DerivingVia`` extension to use. This deriving strategy is indicated by using
+the ``via`` keyword. Unlike other deriving strategies, ``via`` requires
+specifying a type (referred to as the ``via`` type) in addition to a derived
+class. For instance, here is how one would use ``via`` in a ``deriving``
+clause: ::
 
     newtype T = MkT Int
       deriving Monoid via (Sum Int)
@@ -79,13 +81,26 @@ Or in a standalone ``deriving`` declaration: ::
 
     deriving via (Sum Int) instance Monoid T
 
-(TODO RGS: How much about the discrepancy between the two syntaxes should we
-mention?)
-
 As is the case with ``stock`` and ``anyclass``, the ``via`` identifier is
 only treated specially in the context of ``deriving`` syntax. One will still
 be able to use ``via`` as a variable name in other contexts, even if the
 ``DerivingVia`` extension is enabled.
+
+Note that in ``deriving`` clauses, we put the ``via`` keyword *after* the
+derived class instead of before it. We do so to avoid potential parsing
+ambiguities. For example, consider the following example with two different
+orderings of the ``via`` type: ::
+
+    deriving Z via X Y
+    deriving via X Y Z
+
+The derived class and ``via`` type are unambiguous in the former example. In
+the latter example, however, there are two different ways to parse it: ::
+
+    deriving via (X Y) Z
+    deriving via X (Y Z)
+
+Putting the ``via`` type after the derived class avoids this complication.
 
 Code generation
 ---------------
