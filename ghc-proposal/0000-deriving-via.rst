@@ -99,12 +99,9 @@ Aside from the paper itself, here is a list of other sources about this idea:
 
 Proposed Change Specification
 =============================
-TODO RGS
-
-Language extension name
------------------------
 We propse a new language extension, ``DerivingVia``. ``DerivingVia`` will imply
-``DerivingStrategies``.
+``DerivingStrategies``, as ``DerivingVia`` requires using deriving strategy
+syntax.
 
 Syntax changes
 --------------
