@@ -144,7 +144,9 @@ in the following two examples: ::
     deriving via X (Y Z)
     deriving via (X Y) Z
 
-Then the distinction is harder to see from a glance.
+Then the distinction is harder to see from a glance, and we would
+have two type expressions directly adjacent to each other, which looks
+like a type application but is not.
 
 Code generation
 ---------------
