@@ -32,7 +32,7 @@ The paper `Deriving Via; or, How to Turn Hand-Written Instances into an Anti-Pat
 in great detail, with many accompanying examples, and so is a primary reference source
 for this proposal.
 
-There is a prototype implementation already available in our GHC fork
+An implementation is already available in our GHC fork
 `here <https://github.com/RyanGlScott/ghc/tree/deriving-via-8.5>`_.
 
 Motivation
