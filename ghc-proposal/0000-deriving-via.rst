@@ -37,9 +37,61 @@ There is a prototype implementation already available in our GHC fork
 
 Motivation
 ==========
-TODO: Baldur
+Broadly speaking, the purpose of ``DerivingVia`` is to facilitate the ability
+to capture programming patterns that often arise in type class instances and
+reuse them. As one example, the ``Monoid`` instances for ``IO`` and ``ST``
+follow the exact same pattern: ::
 
-Here is a list of other sources about this idea:
+    instance Monoid a => Monoid (IO a) where
+      mempty  = pure mempty
+      mappend = liftA2 mappend
+
+    instance Monoid a => Monoid (ST s a) where
+      mempty  = pure mempty
+      mappend = liftA2 mappend
+
+Namely, these ``Monoid`` instances are defined by lifting ``mempty`` and
+``mappend`` through an ``Applicative`` instance. Instead of having to tediously
+copy-paste these method implementations in every instance that needs them, we
+can first explicitly codify this pattern by means of a newtype: ::
+
+    newtype App f a = App (f a)
+    instance (Applicative f, Monoid a) => Monoid (App f a) where
+      mempty = App (pure mempty)
+      mappend (App f) (App g) = App (liftA2 mappend f g)
+
+Now, we can use ``DerivingVia`` to deploy this pattern where it's needed.
+Assuming we had access to the original definitions for ``IO`` and ``ST``,
+we could have instead defined their ``Monoid`` instances like so: ::
+
+    data IO a = ...
+      deriving Monoid via (App IO a)
+    data ST s a = ...
+      deriving Monoid via (App (ST s) a)
+
+Here, we are reusing the ``Monoid`` instance for ``App IO a`` to derive the
+``Monoid`` instance for ``IO``. (And similarly for ``ST``.) This works because
+``App IO a`` and ``IO a`` are *representationally equal* types. That is to say,
+one can safely coerce values of type ``App IO a`` to type ``IO a``, as they are
+the same modulo newtypes (in this example, the newtype being ``App``). As a
+result, GHC can figure out how to take any instance for ``App IO a`` and
+safely repurpose it to be an instance for ``IO a``.
+
+There are many other use cases for this language extension.
+See Section 4 of
+`the paper <https://www.kosmikus.org/DerivingVia/deriving-via-paper.pdf>`_ for
+a broad survey of some of the more interesting applications, including:
+
+* A generalization of ``DefaultSignatures``, which can allow for the
+  coexistence of *multiple* defaults.
+* A way to make it easier to adapt to superclass changes (such as the
+  ``Applicative``–``Monad`` Proposal).
+* A technique to reuse instances from types that are *isomorphic*, not just
+  representationally equal.
+* A trick which can eliminate the need for orphan instances in certain
+  situations.
+
+Aside from the paper itself, here is a list of other sources about this idea:
 
 * The `original blog post <https://gist.github.com/Icelandjack/d258b88a0e0b3be2c0b3711fdd833045>`_ proposing this idea, and the `accompanying Reddit discussion <https://www.reddit.com/r/haskell/comments/6ksr76/rfc_part_1_deriving_instances_of/>`_.
 
@@ -47,13 +99,7 @@ Here is a list of other sources about this idea:
 
 Proposed Change Specification
 =============================
-Specify the change in precise, comprehensive yet concise language. Avoid words like should or could. Strive for a complete definition. Your specification may include,
-
-* grammar and semantics of any new syntactic constructs
-* the types and semantics of any new library interfaces
-* how the proposed change interacts with existing language or compiler features, in case that is otherwise ambiguous
-
-Note, however, that this section need not describe details of the implementation of the feature. The proposal is merely supposed to give a conceptual specification of the new feature and its behavior.
+TODO RGS
 
 Language extension name
 -----------------------
