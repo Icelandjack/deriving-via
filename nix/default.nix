@@ -16,6 +16,9 @@ let
       primitive            = self.callHackage "primitive"            "0.6.3.0" {};
       profunctors          = self.callHackage "profunctors"          "5.2.2"   {};
       semigroupoids        = self.callHackage "semigroupoids"        "5.2.2"   {};
+      tagged               = overrideCabal
+        (self.callHackage "tagged"               "0.8.5"   {})
+        (x : { preConfigure = ''sed -i "s:template-haskell.*:template-haskell:" tagged.cabal''; });
       text                 = self.callHackage "text"                 "1.2.3.0" {};
       unordered-containers = self.callHackage "unordered-containers" "0.2.9.0" {};
     };
@@ -28,6 +31,7 @@ let
       pkgs.mtl
       pkgs.QuickCheck
       pkgs.semigroups
+      pkgs.transformers-compat
     ]);
 
 in

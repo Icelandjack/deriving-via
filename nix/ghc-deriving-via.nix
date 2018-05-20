@@ -76,9 +76,9 @@ in
             name   = "ghc-deriving-via.git"; # store name for the sources
             origin = "git://git.haskell.org/ghc.git"; # primary repo
             url    = "git://github.com/ryanglscott/ghc.git"; # our fork
-            ref    = "refs/heads/deriving-via-8.5"; # branch we want
-            commit = "ead2f6ac232225e987b3fbbe30d88b134a3ff954"; # commit we want
-            sha256 = "10i5n4sjijzvnlbd2rpy3z17xqpxz0dm0l9z7zfkh8yf3ksq25qy";
+            ref    = "refs/heads/deriving-via-patch"; # branch we want
+            commit = "7f0cee1cb0d2ef3c38217ae4eea1c0b91ed1632b"; # commit we want
+            sha256 = "09fygqr66qhjhb8i7wqsf4xya74jjha5yf129szg1lb06glwb2zg";
           };
         }
       )
