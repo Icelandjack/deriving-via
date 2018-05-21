@@ -1,9 +1,0 @@
-[submodule "examples/contravariant"]
-	path = examples/contravariant
-	url = https://github.com/ekmett/contravariant
-[submodule "examples/th-orphans"]
-	path = examples/th-orphans
-	url = https://github.com/mgsloan/th-orphans
-[submodule "examples/singletons"]
-	path = examples/singletons
-	url = https://github.com/goldfirere/singletons

@@ -1,7 +1,4 @@
 packages: .
-          ./contravariant
-          ./singletons
-          ./th-orphans
 
 repository head.hackage
    url: http://head.hackage.haskell.org/
