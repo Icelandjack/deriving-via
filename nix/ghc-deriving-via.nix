@@ -35,7 +35,7 @@ let
           ( [ -n "$http_proxy" ] && git config http.proxy "$http_proxy" ) || true
 
           # Obtain the main repo.
-          git fetch --progress --depth 1 fork +"$ref" || return 1
+          git fetch --progress --depth 100 fork +"$ref" || return 1
           git checkout -b local "$commit"
 
           # Get all the submodules.
@@ -69,16 +69,16 @@ in
   # in a fully reproducable build, but it means changes are not
   # picked up automatically.
   #
-  (haskell.compiler.ghcHEAD.override { version = "8.5.20180406"; })
+  (haskell.compiler.ghcHEAD.override { version = "8.5.20180605"; })
     .overrideAttrs
       (old :
         { src = fetchgit-ghc {
-            name   = "ghc-deriving-via.git"; # store name for the sources
+            name   = "ghc-head.git"; # store name for the sources
             origin = "git://git.haskell.org/ghc.git"; # primary repo
-            url    = "git://github.com/ryanglscott/ghc.git"; # our fork
-            ref    = "refs/heads/deriving-via-patch"; # branch we want
-            commit = "7f0cee1cb0d2ef3c38217ae4eea1c0b91ed1632b"; # commit we want
-            sha256 = "09fygqr66qhjhb8i7wqsf4xya74jjha5yf129szg1lb06glwb2zg";
+            url    = "git://github.com/ghc/ghc.git"; # our fork
+            ref    = "refs/heads/master"; # branch we want
+            commit = "8ed8b037fee9611b1c4ef49adb6cf50bbd929a27"; # commit we want
+            sha256 = "089z0znajvx80xvi28kp80dmpd0lmqszwkdnwj9mcasr5yqzdx7i";
           };
         }
       )
