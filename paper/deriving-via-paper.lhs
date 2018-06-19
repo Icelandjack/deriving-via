@@ -152,7 +152,7 @@
 
 Haskell's |deriving| construct is a cheap and cheerful way to quickly generate
 instances of type classes that follow common patterns. But at present, there
-are only a subset of such type class patterns that |deriving| supports, and
+is only a subset of such type class patterns that |deriving| supports, and
 if a particular class lies outside of this subset, then one cannot derive it
 at all, with no alternative except for laboriously declaring the instances by hand.
 
