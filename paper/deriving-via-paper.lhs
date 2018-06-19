@@ -506,7 +506,7 @@ due to the use of a newtype, |Ap Maybe a| has the same internal
 representation as |Maybe a|, and any instance available on one type can
 be made to work on the other by suitably wrapping or unwrapping a newtype.
 In more precise language, |Ap Maybe a| and |Maybe a| are
-representationally equal.
+representationally equal~\cite{zero-cost-coercions}.
 
 The |MODULE Data.Monoid| module defines many further
 adapters that can readily be used with \DerivingVia. For example,
@@ -943,7 +943,7 @@ In particular, the following conditions must hold:
 < instance C (sub c 1) DOTS (sub c n) (D (sub d 1) DOTS (sub d i)) where DOTS
 
    requires that we can apply |C (sub c 1) DOTS (sub c n)| to another type
-   |D (sub d 1) DOTS (sub d i)| (where \(i \leq m\), see Section~\ref{sec:eta}).
+   |D (sub d 1) DOTS (sub d i)| (where \(i = m - r\), see Section~\ref{sec:eta}).
    Therefore, it would be nonsense to try to derive an instance of |C (sub c 1) DOTS (sub c n)|
    if it had kind, say, |Constraint|.
 
@@ -1080,7 +1080,8 @@ Luckily, there is a convenient solution to this problem: the safe
 Operationally, |coerce| can be thought of as behaving like its wily cousin, |unsafeCoerce|,
 which takes a value of one type as casts it to a value at a another type. Unlike |unsafeCoerce|,
 which can break programs if used carelessly, |coerce| is completely type-safe due to its
-use of the |Coercible| constraint. We explain |Coercible| in more detail later, but for now,
+use of the |Coercible| constraint. We explain |Coercible| in more detail in
+Section \ref{sec:coercible}, but for now,
 it suffices to say that a |Coercible a b| constraint witnesses the fact that two types |a|
 and |b| have the same representation at runtime, and thus any value of type |a| can be
 safely cast to type |b|.
