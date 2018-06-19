@@ -1025,7 +1025,7 @@ which acts as a final sanity check that \GHC\ is doing the right thing under the
 \subsubsection{Generalized newtype deriving (\GND)} \label{sec:gnd}
 
 The process by which \DerivingVia\ generates code is heavily based off of the approach that
-the \GND\ takes, so it is informative to first explain how
+\GND\ takes, so it is informative to first explain how
 \GND\ works. From there, \DerivingVia\ is a straightforward
 generalization---so much so that \DerivingVia\ could be thought of as
 ``generalized \GND''.
@@ -1139,7 +1139,7 @@ ability is important, as our derived |enumFrom| instance would not typecheck oth
 
 Another crucial fact about |Coercible| that we rely on is that it is transitive: if
 |Coercible a b| and |Coercible b c| hold, then |Coercible a c| also holds. This is perhaps
-unsurprising if one views |Coercible| as an equivalence relation, but it a fact that is worth
+unsurprising if one views |Coercible| as an equivalence relation, but it is a fact that is worth
 highlighting, as the transitivity of |Coercible| is what allows us to |coerce|
 \emph{between newtypes}. For instance, if we have these two newtypes:
 %if style /= newcode
@@ -1774,11 +1774,11 @@ Parallel Legacy Languages as Theorem Provers (deriving
 
 In the previous section, we saw an example of how relying too much on a type
 class's default implementations can backfire. This is an unfortunately
-common trend with type classes in general: Many classes try to pick
+common trend with type classes in general: many classes try to pick
 one-size-fits-all defaults that do not work well in certain scenarios, but
 because Haskell allows specifying only one default per method, if the provided
 default does not work for a programmer's use case, then she is forced to
-implement her own implementations by hand.
+write her own implementations by hand.
 
 In this section, we continue the trend of generalizing defaults by looking
 at another language extension that \DerivingVia\ can substitute for:
@@ -1907,11 +1907,11 @@ do something. Our |pPrint| example is no exception. Instead of
 |genericPPrint|, one might want to:
 
 \begin{itemize}
- \item Leverage a |Show|-based default implementation instead of a
+ \item leverage a |Show|-based default implementation instead of a
        |Generic|-based one,
- \item Use a different generic programming library, such as \Package{generics-sop},
+ \item use a different generic programming library, such as \Package{generics-sop},
        instead of |GHC.Generics|, or
- \item Use a tweaked version of |genericPPrint| that displays extra debugging
+ \item use a tweaked version of |genericPPrint| that displays extra debugging
        information.
 \end{itemize}
 
@@ -2275,7 +2275,7 @@ the language and its type system, and we feel that
 to be too large a hammer for the nail we are trying to hit.
 \DerivingVia\ works by means of a simple desugaring of code with some
 light typechecking on top, which makes it much simpler to describe and
-implement. Finally, the problem that explicit dictionaries aims to
+implement. Finally, the problem that explicit dictionaries aim to
 solve---resolving ambiguity in implicit arguments---almost never arises
 in \DerivingVia, as the programmer must specify all the types involved
 in the process.
@@ -2326,7 +2326,7 @@ Then GHC will tell you exactly that, in plain language:
 \endgroup
 
 That is not to say that every error message is this straightforward. There
-is are some scenarios that produce less-than-ideal errors, such as this:
+are some scenarios that produce less-than-ideal errors, such as this:
 
 < newtype Foo a = MkFoo (Maybe a) deriving Ord via a
 
