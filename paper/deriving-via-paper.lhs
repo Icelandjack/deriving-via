@@ -288,7 +288,7 @@ Here, |Endo| is not an applicative functor, but it still admits a perfectly vali
 
 Moreover, even if we have an applicative functor~|f| on our hands, there is no
 guarantee that this is the definition we want. Notably, lists are the
-\emph{free monoid} (the most `fundamental' monoid) but that instance
+\emph{free monoid} (i.e, the most `fundamental' monoid) but that instance
 does not coincide with the rule above and in particular, imposes no
 |(Monoid a)| constraint:
 
@@ -303,7 +303,7 @@ In fact, the monoid instance for lists is captured by a
 >   mempty3   =  empty
 >   mappend3  =  (<|>)
 
-Because instance resolution never backtracks, we can't define these two
+Because instance resolution never backtracks, we cannot define these two
 distinct rules for~|Monoid (f a)| at the same time, even with overlapping instances.
 
 % (TODO) It is worth noting that the monoid instance for |(Endo a)| is captured by a slightly different rule based on |Category|:
@@ -336,7 +336,7 @@ which is extremely unsatisfactory:
 As an illustration of the final point, consider |Num|. There is a way
 to lift a |Num| instance through any applicative
 functor:\footnote{Similarly for |Floating| and |Fractional|, numeric type
-classes with a combined number of 25 methods (15 for a minimal
+classes with a combined total of 25 methods (15 for a minimal
 definition).}
 
 %{
@@ -449,7 +449,7 @@ For the \emph{first part},
 we revisit the rule that explains how to lift a monoid
 instance through an applicative functor. We can turn the problematic
 generic and overlapping instance for |Monoid (f a)| into an entirely
-unproblematic instance by defining a suitable \emph{adapter}
+unproblematic instance by defining a suitable adapter
 newtype~\cite{iterator-pattern} and wrapping
 the instance head in it:
 
@@ -506,7 +506,7 @@ due to the use of a newtype, |App Maybe a| has the same internal
 representation as |Maybe a|, and any instance available on one type can
 be made to work on the other by suitably wrapping or unwrapping a newtype.
 In more precise language, |App Maybe a| and |Maybe a| are
-\emph{representationally equal}.
+representationally equal.
 
 The |MODULE Data.Monoid| module defines many further
 adapters that can readily be used with \DerivingVia. For example,
@@ -673,7 +673,7 @@ If we want to restrict ourselves to non-negative durations, we replace this by
 
 > ??deriving Arbitrary via (NonNegative Int)
 
-This yields an |Arbitrary| instance which only generates non-negative
+This yields an |Arbitrary| instance that generates only non-negative
 integers. Only the deriving clause changes, not the data type itself. If we later decide we want
 only positive integers as durations, we replace |NonNegative| with |Positive|
 in the deriving clause. Again, the data type itself is unaffected. In particular,
@@ -891,7 +891,7 @@ implementation of these ideas in \GHC\ does so.
 \subsection{Well-typed uses of \DerivingVia}
 
 \DerivingVia\ grants the programmer the ability to put extra types in her programs,
-but the flip side to this is that it's possible for her to accidentally put total nonsense
+but the flip side to this is that it is possible for her to accidentally put total nonsense
 into a \DerivingVia\ clause, such as:
 %if style /= newcode
 %format S = "\ty{S}"
@@ -1080,7 +1080,7 @@ Luckily, there is a convenient solution to this problem: the safe
 Operationally, |coerce| can be thought of as behaving like its wily cousin, |unsafeCoerce|,
 which takes a value of one type as casts it to a value at a another type. Unlike |unsafeCoerce|,
 which can break programs if used carelessly, |coerce| is completely type-safe due to its
-use of the |Coercible| constraint. We will explain |Coercible| in more detail later, but for now,
+use of the |Coercible| constraint. We explain |Coercible| in more detail later, but for now,
 it suffices to say that a |Coercible a b| constraint witnesses the fact that two types |a|
 and |b| have the same representation at runtime, and thus any value of type |a| can be
 safely cast to type |b|.
@@ -1105,7 +1105,7 @@ generate for the |Enum Age| instance above:
 
 Now we have a strong guarantee that the |Enum| instance for |Age| has exactly the same
 runtime characteristics as the instance for |Int|. As an added benefit, the code ends up
-being simpler, as every method can be implemented as a straightforward application of
+being simpler as every method can be implemented as a straightforward application of
 |coerce|.
 The only interesting part is generating the two explicit type arguments~\cite{vta}
 that are being used to specify the source type (using the representation type)
@@ -1169,7 +1169,7 @@ in particular makes heavy use of the transitivity of |Coercible|.
 \subsubsection{From \GND\ to \DerivingVia}
 
 As we saw in Section \ref{sec:gnd}, the code which \GND\ generates
-relies on |coerce| to do the heavy lifting. In this section, we will generalize this
+relies on |coerce| to do the heavy lifting. In this section, we generalize this
 technique slightly to give us a way to generate code for \DerivingVia.
 
 Recall the following \GND-derived instance:
@@ -1223,7 +1223,7 @@ could equivalently have been written using \DerivingVia\ like so:
 
 \subsection{Type variable scoping}\label{sec:typevariablescoping}
 
-In the remainder of this section, we will present an overview of how type
+In the remainder of this section, we present an overview of how type
 variables are bound in \DerivingVia\ clauses, and over what types they scope.
 \DerivingVia\ introduces a new place where types can go, and more importantly,
 it introduces a new place where type variables can be \emph{quantified}, so
@@ -1775,9 +1775,9 @@ Parallel Legacy Languages as Theorem Provers (deriving
 In the previous section, we saw an example of how relying too much on a type
 class's default implementations can backfire. This is an unfortunately
 common trend with type classes in general: Many classes try to pick
-one-size-fits-all defaults that don't work well in certain scenarios, but
+one-size-fits-all defaults that do not work well in certain scenarios, but
 because Haskell allows specifying only one default per method, if the provided
-default doesn't work for a programmer's use case, then she is forced to
+default does not work for a programmer's use case, then she is forced to
 implement her own implementations by hand.
 
 In this section, we continue the trend of generalizing defaults by looking
@@ -1786,7 +1786,7 @@ at another language extension that \DerivingVia\ can substitute for:
 default implementations) can eliminate large classes of boilerplate,
 but they too are limited by the one-default-per-method restriction.
 Here, we demonstrate how one can scrap uses of
-\DefaultSignatures\ in favor of \DerivingVia, and show how \DerivingVia\
+\DefaultSignatures\ in favor of \DerivingVia\ and show how \DerivingVia\
 can overcome the limitations of \DefaultSignatures.
 
 %if style /= newcode
@@ -1820,7 +1820,7 @@ can overcome the limitations of \DefaultSignatures.
 >   deriving (Show, Generic)
 
 %endif
-The typical use case for \DefaultSignatures\ is when one has a type class method
+The typical use case for \DefaultSignatures\ is when one has a class method
 that has a frequently used default implementation at a constrained type.
 For instance, consider a |Pretty| class with a method |pPrint| for
 pretty-printing data:
@@ -1869,7 +1869,7 @@ examples below:
 %endif
 %
 To avoid this repetition, \DefaultSignatures allow one to provide a default
-implementation of a type class method using \emph{additional} constraints
+implementation of a class method using \emph{additional} constraints
 on the method's type. For example:
 %if style == newcode
 %format Pretty = Pretty2
@@ -1899,24 +1899,24 @@ to just
 %
 
 Although \DefaultSignatures\ remove the need for many occurrences of
-boilerplate code, it also imposes a significant limitation: every type class
+boilerplate code, it also imposes a significant limitation: every class
 method can have at most one default implementation. As a result,
 \DefaultSignatures\ effectively endorse one default implementation as the
 canonical one. But in many scenarios, there is far more than just one way to
 do something. Our |pPrint| example is no exception. Instead of
-|genericPPrint|, one might one to:
+|genericPPrint|, one might want to:
 
 \begin{itemize}
  \item Leverage a |Show|-based default implementation instead of a
        |Generic|-based one,
  \item Use a different generic programming library, such as \Package{generics-sop},
        instead of |GHC.Generics|, or
- \item Use a tweaked version of |genericPPrint| which displays extra debugging
+ \item Use a tweaked version of |genericPPrint| that displays extra debugging
        information.
 \end{itemize}
 
 All of these are perfectly reasonable choices a programmer might want to make,
-but alas, \GHC\ only lets type classes bless each method with one default.
+but alas, \GHC\ lets type classes bless each method with only one default.
 
 Fortunately, \DerivingVia\ provides a convenient way of encoding default
 implementations with the ability to toggle between different choices:
@@ -1971,7 +1971,7 @@ particular defaults, and how toggling between defaults is a matter of
 choosing a name. In light of this, we believe that many current uses of
 \DefaultSignatures\ ought to be removed entirely and replaced with the
 \DerivingVia-based idiom presented in this section. This avoids the need
-to bless one particular default, and forces programmers to consider which
+to bless one particular default and forces programmers to consider which
 default is best suited to their use case, instead of blindly trusting the
 type class's blessed default to always do the right thing.
 
@@ -2023,7 +2023,7 @@ we want. But unfortunately, the two types are not inter-|Coercible|, even
 though they are isomorphic\footnote{Isomorphic in the sense that we can
 define a function from |Track| to |(Title, Duration)| and vice versa.
 Depending on the class we want to derive, sometimes an even weaker relationship
-between the types is sufficient, but we will focus on the case of isomorphism
+between the types is sufficient, but we focus on the case of isomorphism
 here for reasons of space.}.
 
 However, we can exploit the isomorphism and still get an instance for free,
@@ -2153,11 +2153,11 @@ change their definitions to be identical to |fmap| and |(<*>)|, respectively.}
 
 \subsection{Avoiding orphan instances}\label{sec:orphaninstances}
 
-Not only can \DerivingVia\ quickly procure type class instances, in some
+Not only can \DerivingVia\ quickly procure class instances, in some
 cases, it can eliminate the need for certain instances altogether.
 Haskell programmers often want to avoid \emph{orphan instances}: instances
 defined in a separate module from both the type class and data types being
-used. Sometimes, however, it's quite tempting to
+used. Sometimes, however, it is quite tempting to
 reach for orphan instances, as in the following example adapted
 from a blog post by Gonzalez~\cite{equational-reasoning-at-scale}:
 %if style /= newcode
@@ -2275,7 +2275,7 @@ the language and its type system, and we feel that
 to be too large a hammer for the nail we are trying to hit.
 \DerivingVia\ works by means of a simple desugaring of code with some
 light typechecking on top, which makes it much simpler to describe and
-implement. Finally, the problem which explicit dictionaries aims to
+implement. Finally, the problem that explicit dictionaries aims to
 solve---resolving ambiguity in implicit arguments---almost never arises
 in \DerivingVia, as the programmer must specify all the types involved
 in the process.
@@ -2287,7 +2287,7 @@ Our implementation also interacts well with other \GHC\ features that were
 not covered in this paper, such as kind polymorphism ~\cite{haskell-promotion},
 \StandaloneDeriving, and type classes with associated type families
 ~\cite{associated-type-synonyms}.
-However, there are still challenges remaining, which we will describe
+However, there are still challenges remaining, which we describe
 in this section.
 
 \subsection{Quality of error messages}
@@ -2297,7 +2297,7 @@ extremely well. When it \emph{doesn't} work, however, it can be challenging
 to formulate an error message that adequately explains what went wrong. The
 fundamental issue is that error messages resulting from uses of |deriving|
 are usually rooted in \emph{generated} code, and pointing to code that the
-user didn't write in error messages can sometimes lead to a confusing
+user did not write in error messages can lead to a confusing
 debugging experience.
 
 Fortunately, we have found in our experience that the quality of
@@ -2349,7 +2349,7 @@ at runtime, but the error does not make this obvious.
 % class methods.}
 It is possible that one
 could add an \emph{ad hoc} check for this class of programs, but there are
-likely many more tricky corner cases lurking around the corner, given that
+likely many more tricky corner cases lurking around the corner given that
 one can put anything after |via|.
 
 We do not propose a solution to this problem here, but instead note that issues
@@ -2365,7 +2365,7 @@ Multi-parameter type classes are extremely common in modern Haskell, to the
 point where we assumed the existence of them in Section \ref{sec:kinds}
 without further mention. However, multi-parameter type classes pose an
 intriguing design question when combined with \DerivingVia\ and
-\StandaloneDeriving, another \GHC feature which allows one to write
+\StandaloneDeriving, another \GHC feature that allows one to write
 |deriving| declarations independently of a data type.
 
 For example, one can write the following instance using
