@@ -233,9 +233,9 @@ way that both feels natural and allows a high degree of abstraction.
 %format Wrap1 = "\ty{Wrap1}"
 %format MkWrap = "\con{Wrap}"
 %format MkWrap1 = "\con{MkWrap}"
-%format App = "\ty{App}"
+%format Ap = "\ty{Ap}"
 %format Alt = "\ty{Alt}"
-%format MkApp = "\con{MkApp}"
+%format MkAp = "\con{MkAp}"
 %format MkAlt = "\con{MkAlt}"
 %format Endo = "\ty{Endo}"
 %format MkEndo = "\con{MkEndo}"
@@ -438,9 +438,9 @@ ways to define particular class instances, but can instead teach the
 compiler new rules for deriving instances, selecting the one we want
 using a high-level description.
 %if style /= newcode
-%format App = "\ty{App}"
+%format Ap = "\ty{Ap}"
 %format Alt = "\ty{Alt}"
-%format MkApp = "\con{App}"
+%format MkAp = "\con{Ap}"
 %format MkAlt = "\con{Alt}"
 %endif
 
@@ -453,20 +453,20 @@ unproblematic instance by defining a suitable adapter
 newtype~\cite{iterator-pattern} and wrapping
 the instance head in it:
 
-> newtype App f a = MkApp (f a)
+> newtype Ap f a = MkAp (f a)
 >
 > instance (Applicative f, Monoid4 a)
->   => Monoid4 (App f a) where
->   mempty4 = MkApp (pure mempty4)
->   mappend4 (MkApp f) (MkApp g) = MkApp (liftA2 mappend4 f g)
+>   => Monoid4 (Ap f a) where
+>   mempty4 = MkAp (pure mempty4)
+>   mappend4 (MkAp f) (MkAp g) = MkAp (liftA2 mappend4 f g)
 
 Since \GHC\ 8.4, we also need a |Semigroup| instance, because it is now
 a superclass of |Monoid|\footnote{See Section~\ref{sec:superclasses} for
 a more detailed discussion of this aspect.}:
 
 > instance (Applicative f, Semigroup a)
->   => Semigroup (App f a) where
->   MkApp f <> MkApp g = MkApp (liftA2 (<>) f g)
+>   => Semigroup (Ap f a) where
+>   MkAp f <> MkAp g = MkAp (liftA2 (<>) f g)
 
 
 The \emph{second part} is to now use such a rule in our new form
@@ -490,7 +490,7 @@ We can do this when defining a new data type, such as in
 %endif
 
 > data Maybe a = Nothing | Just a
->   deriving Monoid4 via (App Maybe a)
+>   deriving Monoid4 via (Ap Maybe a)
 
 This requires that we independently have an |Applicative| instance
 for |Maybe|, but then we obtain the desired |Monoid4| instance nearly
@@ -500,12 +500,12 @@ for free.
 In the deriving clause, |via| is a new language construct that
 explains \emph{how} \GHC\
 should derive the instance, namely by reusing the |Monoid| instance
-already available for the |via| type, |App Maybe a|.
+already available for the |via| type, |Ap Maybe a|.
 It should be easy to see why this works:
-due to the use of a newtype, |App Maybe a| has the same internal
+due to the use of a newtype, |Ap Maybe a| has the same internal
 representation as |Maybe a|, and any instance available on one type can
 be made to work on the other by suitably wrapping or unwrapping a newtype.
-In more precise language, |App Maybe a| and |Maybe a| are
+In more precise language, |Ap Maybe a| and |Maybe a| are
 representationally equal.
 
 The |MODULE Data.Monoid| module defines many further
@@ -527,7 +527,7 @@ instance is already available through the |Alt| newtype:%
 > instance Alternative f => Semigroup (Alt f a) where
 >   (<>) = mappend4
 
-Using adapters such as |App| and |Alt|, a vast
+Using adapters such as |Ap| and |Alt|, a vast
 amount of |Monoid| instances that currently have to be defined
 by hand can instead be derived using the |via|
 construct.
@@ -2182,7 +2182,7 @@ no such instance for |IO|. How could one work around this issue?
 \end{itemize}
 
 Luckily, \DerivingVia\ presents a more convenient third option: re-use a
-|Semigroup| instance from \emph{another} data type. Recall the |App|
+|Semigroup| instance from \emph{another} data type. Recall the |Ap|
 data type from Section~\ref{sec:introducingdv} that lets us define a
 |Semigroup| instance by lifting through an |Applicative| instance. As luck would
 have it, |IO| already has an |Applicative| instance, so we can derive the
@@ -2194,7 +2194,7 @@ desired |Semigroup| instance for |Plugin| like so:
 
 > newtype Plugin = MkPlugin (IO (String -> IO ()))
 >  deriving Semigroup
->    via (App IO (String -> App IO ()))
+>    via (Ap IO (String -> Ap IO ()))
 
 % RGS: I'm leaving this off
 % If, like \cite{twist-pointers}
@@ -2222,9 +2222,9 @@ desired |Semigroup| instance for |Plugin| like so:
 % <   deriving (Functor, Applicative) via
 % <     (Compose ((->) Ptr) IO)
 %
-Note that we have to use |App| twice in the |via| type, corresponding
-to the two occurences of |IO| in the |Plugin| type. This is ok, because
-|App IO| has the same representation as |IO|.
+Note that we have to use |Ap| twice in the |via| type, corresponding
+to the two occurences of |IO| in the |Plugin| type. This is OK, because
+|Ap IO| has the same representation as |IO|.
 As desired, we completely bypass the need for a |Semigroup| instance for |IO|.
 
 % %if style == newcode
