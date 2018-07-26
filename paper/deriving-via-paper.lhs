@@ -956,7 +956,7 @@ In particular, the following conditions must hold:
    can only exist for types of kind |TYPE|.
 \end{enumerate}
 
-\subsubsection{Eta-reducing the data type}\label{sec:eta}
+\subsubsection{Shaping the data type}\label{sec:eta}
 
 Note that in the conditions above, we specify
 |D (sub d 1) DOTS (sub d i)| (for some |i|), instead of
@@ -981,15 +981,18 @@ because the code that actually gets generated has the following shape:
 
 < instance Functor Foo where DOTS
 
-To put it differently, we have \emph{eta-reduced} away the |a| in |Foo a| before applying
-|Functor| to it. The power to eta-reduce variables from the data type is part of what
+To put it differently, we have dropped
+\footnote{This bears a close resemblance to eta reduction, although going from
+|forall a. Foo a| to |Foo| is not eta reduction in the usual sense.}
+the |a| in |Foo a| before applying
+|Functor| to it. The power to drop variables from the data type is part of what
 makes deriving clauses so flexible.
 
-To determine how many variables to eta-reduce,
+To determine how many variables to drop,
 we must examine the kind of
 |C (sub c 1) DOTS (sub c n)|, which by condition (1) is of the form
 |(((sub k 1) -> ... -> (sub k r) -> *) -> Constraint)| for some kinds
-|(sub k 1), DOTS, (sub k r)|. Then the number of variables to eta-reduce is simply \(r\),
+|(sub k 1), DOTS, (sub k r)|. Then the number of variables to drop is simply \(r\),
 so to compute the \(i\) in |D (sub d 1) DOTS (sub d i)|, we take \(i = m - r\).
 
 This is better explained by example, so consider the following two scenarios,
@@ -1006,11 +1009,11 @@ both of which typecheck:
 > newtype B b = MkB b deriving Functor  via Identity
 
 In the first example, we have the class |Eq|, which is of kind |TYPE -> Constraint|. The argument
-to |Eq|, which is of kind |TYPE|, does not require that we eta-reduce any variables. As a result,
+to |Eq|, which is of kind |TYPE|, does not require that we drop any variables. As a result,
 we check that |A a| is of kind |TYPE|, which is the case.
 
 In the second example, we have the class |Functor|, which is of kind |(TYPE -> TYPE) -> Constraint|.
-The argument to |Functor| is of kind |(TYPE -> TYPE)|, which requires that we eta-reduce one variable
+The argument to |Functor| is of kind |(TYPE -> TYPE)|, which requires that we drop one variable
 from |B b| to obtain |B|. We then check that |B| is kind of |(TYPE -> TYPE)|, which is true.
 %}
 %}
