@@ -2240,18 +2240,28 @@ As desired, we completely bypass the need for a |Semigroup| instance for |IO|.
 We have demonstrated in the previous section that \DerivingVia\ is an
 extremely versatile technique, and can be used to tackle a wide variety of
 problems. \DerivingVia\ also bears a resemblance to other distinct language
-features, such as ML functors and explicit dictionary passing, so in this
+features which address similar issues, so in this
 section, we present an overview of their similarities and differences.
 
-\subsection{ML functors}
+% \subsection{ML functors}
+%
+% Languages in the ML family, such as Standard ML or OCaml, provide
+% \emph{functors}, which are a feature of the module system that allows
+% writing functions from modules of one signature to modules of another
+% signature. In terms of functionality, functors somewhat closely resemble
+% \DerivingVia, as functors allow ``lifting'' of code into the module
+% language much like \DerivingVia\ allows lifting of code into \GHC's
+% deriving construct.
 
-Languages in the ML family, such as Standard ML or OCaml, provide
-\emph{functors}, which are a feature of the module system that allows
-writing functions from modules of one signature to modules of another
-signature. In terms of functionality, functors somewhat closely resemble
-\DerivingVia, as functors allow ``lifting'' of code into the module
-language much like \DerivingVia\ allows lifting of code into \GHC's
-deriving construct.
+\subsection{Code reuse in dependent type theory}
+Diehl \textit{et al.} present a
+dependent type theory which permits zero-cost conversions between indexed and
+non-indexed variants of data types~\cite{diehl}, much in the
+same vein as |Coercible|. However, these conversions must be
+explicitly constructed with combinators, whereas |Coercible|-based casts
+are built automatically by GHC's constraint solver. Therefore, while Diehl
+\textit{et al.} allow conversions between more data types than \DerivingVia\
+does, it also introduces some amount of boilerplate than \DerivingVia\ avoids.
 
 \subsection{Explicit dictionary passing}
 
