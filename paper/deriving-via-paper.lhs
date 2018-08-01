@@ -550,10 +550,13 @@ We discuss related ideas in Section~\ref{sec:related}, describe
 the current status of our extension in Section~\ref{sec:status}
 and conclude in Section~\ref{sec:conclusions}.
 
-Our extension is fully implemented in a \GHC\
-branch\footnote{\url{https://github.com/RyanGlScott/ghc/tree/deriving-via}},
-and we are working on a proposal to incorporate it into \GHC proper,
-so it will hopefully be available in a future release of \GHC.
+% Our extension is fully implemented in a \GHC\
+% branch\footnote{\url{https://github.com/RyanGlScott/ghc/tree/deriving-via}},
+% and we are working on a proposal to incorporate it into \GHC proper,
+% so it will hopefully be available in a future release of \GHC.
+
+Our extension is fully implemented in GHC and will be present
+in version 8.6.
 
 The idea of \DerivingVia\ is surprisingly simple, yet it has
 a number of powerful and equally surprising properties:
