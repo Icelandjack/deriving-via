@@ -840,9 +840,9 @@ Seeing enough examples of \DerivingVia\ can give the impression that it is
 a somewhat magical feature. In this section, we aim to explain the magic
 underlying \DerivingVia\ by giving a more precise description of:
 \begin{itemize}
- \item How \DerivingVia\ clauses are typechecked.
- \item What code \DerivingVia\ generates behind the scenes.
- \item How to determine the scoping of type variables in \DerivingVia\ clauses.
+ \item how \DerivingVia\ clauses are typechecked,
+ \item what sort of code \DerivingVia\ generates behind the scenes, and
+ \item how to determine the scoping of type variables in \DerivingVia\ clauses.
 \end{itemize}
 
 %{
