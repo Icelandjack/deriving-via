@@ -982,8 +982,6 @@ because the code that actually gets generated has the following shape:
 < instance Functor Foo where DOTS
 
 To put it differently, we have dropped
-\footnote{This bears a close resemblance to eta reduction, although going from
-|forall a. Foo a| to |Foo| is not eta reduction in the usual sense.}
 the |a| in |Foo a| before applying
 |Functor| to it. The power to drop variables from the data type is part of what
 makes deriving clauses so flexible.
@@ -2257,13 +2255,13 @@ section, we present an overview of their similarities and differences.
 % deriving construct.
 
 \subsection{Code reuse in dependent type theory}
-Diehl \textit{et al.} present a
+Diehl \emph{et al.} present a
 dependent type theory which permits zero-cost conversions between indexed and
 non-indexed variants of data types~\cite{diehl}, much in the
 same vein as |Coercible|. However, these conversions must be
 explicitly constructed with combinators, whereas |Coercible|-based casts
 are built automatically by GHC's constraint solver. Therefore, while Diehl
-\textit{et al.} allow conversions between more data types than \DerivingVia\
+\emph{et al.} allow conversions between more data types than \DerivingVia\
 does, it also introduces some amount of boilerplate than \DerivingVia\ avoids.
 
 \subsection{Explicit dictionary passing}
