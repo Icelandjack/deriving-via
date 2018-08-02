@@ -1,9 +1,9 @@
 \documentclass[%
   %format=acmsmall,% 1-column format used by PACMPL
   format=sigplan,% 2-column format used by other SIGPLAN conferences
-  review=true,% review mode / enables line numbers
+  %review=true,% review mode / enables line numbers
   anonymous=false,% enable to remove author names
-  timestamp=true,% adds timestamps to the pages
+  %timestamp=true,% adds timestamps to the pages
   %authordraft=true,% development mode
   ]{acmart}
 
@@ -46,12 +46,14 @@
 
 % Data to be filled in later:
 
-%\acmDOI{...}
-%\acmISBN{...}
-\acmConference[Submitted to Haskell]{Haskell Symposium}{09/2018}{St.~Louis, MO, USA}
-%\acmYear{...}
-%\copyrightyear{...}
-%\acmPrice{...}
+\copyrightyear{2018}
+\acmYear{2018}
+\setcopyright{acmlicensed}
+\acmConference[Haskell '18]{Proceedings of the 11th ACM SIGPLAN International Haskell Symposium}{September 27--28, 2018}{St. Louis, MO, USA}
+\acmBooktitle{Proceedings of the 11th ACM SIGPLAN International Haskell Symposium (Haskell '18), September 27--28, 2018, St. Louis, MO, USA}
+\acmPrice{15.00}
+\acmDOI{10.1145/3242744.3242746}
+\acmISBN{978-1-4503-5835-4/18/09}
 
 %if style == newcode
 
@@ -261,7 +263,7 @@ the Glasgow Haskell Compiler (\GHC):
 These have completely identical instance bodies. The underlying pattern works
 not only for |IO| and |ST s|, but for any applicative functor~|f|.
 
-\pagebreak
+%\pagebreak
 
 It is tempting to avoid this obvious repetition by defining an
 instance for all such types in one fell swoop:
@@ -317,7 +319,7 @@ write the instances for each data type by hand, each one with an
 identical definition (like the instances for |IO a| and |ST s a|),
 which is extremely unsatisfactory:
 
-\pagebreak
+%\pagebreak
 
 \begin{itemize}
 \item It is not obvious that we are instantiating a general principle.
