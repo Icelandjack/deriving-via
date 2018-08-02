@@ -69,16 +69,16 @@ in
   # in a fully reproducable build, but it means changes are not
   # picked up automatically.
   #
-  (haskell.compiler.ghcHEAD.override { version = "8.5.20180605"; })
+  (haskell.compiler.ghcHEAD.override { version = "8.6.0.20180802"; })
     .overrideAttrs
       (old :
         { src = fetchgit-ghc {
             name   = "ghc-head.git"; # store name for the sources
             origin = "git://git.haskell.org/ghc.git"; # primary repo
             url    = "git://github.com/ghc/ghc.git"; # our fork
-            ref    = "refs/heads/master"; # branch we want
-            commit = "8ed8b037fee9611b1c4ef49adb6cf50bbd929a27"; # commit we want
-            sha256 = "089z0znajvx80xvi28kp80dmpd0lmqszwkdnwj9mcasr5yqzdx7i";
+            ref    = "refs/heads/ghc-8.6"; # branch we want
+            commit = "e86db0d59dc2f9d8f4140c6b3052762a1ae82428"; # commit we want
+            sha256 = "1wc03la3vkz6102pw61l0kxg1qrgf3qw6h4y566zgjlk9rlxh6cy";
           };
         }
       )

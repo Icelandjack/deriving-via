@@ -3,8 +3,8 @@ with (import ./nixpkgs.nix) {};
 let
 
   ghc-deriving-via = callPackage ./ghc-deriving-via.nix {};
-  ghc-deriving-via-pkgs = with haskell.lib; haskell.packages.ghcHEAD.override {
-    ghc = ghc-deriving-via;
+  ghc-deriving-via-pkgs = with haskell.lib; haskell.packages.ghc861.override {
+    # ghc = ghc-deriving-via; # no longer using our build because 8.6.1 is in nixpkgs
     overrides = self : super : {
       mkDerivation = args : super.mkDerivation (args // {
         doCheck = false;
