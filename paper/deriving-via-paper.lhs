@@ -560,29 +560,20 @@ construct.
 
 \subsection{Contributions and Structure of the Paper}
 
-The paper is structured as follows:
-%
-In Section~\ref{sec:quickcheck}, we use the \QuickCheck\ library
-as a case study to explain in more detail how \DerivingVia can
-be used, and how it works.
-%
-In Section~\ref{sec:typechecking}, we explain in detail how to
-typecheck and translate \DerivingVia\ clauses.
-%
-In Section~\ref{sec:usecases}, we discuss several additional
-applications of \DerivingVia.
-%
-We discuss related ideas in Section~\ref{sec:related}, describe
-the current status of our extension in Section~\ref{sec:status}
-and conclude in Section~\ref{sec:conclusions}.
+Many hand-written instances that occur in Haskell code are
+in fact instances of similar rules as we have just shown, and
+can be replaced by \DerivingVia. We argue that expressing an
+instance as the instantiation of a rule should be the norm,
+and using a hand-written instance when a rule could be used
+instead should be discouraged, or even be considered an
+anti-pattern.
 
-% Our extension is fully implemented in a \GHC\
-% branch\footnote{\url{https://github.com/RyanGlScott/ghc/tree/deriving-via}},
-% and we are working on a proposal to incorporate it into \GHC proper,
-% so it will hopefully be available in a future release of \GHC.
+Throughout the paper, we provide many additional examples
+of the use of \DerivingVia, starting with a case study using
+the \QuickCheck\ library (Section \ref{sec:quickcheck}).
 
-Our extension is fully implemented in GHC and will be present
-in version 8.6.
+We also provide a detailed explanation of how to typecheck
+and translate \DerivingVia\ clauses (Section \ref{sec:typechecking}).
 
 The idea of \DerivingVia\ is surprisingly simple, yet it has
 a number of powerful and equally surprising properties:
@@ -603,6 +594,9 @@ a number of powerful and equally surprising properties:
   but also between isomorphic or similarly related
   types (Section~\ref{sec:isomorphisms}).
 \end{itemize}
+
+Our extension is fully implemented in GHC and will be present
+in version 8.6.
 
 \section{Case Study: \QuickCheck}\label{sec:quickcheck}
 %if style /= newcode
