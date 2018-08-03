@@ -561,7 +561,7 @@ construct.
 \subsection{Contributions and Structure of the Paper}
 
 Many hand-written instances that occur in Haskell code are
-in fact instances of similar rules as we have just shown, and
+in fact instantiations of similar rules as we have just shown, and
 can be replaced by \DerivingVia. We argue that expressing an
 instance as the instantiation of a rule should be the norm,
 and using a hand-written instance when a rule could be used
