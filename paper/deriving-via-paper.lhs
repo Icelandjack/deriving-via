@@ -2573,7 +2573,9 @@ in all but some rare situations.
 We would like to thank Richard Eisenberg for his
 feedback on Section~\ref{sec:typevariablescoping}, as well as
 the first author's former colleagues
-at Standard Chartered Bank for their feedback.
+at Standard Chartered Bank for their feedback. We also
+thank the anonymous reviewers and Simon Peyton Jones for
+their many insightful suggestions.
 
 \bibliographystyle{includes/ACM-Reference-Format}
 
