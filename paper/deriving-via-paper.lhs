@@ -136,6 +136,10 @@
 %format overlapping (x) = " {-# OVERLAPPING #-} " x
 %endif
 
+\clubpenalty=10000%
+\widowpenalty=10000%
+\displaywidowpenalty=10000%
+
 \begin{document}
 
 \title{Deriving Via}
