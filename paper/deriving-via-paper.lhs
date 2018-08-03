@@ -2064,13 +2064,21 @@ isomorphic to another:
 
 > newtype SameRepAs a b = MkSameRepAs a
 
-Note that the idea here is that |a| and |b| are isomorphic in some sense,
-but only |a| is used as the value of the type. So |SameRepAs a b| is
-inter-|Coercible| with |a|.
+We call this type |SameRepAs|, because it denotes that |a| and |b|
+have inter-|Coercible| generic representations,
+i.e., that
 
-We choose to witness an isomorphism between the two types via
-their generic representations: if two types have
+< Coercible (Rep a ()) (Rep b ())
+
+holds. Furthermore, the type |SameRepAs a b| is
+representationally equal to |a|, which implies that
+|a| and |SameRepAs a b|\linebreak[3]
+are inter-|Coercible|.
+
+We now witness the isomorphism between the two types via
+their generic representations: if they have
 inter-|Coercible| generic representations, we can transform back and forth
+between the two types
 using the |from| and |to| methods of the |Generic| class
 from |GHC.Generics|~\cite{gdmfh}.
 We can use this to define a suitable |Arbitrary| instance for |SameRepAs|:
