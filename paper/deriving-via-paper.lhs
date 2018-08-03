@@ -15,6 +15,7 @@
 \usepackage{hyperref}
 \usepackage{xspace}
 \usepackage[silent]{polytable}
+\usepackage{flushend}
 
 %include general.fmt
 
