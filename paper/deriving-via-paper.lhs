@@ -10,6 +10,7 @@
 % disable the watermark
 % \SetWatermarkText{}%
 
+\usepackage[T1]{fontenc}
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{xspace}

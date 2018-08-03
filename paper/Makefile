@@ -16,7 +16,7 @@ GHCI = ghci
 	lhs2TeX -P$(INCLUDE_DIR): --newcode -o $@ $<
 
 %.pdf : %.tex force
-	TEXINPUTS=$(INCLUDE_DIR): latexmk $(LATEXMK_FLAGS) -xelatex -output-directory=$(OUTPUT_DIR) $<
+	TEXINPUTS=$(INCLUDE_DIR): latexmk $(LATEXMK_FLAGS) -lualatex -output-directory=$(OUTPUT_DIR) $<
 	ln -sf $(OUTPUT_DIR)/$@ .
 
 default : $(DEFAULT).pdf
