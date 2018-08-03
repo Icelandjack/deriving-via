@@ -735,7 +735,14 @@ with a corresponding |Arbitrary| instance:
 >   arbitrary = coerce @(Gen (QC.Large a)) @(Gen (Large a)) arbitrary
 
 %endif
-For our |Duration| type, we can easily write
+For our |Duration| type, we can easily write\footnote{%
+Here and in many later places, we use |deriving| clauses in isolation,
+in order to highlight the part of the syntax we are focusing on and to
+not repeat |data| or |newtype| unnecessarily often. It is still understood
+that the |deriving| clause is syntactically attached to the data type
+declaration mentioned in the text -- in this case, |Duration|. Our
+extension is also compatible with @StandaloneDeriving@, which is briefly
+discussed in Section~\ref{sec:status}.}
 %if style == newcode
 %format Duration = Duration3
 %format MkDuration = MkDuration3
