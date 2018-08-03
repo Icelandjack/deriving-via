@@ -558,7 +558,7 @@ amount of |Monoid| instances that currently have to be defined
 by hand can instead be derived using the |via|
 construct.
 
-\subsection{Contributions and structure of the paper}
+\subsection{Contributions and Structure of the Paper}
 
 The paper is structured as follows:
 %
@@ -604,7 +604,7 @@ a number of powerful and equally surprising properties:
   types (Section~\ref{sec:isomorphisms}).
 \end{itemize}
 
-\section{Case study: \QuickCheck}\label{sec:quickcheck}
+\section{Case Study: \QuickCheck}\label{sec:quickcheck}
 %if style /= newcode
 %format Arbitrary = "\cl{Arbitrary}"
 %format arbitrary = "\id{arbitrary}"
@@ -758,7 +758,7 @@ This works because |Duration| still shares the same runtime representation as
 |NonNegative (Large Int)| (namely, that of~|Int|), so the latter's
 |Arbitrary| instance can be reused.
 
-\subsection{Adding new modifiers}
+\subsection{Adding New Modifiers}
 
 Of course, we can add add our own modifiers if the set of predefined modifiers
 is not sufficient. For example, it is difficult to provide a completely generic
@@ -809,7 +809,7 @@ enumeration type:
 >   deriving (Enum, Bounded)
 >   deriving Arbitrary via (BoundedEnum Weekday)
 
-\subsection{Parameterized modifiers}
+\subsection{Parameterized Modifiers}
 
 Sometimes, we might want to parameterize a generator with extra data.
 We can do so by defining a modifier that has extra arguments and using
@@ -860,7 +860,7 @@ a generator that lies within a plausible range:
 In general, we can use this technique of adding extra parameters to a newtype
 to support additional ways to configure the behavior of derived instances.
 
-\section{Typechecking and translation}\label{sec:typechecking}
+\section{Typechecking and Translation}\label{sec:typechecking}
 
 Seeing enough examples of \DerivingVia\ can give the impression that it is
 a somewhat magical feature. In this section, we aim to explain the magic
@@ -917,7 +917,7 @@ To avoid clutter, we assume that all types have monomorphic kinds. However, it
 is easy to incorporate kind polymorphism~\cite{haskell-promotion}, and our
 implementation of these ideas in \GHC\ does so.
 
-\subsection{Well-typed uses of \DerivingVia}
+\subsection{Well-Typed Uses of \DerivingVia}
 
 \DerivingVia\ grants the programmer the ability to put extra types in her programs,
 but the flip side to this is that it is possible for her to accidentally put total nonsense
@@ -933,7 +933,7 @@ into a \DerivingVia\ clause, such as:
 In this section, we describe a general algorithm for when a \DerivingVia\ clause should
 typecheck, which will allow us to reject ill-formed examples like the one above.
 
-\subsubsection{Aligning kinds} \label{sec:kinds}
+\subsubsection{Aligning Kinds} \label{sec:kinds}
 
 Suppose we are deriving the following instance:
 
@@ -985,7 +985,7 @@ In particular, the following conditions must hold:
    can only exist for types of kind |TYPE|.
 \end{enumerate}
 
-\subsubsection{Shaping the data type}\label{sec:eta}
+\subsubsection{Shaping the Data Type}\label{sec:eta}
 
 Note that in the conditions above, we specify
 |D (sub d 1) DOTS (sub d i)| (for some |i|), instead of
@@ -1045,14 +1045,14 @@ from |B b| to obtain |B|. We then check that |B| is kind of |(TYPE -> TYPE)|, wh
 %}
 %}
 
-\subsection{Code generation}
+\subsection{Code Generation}
 
 Once the typechecker has ascertained that a |via| type is fully compatible with the data type
 and the class for which an instance is being derived, \GHC\ proceeds with generating the code
 for the instance itself. This generated code is then fed \emph{back} into the typechecker,
 which acts as a final sanity check that \GHC\ is doing the right thing under the hood.
 
-\subsubsection{Generalized newtype deriving (\GND)} \label{sec:gnd}
+\subsubsection{Generalized Newtype Deriving (\GND)} \label{sec:gnd}
 
 The process by which \DerivingVia\ generates code is heavily based off of the approach that
 \GND\ takes, so it is informative to first explain how
@@ -1142,7 +1142,7 @@ The only interesting part is generating the two explicit type arguments~\cite{vt
 that are being used to specify the source type (using the representation type)
 and the target type (using the newtype) of |coerce|.
 
-\subsubsection{The |Coercible| constraint} \label{sec:coercible}
+\subsubsection{The |Coercible| Constraint} \label{sec:coercible}
 
 A |Coercible| constraint can be thought of as evidence that \GHC\ can use to
 cast between two types. |Coercible| is not a type class, so it is impossible to write
@@ -1252,7 +1252,7 @@ could equivalently have been written using \DerivingVia\ like so:
 
 < newtype Age = MkAge Int deriving Enum via Int
 
-\subsection{Type variable scoping}\label{sec:typevariablescoping}
+\subsection{Type Variable Scoping}\label{sec:typevariablescoping}
 
 In the remainder of this section, we present an overview of how type
 variables are bound in \DerivingVia\ clauses, and over what types they scope.
@@ -1260,7 +1260,7 @@ variables are bound in \DerivingVia\ clauses, and over what types they scope.
 it introduces a new place where type variables can be \emph{quantified}, so
 it takes some amount of care to devise a consistent treatment for it.
 
-\subsubsection{Binding sites}
+\subsubsection{Binding Sites}
 
 Consider the following example:
 %if style /= newcode
@@ -1297,7 +1297,7 @@ Where is each type variable quantified?
 In other words, the order of scoping starts at the |data| declaration, then the
 |via| type, and then the derived classes associated with that |via| type.
 
-\subsubsection{Establishing order}
+\subsubsection{Establishing Order}
 
 This scoping order may seem somewhat surprising, as one might expect the
 type variables bound by the derived classes to scope over the |via| type
@@ -1494,7 +1494,7 @@ this choice would force programmers to write additional parentheses.
 %
 % This approach uses an explicit TODO RGS
 
-\section{More use cases}\label{sec:usecases}
+\section{More Use Cases}\label{sec:usecases}
 
 We have already seen in Section~\ref{sec:quickcheck} how \DerivingVia\
 facilitates greater code reuse in the context of \QuickCheck. This is far from
@@ -1524,7 +1524,7 @@ abstract over them in a convenient way.
 %       (Section~\ref{sec:isomorphisms}).
 % \end{itemize}
 
-\subsection{Asymptotic improvements with ease}\label{sec:asymptotic}
+\subsection{Asymptotic Improvements with Ease}\label{sec:asymptotic}
 %if style /= newcode
 %format Rep = "\ty{Rep}"
 %format Type = "\ki{Type}"
@@ -1798,7 +1798,7 @@ Parallel Legacy Languages as Theorem Provers (deriving
 \url{Discuss ideas here https://www.reddit.com/r/haskell/comments/6udl0i/representable_functors_parameterised_by/}
 %endif
 
-\subsection{Making defaults more flexible}\label{sec:defaultsignatures}
+\subsection{Making Defaults more Flexible}\label{sec:defaultsignatures}
 %if style == newcode
 %format Rep = "GHC.Rep"
 %endif
@@ -2012,7 +2012,7 @@ author is hesitant to add a default because that might incur an
 unwanted additional dependency, nothing is lost, and the default can
 simply be added in a separate package.
 
-\subsection{Deriving via isomorphisms}\label{sec:isomorphisms}
+\subsection{Deriving via Isomorphisms}\label{sec:isomorphisms}
 %if style /= newcode
 %format Track = "\ty{Track}"
 %format MkTrack = "\con{Track}"
@@ -2117,7 +2117,7 @@ to obtain the desired |Arbitrary| instance:
 With this technique, we can significantly expand the ``equivalence classes''
 of data types that can be used when picking suitable types to derive through.
 
-\subsection{Retrofitting superclasses}\label{sec:superclasses}
+\subsection{Retrofitting Superclasses}\label{sec:superclasses}
 %if style /= newcode
 %format FromMonad = "\ty{FromMonad}"
 %format MkFromMonad = "\con{FromMonad}"
@@ -2182,7 +2182,7 @@ not have any way to define |pure|.
 to relax the constraints of |liftM| and |ap| to merely |Applicative| and to
 change their definitions to be identical to |fmap| and |(<*>)|, respectively.}
 
-\subsection{Avoiding orphan instances}\label{sec:orphaninstances}
+\subsection{Avoiding Orphan Instances}\label{sec:orphaninstances}
 
 Not only can \DerivingVia\ quickly procure class instances, in some
 cases, it can eliminate the need for certain instances altogether.
@@ -2283,7 +2283,7 @@ section, we present an overview of their similarities and differences.
 % language much like \DerivingVia\ allows lifting of code into \GHC's
 % deriving construct.
 
-\subsection{Code reuse in dependent type theory}
+\subsection{Code Reuse in Dependent Type Theory}
 Diehl \emph{et al.} present a
 dependent type theory which permits zero-cost conversions between indexed and
 non-indexed variants of data types~\cite{diehl}, much in the
@@ -2293,7 +2293,7 @@ are built automatically by GHC's constraint solver. Therefore, while Diehl
 \emph{et al.} allow conversions between more data types than \DerivingVia\
 does, it also introduces some amount of boilerplate than \DerivingVia\ avoids.
 
-\subsection{Explicit dictionary passing}
+\subsection{Explicit Dictionary Passing}
 
 The power and flexibility of \DerivingVia\ is largely due to \GHC's ability
 to take a class method of a particular type and massage it into a method
@@ -2321,7 +2321,7 @@ solve---resolving ambiguity in implicit arguments---almost never arises
 in \DerivingVia, as the programmer must specify all the types involved
 in the process.
 
-\section{Current status}\label{sec:status}
+\section{Current Status}\label{sec:status}
 
 We have implemented \DerivingVia\ within \GHC.
 Our implementation also interacts well with other \GHC\ features that were
@@ -2331,7 +2331,7 @@ not covered in this paper, such as kind polymorphism ~\cite{haskell-promotion},
 However, there are still challenges remaining, which we describe
 in this section.
 
-\subsection{Quality of error messages}
+\subsection{Quality of Error Messages}
 
 The nice thing about |deriving| is that when it works, it tends to work
 extremely well. When it \emph{doesn't} work, however, it can be challenging
