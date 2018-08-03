@@ -2446,9 +2446,9 @@ For example, one can write the following instance using
 >
 > deriving via () instance Triple A B C
 
-However, the code it generates is somewhat surprising. Instead of reusing
-the |Triple () () ()| instance in the derived instance, it will attempt
-to reuse an instance for |Triple A B ()|. This is because, by convention,
+However, the code this generates is somewhat surprising. Instead of reusing
+the |Triple () () ()| instance in the derived instance, \GHC\ will attempt
+to reuse an instance for the type |Triple A B ()|. The reason is that, by convention,
 \StandaloneDeriving\ will only ever coerce through the \emph{last}
 argument of a class. That is because the standalone instance above would be
 the same as if a user had written:
