@@ -976,10 +976,10 @@ In particular, the following conditions must hold:
    with other forms of |deriving| as well.}
    we must generate,
 
-< instance C (sub c 1) DOTS (sub c n) (V (sub v 1) DOTS (sub v p)) =>
-<          C (sub c 1) DOTS (sub c n) (D (sub d 1) DOTS (sub d i)) where DOTS
+< instance  C (sub c 1) DOTS (sub c n) (V (sub v 1) DOTS (sub v p)) =>
+<           C (sub c 1) DOTS (sub c n) (D (sub d 1) DOTS (sub d i)) where DOTS
 
-   requires that we can apply |C (sub c 1) DOTS (sub c n)| to the types
+   requires that we can apply |C (sub c 1) DOTS (sub c n)| to the types\linebreak[3]
    |V (sub v 1) DOTS (sub v p)| and
    |D (sub d 1) DOTS (sub d i)| (where \(i = m - r\), see Section~\ref{sec:eta}).
    Therefore, it would be nonsense to try to derive an instance of |C (sub c 1) DOTS (sub c n)|
