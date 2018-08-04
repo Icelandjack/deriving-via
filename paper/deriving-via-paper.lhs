@@ -968,17 +968,25 @@ In particular, the following conditions must hold:
    The type |C (sub c 1) DOTS (sub c n)| must be of kind
    |((sub k 1) -> DOTS -> (sub k r) -> TYPE) -> Constraint| for some kinds
    |(sub k 1), DOTS, (sub k r)|.
-   The reason is that the instance we must generate,
+   The reason is that the instance
+   ~\footnote{Technically, the context that is produced is not
+   |C (sub c 1) DOTS (sub c n) (V (sub v 1) DOTS (sub v p))|, but instead the
+   residual constraints that are produced from GHC's constraint solver after
+   simplifying that context. This is a property that \DerivingVia\ shares
+   with other forms of |deriving| as well.}
+   we must generate,
 
-< instance C (sub c 1) DOTS (sub c n) (D (sub d 1) DOTS (sub d i)) where DOTS
+< instance C (sub c 1) DOTS (sub c n) (V (sub v 1) DOTS (sub v p)) =>
+<          C (sub c 1) DOTS (sub c n) (D (sub d 1) DOTS (sub d i)) where DOTS
 
-   requires that we can apply |C (sub c 1) DOTS (sub c n)| to another type
+   requires that we can apply |C (sub c 1) DOTS (sub c n)| to the types
+   |V (sub v 1) DOTS (sub v p)| and
    |D (sub d 1) DOTS (sub d i)| (where \(i = m - r\), see Section~\ref{sec:eta}).
    Therefore, it would be nonsense to try to derive an instance of |C (sub c 1) DOTS (sub c n)|
-   if it had kind, say, |Constraint|.
+   if it had kind, say, |Constraint|, since it couldn't be applied as above.
 
  \item
-   The kinds |V (sub v 1) DOTS (sub v p)| and |D (sub d 1) DOTS (sub d i)|, and the
+   The kinds of |V (sub v 1) DOTS (sub v p)| and |D (sub d 1) DOTS (sub d i)|, and the
    kind of the argument to |C (sub c 1) DOTS (sub c n)| must all unify.
    This check rules out the above example of |deriving Eq via Maybe|, as it does
    not even make sense to talk about
