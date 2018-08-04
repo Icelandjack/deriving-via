@@ -1168,7 +1168,7 @@ this would mean that \GHC\ would be able to conclude that:
 < instance Coercible Int Age
 
 But this is not all that |Coercible| is capable of. A key property is that \GHC's constraint
-solver can look inside of other type constructors when determining if two types are
+solver can look inside other type constructors when determining whether two types are
 inter-|Coercible|. For instance, both of these statements hold:
 
 < instance Coercible (Age -> [Age]) (Int -> [Int])
