@@ -759,7 +759,7 @@ This works because |Duration| still shares the same runtime representation as
 |NonNegative (Large Int)| (namely, that of~|Int|), so the latter's
 |Arbitrary| instance can be reused.
 
-\subsection{Adding New Modifiers}
+\subsection{Adding New Modifiers}\label{sec:new-modifiers}
 
 Of course, we can add add our own modifiers if the set of predefined modifiers
 is not sufficient. For example, it is difficult to provide a completely generic
@@ -1252,6 +1252,10 @@ those that \GND\ can generate. For instance, our earlier
 could equivalently have been written using \DerivingVia\ like so:
 
 < newtype Age = MkAge Int deriving Enum via Int
+
+Unlike \GND, which is only suitable for deriving instances for newtypes,
+\DerivingVia\ can derive instances for data types and newtypes alike (see
+|Weekday| in Section \ref{sec:new-modifiers} for one example of a data type).
 
 \subsection{Type Variable Scoping}\label{sec:typevariablescoping}
 
