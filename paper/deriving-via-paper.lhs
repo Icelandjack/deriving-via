@@ -1,7 +1,7 @@
 \documentclass[%
   %format=acmsmall,% 1-column format used by PACMPL
   format=sigplan,% 2-column format used by other SIGPLAN conferences
-  %review=true,% review mode / enables line numbers
+  review=true,% review mode / enables line numbers
   anonymous=false,% enable to remove author names
   %timestamp=true,% adds timestamps to the pages
   %authordraft=true,% development mode
@@ -2248,11 +2248,17 @@ desired |Semigroup| instance for |Plugin| like so:
 %if style == newcode
 %format Plugin = Plugin2
 %format MkPlugin = MkPlugin2
+
+> newtype IO' a = MkIO (IO a)
+>   deriving (Functor, Applicative)
+
+%else
+%format IO' = IO
 %endif
 
-> newtype Plugin = MkPlugin (IO (String -> IO ()))
+> newtype Plugin = MkPlugin (IO' (String -> IO' ()))
 >  deriving Semigroup
->    via (Ap IO (String -> Ap IO ()))
+>    via (Ap IO' (String -> Ap IO' ()))
 
 % RGS: I'm leaving this off
 % If, like \cite{twist-pointers}
@@ -2281,9 +2287,16 @@ desired |Semigroup| instance for |Plugin| like so:
 % <     (Compose ((->) Ptr) IO)
 %
 Note that we have to use |Ap| twice in the |via| type, corresponding
-to the two occurences of |IO| in the |Plugin| type. This is OK, because
-|Ap IO| has the same representation as |IO|.
-As desired, we completely bypass the need for a |Semigroup| instance for |IO|.
+to the two occurences of |IO| in the |Plugin| type. This is possible
+because |Ap IO| has the same representation as |IO|, and it is also
+necessary if we want to completely bypass the need for a |Semigroup|
+instance for |IO|: Via the inner |Ap IO' ()| and the existing
+
+< instance Semigroup b => Semigroup (a -> b)
+
+we first obtain a |Semigroup| instance for |String -> IO' ()|, which
+we then via the outer |Ap IO'| application lift to |IO' (String -> IO' ())|
+and therefore the |Plugin| type.
 
 % %if style == newcode
 %
