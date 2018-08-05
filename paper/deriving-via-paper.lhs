@@ -1006,6 +1006,7 @@ Note that in the conditions above, we specify
 |D (sub d 1) DOTS (sub d m)|. That is because in general, the kind of the argument to
 |C (sub c 1) DOTS (sub c n)| is allowed to be different from the kind of
 |D (sub d 1) DOTS (sub d m)|! For instance, the following example is perfectly legitimate:
+\pagebreak[2]%
 %if style == newcode
 %format DDOTS =
 %else
