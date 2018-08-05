@@ -1948,7 +1948,8 @@ to just
 %
 
 Although \DefaultSignatures\ remove the need for many occurrences of
-boilerplate code, it also imposes a significant limitation: every class
+boilerplate code, it also retains a significant limitation of Haskell
+default methods: every class
 method can have at most one default implementation. As a result,
 \DefaultSignatures\ effectively endorse one default implementation as the
 canonical one. But in many scenarios, there is far more than just one way to
