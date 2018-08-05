@@ -25,4 +25,16 @@ ghci : $(DEFAULT).ghci
 
 ghcid : $(DEFAULT).ghcid
 
+submission :
+	mkdir deriving-via-submit
+	cp deriving-via-paper.cabal deriving-via-submit
+	cp deriving-via-paper.hs deriving-via-submit
+	cp deriving-via-paper.lhs deriving-via-submit
+	cp deriving-via-paper.tex deriving-via-submit
+	cp -r includes deriving-via-submit
+	cp Makefile deriving-via-submit
+	cp shell.nix deriving-via-submit
+	cp refs.bib deriving-via-submit
+	zip -r deriving-via-submit.zip deriving-via-submit
+
 .PHONY : force default ghci ghcid
