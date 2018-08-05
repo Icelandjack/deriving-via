@@ -553,6 +553,11 @@ instance is already available through the |Alt| newtype:%
 > instance Alternative f => Semigroup (Alt f a) where
 >   (<>) = mappend4
 
+Note that while |Alt| has the same definition as |Ap|, its
+|Monoid| instance is different, and by naming the type in a
+|via| clause, we can explicitly select the instance we are
+interested in.
+
 Using adapters such as |Ap| and |Alt|, a vast
 amount of |Monoid| instances that currently have to be defined
 by hand can instead be derived using the |via|
