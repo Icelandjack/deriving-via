@@ -1380,11 +1380,11 @@ tradition pioneered by |where| clauses.
 One alternative idea (which was briefly considered) was to put the |via| type
 \emph{before} the derived classes so as to avoid this ``zigzagging'' scoping.
 However, this would introduce additional ambiguities. Imagine one were to
-take this example:
+take the example
 
 < ??deriving Z via X Y
 
-And convert it to a form in which the |via| type came first:
+and convert it to a form in which the |via| type came first:
 
 < ??deriving via X Y Z
 
@@ -2291,12 +2291,13 @@ Note that we have to use |Ap| twice in the |via| type, corresponding
 to the two occurences of |IO| in the |Plugin| type. This is possible
 because |Ap IO| has the same representation as |IO|, and it is also
 necessary if we want to completely bypass the need for a |Semigroup|
-instance for |IO|: Via the inner |Ap IO' ()| and the existing
+instance for |IO|: Via the inner |Ap IO' ()|\linebreak[3]
+and the existing instance
 
 < instance Semigroup b => Semigroup (a -> b)
 
 we first obtain a |Semigroup| instance for |String -> IO' ()|, which
-we then via the outer |Ap IO'| application lift to |IO' (String -> IO' ())|
+we then, via the outer |Ap IO'| application, lift to |IO' (String -> IO' ())|
 and therefore the |Plugin| type.
 
 % %if style == newcode
