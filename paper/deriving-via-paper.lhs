@@ -5,6 +5,7 @@
   anonymous=false,% enable to remove author names
   %timestamp=true,% adds timestamps to the pages
   %authordraft=true,% development mode
+  screen
   ]{acmart}
 
 % disable the watermark
