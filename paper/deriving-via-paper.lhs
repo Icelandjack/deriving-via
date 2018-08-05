@@ -1069,9 +1069,9 @@ which acts as a final sanity check that \GHC\ is doing the right thing under the
 \subsubsection{Generalized Newtype Deriving (\GND)} \label{sec:gnd}
 
 The process by which \DerivingVia\ generates code is heavily based off of the approach that
-\GND\ takes, so it is informative to first explain how
+generalized newtype deriving (\GND) takes, so it is informative to first explain how
 \GND\ works. From there, \DerivingVia\ is a straightforward
-generalization---so much so that \DerivingVia\ could be thought of as
+generalization---so much so that \DerivingVia\ can be thought of as
 ``generalized \GND''.
 
 Our running example in this section will be the newtype |Age|, which is a simple
