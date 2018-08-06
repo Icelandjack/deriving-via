@@ -162,18 +162,21 @@
 \begin{document}
 
 \title{Deriving Via}
-\subtitle{or, How to Turn Hand-Written Instances into an Anti-Pattern}
+\subtitle{or, How to Turn Hand-Written Instances into an Anti-pattern}
 \author{Baldur Blöndal}
+\email{baldurpet@@gmail.com}
 \affiliation{
 }
 \author{Andres Löh}
 \affiliation{
   \institution{Well-Typed LLP}
 }
+\email{andres@@well-typed.com}
 \author{Ryan Scott}
 \affiliation{
   \institution{Indiana University}
 }
+\email{rgscott@@indiana.edu}
 
 \begin{abstract}
 
@@ -2442,7 +2445,7 @@ quality, given that the error messages are a result of |coerce| failing to
 typecheck. It is likely that investing more effort into making |coerce|'s
 error messages easier to understand would benefit \DerivingVia\ as well.
 
-\subsection{Multi-Parameter Type Classes}
+\subsection{Multi-parameter Type Classes}
 
 GHC extends Haskell by permitting type classes with more than one parameter.
 Multi-parameter type classes are extremely common in modern Haskell, to the
